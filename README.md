@@ -35,12 +35,12 @@ Usage:
 		...
 
 		void setup() {
-	  	ds::System::begin();   // Could be omitted for some capabilities
+	  		ds::System::begin();   // Could be omitted for some capabilities
 	  	...
 		}
 
 		void loop() {
-	  	ds::System::update();  // Could be omitted for some capabilities
+	  		ds::System::update();  // Could be omitted for some capabilities
 	  	...
 		}
 
@@ -84,4 +84,4 @@ Output when run:
 	0000007974: System clock set: 2020/10/08 23:30:50
 	Current time: 2020/10/08 23:30:50
 
-For detailed information and examples, see Wiki pages.
+For detailed information and examples see Wiki pages.
