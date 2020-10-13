@@ -26,7 +26,7 @@ Most features rely on excellent libraries provided on GitHub and make just a thi
 
 Usage:
 ------
-1. Download the latest release locally (installation via Arduino Library Manager is not supported - [see why](https://github.com/denis-stepanov/esp-ds-system/wiki/Design));
+1. Download the latest release locally (installation via Arduino Library Manager is not supported - [see why](https://github.com/denis-stepanov/esp-ds-system/wiki/Design#use-of-c-preprocessor));
 2. Copy files System.h, System.cpp and MySystem.h from src/ into your sketch folder;
 3. Uncomment the desired features in MySystem.h;
 4. Add the following lines in your sketch (.ino):
