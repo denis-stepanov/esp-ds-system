@@ -22,6 +22,7 @@
 
 // #define DS_TIMEZONE TZ_Europe_Paris       // Timezone if system time is used
 // #define DS_LED_VS_SERIAL_CHECKED_OK       // Define if both LED and Serial are used in your sketch in non-conflicting way
+// #define BUTTON_BUILTIN 0                  // Define if your button is connected to GPIO other than 0
 
 #include "System.h"         // DS-System global definitions
 
