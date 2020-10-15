@@ -5,7 +5,7 @@ Supported features (aka "system capabilities"):
 * [Application identification](https://github.com/denis-stepanov/esp-ds-system/wiki/DS_CAP_APP_ID)
 * [Application log with log browser and automatic log rotation](https://github.com/denis-stepanov/esp-ds-system/wiki/DS_CAP_APP_LOG)
 * [Syslog on hardware serial line](https://github.com/denis-stepanov/esp-ds-system/wiki/DS_CAP_SYS_LOG_HW)
-* [Builtin LED](https://github.com/denis-stepanov/esp-ds-system/wiki/) (supported by [JLed](https://github.com/jandelgado/jled))
+* [Builtin LED](https://github.com/denis-stepanov/esp-ds-system/wiki/DS_CAP_SYS_LED) (supported by [JLed](https://github.com/jandelgado/jled))
 * [Builtin button](https://github.com/denis-stepanov/esp-ds-system/wiki/DS_CAP_BUTTON) (where available) (supported by [AceButton](https://github.com/bxparks/AceButton))
 * [Information on reset reason](https://github.com/denis-stepanov/esp-ds-system/wiki/DS_CAP_SYS_RESET)
 * [RTC memory](https://github.com/denis-stepanov/esp-ds-system/wiki/DS_CAP_SYS_RTCMEM)
