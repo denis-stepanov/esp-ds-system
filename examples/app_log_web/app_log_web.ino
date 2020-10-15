@@ -13,8 +13,7 @@ const char *System::wifi_pass = "myPassword";         // Network password
 
 void setup() {
   System::begin();
-  System::log->printf("Application log configured for max size %zu bytes\n", System::app_log_size_max * 2);
-  // x2 because logs get rotated, and we keep the last rotated copy
+  System::log->printf("Application log configured for max size %zu bytes\n", System::app_log_size_max);
 
   // Wait a few sec to get the time sync, so that timestamps in the log make sense
   delay(3000);
