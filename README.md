@@ -20,14 +20,15 @@ Supported features (aka "system capabilities"):
 
 Capabilities may have synergy; e.g., if you activate both 'time' and 'network', time will be automatically sync from NTP. And if you add a 'led' on top, Wi-Fi connection process will be signalled with LED.
 
-Most features rely on [ESP8266 Arduino Core](https://github.com/esp8266/Arduino) or several other excellent libraries from GitHub, and make just a thin interface on top. Library objects are deliberately declared `public`, so you have full access to the native interface, should you need it. Few things I haven't found a good support and implemented myself:
+Most features rely on [ESP8266 Arduino Core](https://github.com/esp8266/Arduino) or several other excellent libraries from GitHub, and make just a thin interface on top. Library objects are deliberately declared `public`, so you have full access to the native interface, should you need it. Few things I haven't found a good support for and implemented myself:
+* application identification;
 * application logger with log rotation and decent web browsing;
 * "about" web page listing many ESP8266 runtime details (memory, file system, time status, ...).
 
 Usage:
 ------
 1. Download the latest release locally (installation via Arduino Library Manager is not supported - [see why](https://github.com/denis-stepanov/esp-ds-system/wiki/Design#use-of-c-preprocessor));
-2. Copy files `System.h`, `System.cpp` and `MySystem.h` from `src/` into your sketch folder;
+2. Copy files `System.h`, `System.cpp` and `MySystem.h` from `src/` into your sketch folder. Reopen sketch in Arduino if you had it opened.
 3. Uncomment the desired features in `MySystem.h`;
 4. Add the following lines in your sketch (.ino):
 
