@@ -8,7 +8,6 @@
 using namespace ds;
 
 // Set network parameters
-const char *System::hostname  = "myNodeMCU";          // My hostname
 const char *System::wifi_ssid = "mySSID";             // Network SSID
 const char *System::wifi_pass = "myPassword";         // Network password
 
