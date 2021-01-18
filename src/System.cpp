@@ -953,8 +953,7 @@ void System::begin() {
 
 #ifdef DS_CAP_MDNS
 #ifdef DS_CAP_SYS_LOG
-  log->printf(TIMED("Starting mDNS service... "));
-  log->printf(TIMED("Hostname is: %s"), hostname);
+  log->printf(TIMED("Starting mDNS service for %s.local... "), hostname);
 #endif // DS_CAP_SYS_LOG
   MDNS.begin(hostname);
 #ifdef DS_CAP_SYS_LOG
