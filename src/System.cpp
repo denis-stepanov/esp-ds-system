@@ -507,9 +507,9 @@ void System::pushHTMLHeader(const String& title, const String& head_user, bool r
   web_page += F(
     "</title>\n"
     "<meta charset=\"UTF-8\"/>\n"
-    "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n");
+    "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/>\n");
   if (redirect)
-    web_page += F("<meta http-equiv=\"Refresh\" content=\"5; /\" />\n");
+    web_page += F("<meta http-equiv=\"Refresh\" content=\"5; /\"/>\n");
 #ifdef DS_CAP_SYS_FS
   if (fs.exists(FAV_ICON_PATH)) {
     web_page += F("<link rel=\"icon\" type=\"image/png\" href=\"");
