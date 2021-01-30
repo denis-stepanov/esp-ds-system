@@ -26,16 +26,18 @@ void setup() {
     struct tm *tinfo = localtime(&new_time);
     Timer my_timer(tinfo->tm_hour, tinfo->tm_min);
     System::timers.push_front(my_timer);
-    System::log->printf(TIMED("Timer %hhu set to fire every day at %02dh%02dm\n"), n, tinfo->tm_hour, tinfo->tm_min);
+    System::log->printf("Timer %hhu set to fire every day at %02dh%02dm\n", n, tinfo->tm_hour, tinfo->tm_min);
   }
 }
 
 void loop() {
+
+  // Just display current time periodically to see when the timer fires
   new_time = System::getTime();
   if (new_time != old_time) {
     old_time = new_time;
-    struct tm *tinfo = localtime(&new_time);
-    System::log->printf(TIMED("Current time: %02d:%02d:%02d\n"), tinfo->tm_hour, tinfo->tm_min, tinfo->tm_sec);
+    System::log->println(System::getTimeStr());
   }
+
   System::update();
 }
