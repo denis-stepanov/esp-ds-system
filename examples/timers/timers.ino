@@ -24,9 +24,10 @@ void setup() {
   for (uint8_t n = 1; n <= 2; n++) {
     new_time += 60;
     struct tm *tinfo = localtime(&new_time);
-    Timer my_timer(n, tinfo->tm_hour, tinfo->tm_min);
+    Timer my_timer(n, n == 1 ? "lamp on" : "lamp off", tinfo->tm_hour, tinfo->tm_min);
     System::timers.push_front(my_timer);
-    System::log->printf("Timer %d set to fire every day at %02dh%02dm\n", my_timer.getID(), my_timer.getHour(), my_timer.getMinute());
+    System::log->printf("Timer %d \"%s\" set to fire every day at %02dh%02dm\n",
+      my_timer.getID(), my_timer.getLabel().c_str(), my_timer.getHour(), my_timer.getMinute());
   }
 }
 
