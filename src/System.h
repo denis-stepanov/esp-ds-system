@@ -97,11 +97,13 @@ namespace ds {
   class Timer {
 
     protected:
+      int id;                                         // Timer identifier
       struct tm time;                                 // Timer time as provided by user
       bool active;                                    // True if timer should be served
 
     public:
-      Timer(const uint8_t hour = 0, const uint8_t minute = 0, const uint8_t dow = 7, const bool active = true); // Constructor
+      Timer(const int id = 0, const uint8_t hour = 0, const uint8_t minute = 0, const uint8_t dow = 7, const bool active = true); // Constructor
+      int getID() const;                              // Return timer identifier
       int getHour() const;                            // Return hour setting
       int getMinute() const;                          // Return minute setting
       bool isActive() const;                          // Return true if timer is active

@@ -853,8 +853,13 @@ bool System::timers_active = true;
 std::forward_list<Timer> System::timers;
 
 // Timer constructor
-Timer::Timer(const uint8_t hour, const uint8_t minute, const uint8_t dow, const bool _active) :
-  time({0, minute, hour, 0, 0, 0, dow, 0, 0}), active(_active) {}
+Timer::Timer(const int _id, const uint8_t hour, const uint8_t minute, const uint8_t dow, const bool _active) :
+  id(_id), time({0, minute, hour, 0, 0, 0, dow, 0, 0}), active(_active) {}
+
+// Return timer identifier
+int Timer::getID() const {
+  return id;
+}
 
 // Return hour setting
 int Timer::getHour() const {
@@ -1089,7 +1094,7 @@ void System::update() {
       struct tm *tinfo = localtime(&new_time);
       for (auto it = timers.cbegin(); it != timers.cend(); it++)
         if (it->isActive() && it->getHour() == tinfo->tm_hour && it->getMinute() == tinfo->tm_min && tinfo->tm_sec == 0) {
-          log->println("Timer fired!");
+          log->printf("Timer %d fired!\n", it->getID());
         }
     }
   }
