@@ -862,24 +862,64 @@ int Timer::getID() const {
   return id;
 }
 
+// Set timer identifier
+void Timer::setID(const int new_id) {
+  id = new_id;
+}
+
 // Return timer label
 const String& Timer::getLabel() const {
   return label;
 }
 
+// Set timer label
+void Timer::setLabel(const String& new_label) {
+  label = new_label;
+}
+
 // Return hour setting
-int Timer::getHour() const {
+uint8_t Timer::getHour() const {
   return time.tm_hour;
 }
 
+// Set hour setting
+void Timer::setHour(const uint8_t new_hour) {
+  time.tm_hour = new_hour;
+}
+
 // Return minute setting
-int Timer::getMinute() const {
+uint8_t Timer::getMinute() const {
   return time.tm_min;
+}
+
+// Set minute setting
+void Timer::setMinute(const uint8_t new_minute) {
+  time.tm_min = new_minute;
+}
+
+// Get day of week setting
+uint8_t Timer::getDayOfWeek() const {
+  return time.tm_wday;
+}
+
+// Set day if seek setting
+void Timer::setDayOfWeek(const uint8_t new_dow) {
+  time.tm_wday = new_dow;
 }
 
 // Return true if timer is active
 bool Timer::isActive() const {
   return active;
+}
+
+// Enable timer
+void Timer::enable() {
+  active = true;
+}
+
+// Disable timer
+void Timer::disable() {
+  active = false;
 }
 
 #endif // DS_CAP_TIMERS

@@ -99,18 +99,25 @@ namespace ds {
     protected:
       int id;                                         // Timer identifier
       String label;                                   // Timer label (short description of what it supposed to do)
-      struct tm time;                                 // Timer time as provided by user
+      struct tm time;                                 // Timer time as provided by user. Day of week = 7 means "every day"
       bool active;                                    // True if timer should be served
 
     public:
       Timer(const int id = 0, const String label = "undefined",
         const uint8_t hour = 0, const uint8_t minute = 0, const uint8_t dow = 7, const bool active = true); // Constructor
       int getID() const;                              // Return timer identifier
+      void setID(const int /* new_id */);             // Set timer identifier
       const String& getLabel() const;                 // Return timer label
-      int getHour() const;                            // Return hour setting
-      int getMinute() const;                          // Return minute setting
+      void setLabel(const String& /* new_label */);   // Set timer label
+      uint8_t getHour() const;                        // Return hour setting
+      void setHour(const uint8_t /* new_hour */);     // Set hour setting
+      uint8_t getMinute() const;                      // Return minute setting
+      void setMinute(const uint8_t /* new_minute */); // Set minute setting
+      uint8_t getDayOfWeek() const;                   // Get day of week setting
+      void setDayOfWeek(const uint8_t /* new_dow */); // Set day if seek setting
       bool isActive() const;                          // Return true if timer is active
-      // FIXME complete the methods
+      void enable();                                  // Enable timer
+      void disable();                                 // Disable timer
   };
 #endif // DS_CAP_TIMERS
 
