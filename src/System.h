@@ -54,6 +54,11 @@
 #define DS_CAP_SYS_NETWORK
 #endif // DS_CAP_WEBSERVER && !DS_CAP_SYS_NETWORK
 
+#if defined(DS_CAP_TIMERS) && !defined(DS_CAP_SYS_TIME)
+#warning "Timer functionality requires time; enabling"
+#define DS_CAP_SYS_TIME
+#endif // DS_CAP_TIMERS && !DS_CAP_SYS_TIME
+
 #ifdef DS_CAP_SYS_LED
 #include <jled.h>                   // LED, https://github.com/jandelgado/jled
 #endif // DS_CAP_SYS_LED

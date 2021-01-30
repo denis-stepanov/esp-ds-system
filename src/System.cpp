@@ -16,6 +16,7 @@ using namespace ds;
 #define DS_TIMEZONE TZ_Etc_UTC
 #endif // DS_CAP_SYS_TIME && !DS_TIMEZONE
 
+
 /*************************************************************************
  * Capability: application identification
  *************************************************************************/
