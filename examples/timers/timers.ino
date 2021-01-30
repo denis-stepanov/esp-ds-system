@@ -26,7 +26,7 @@ void setup() {
     struct tm *tinfo = localtime(&new_time);
     Timer my_timer(tinfo->tm_hour, tinfo->tm_min);
     System::timers.push_front(my_timer);
-    System::log->printf(TIMED("Timer %hhu set to fire every day at %02d:%02d\n"), n, tinfo->tm_hour, tinfo->tm_min);    
+    System::log->printf(TIMED("Timer %hhu set to fire every day at %02dh%02dm\n"), n, tinfo->tm_hour, tinfo->tm_min);
   }
 }
 
