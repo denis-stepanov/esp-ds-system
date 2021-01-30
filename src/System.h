@@ -22,10 +22,14 @@
 // DS_CAP_MDNS        - enable mDNS
 // DS_CAP_WEBSERVER   - enable web server
 // DS_CAP_BUTTON      - enable button
+// DS_CAP_TIMERS      - enable time-based actions
+// DS_CAP_TIMERS_SUN  - enable time-based actions including sun events
+// DS_CAP_TIMERS_WEB  - enable time-based actions web form
 
 #include <Arduino.h>          // String
 
 // Consistency checks
+// FIXME check
 #if defined(DS_CAP_SYS_LOG_HW) && !defined(DS_CAP_SYS_LOG)
 #define DS_CAP_SYS_LOG
 #endif // DS_CAP_SYS_LOG_HW && !DS_CAP_SYS_LOG
@@ -75,6 +79,10 @@
 #include <AceButton.h>              // Button, https://github.com/bxparks/AceButton
 #endif // DS_CAP_BUTTON
 
+#ifdef DS_CAP_TIMERS
+#include <forward_list>             // Action list
+#endif // DS_CAP_TIMERS
+
 namespace ds {
 
 #ifdef DS_CAP_SYS_TIME
@@ -84,6 +92,22 @@ namespace ds {
     TIME_SYNC_DEGRADED                                // Time was synchronized but not anymore
   } time_sync_t;
 #endif // DS_CAP_SYS_TIME
+
+#ifdef DS_CAP_TIMERS
+  class Timer {
+
+    protected:
+      struct tm time;                                 // Timer time as provided by user
+      bool active;                                    // True if timer should be served
+
+    public:
+      Timer(const uint8_t hour = 0, const uint8_t minute = 0, const uint8_t dow = 7, const bool active = true); // Constructor
+      int getHour() const;                            // Return hour setting
+      int getMinute() const;                          // Return minute setting
+      bool isActive() const;                          // Return true if timer is active
+      // FIXME complete the methods
+  };
+#endif // DS_CAP_TIMERS
 
   // Class is just a collection of system-wide routines, so all of them are made static on purpose
   class System {
@@ -218,6 +242,12 @@ namespace ds {
       static void (*onButtonInit)();                  // User code to initialize button
       static void (*onButtonPress)(ace_button::AceButton* /* button */, uint8_t /* event_type */, uint8_t /* button_state */); // Hook to be called when button is operated
 #endif // DS_CAP_BUTTON
+
+#ifdef DS_CAP_TIMERS
+    public:
+      static bool timers_active;                      // True if timers should be served
+      static std::forward_list<Timer> timers;         // List of timers
+#endif // DS_CAP_TIMERS
 
   };
 

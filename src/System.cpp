@@ -845,6 +845,36 @@ void System::buttonEventHandler(AceButton* button, uint8_t event_type, uint8_t b
 
 
 /*************************************************************************
+ * Capability: time-based actions
+ *************************************************************************/
+#ifdef DS_CAP_TIMERS
+
+bool System::timers_active = true;
+std::forward_list<Timer> System::timers;
+
+// Timer constructor
+Timer::Timer(const uint8_t hour, const uint8_t minute, const uint8_t dow, const bool _active) :
+  time({0, minute, hour, 0, 0, 0, dow, 0, 0}), active(_active) {}
+
+// Return hour setting
+int Timer::getHour() const {
+  return time.tm_hour;
+}
+
+// Return minute setting
+int Timer::getMinute() const {
+  return time.tm_min;
+}
+
+// Return true if timer is active
+bool Timer::isActive() const {
+  return active;
+}
+
+#endif // DS_CAP_TIMERS
+
+
+/*************************************************************************
  * Shared methods that are always defined
  *************************************************************************/
 // Initialize system
@@ -1049,6 +1079,21 @@ void System::update() {
 #ifdef DS_CAP_WEBSERVER
   web_server.handleClient();
 #endif // DS_CAP_WEBSERVER
+
+#ifdef DS_CAP_TIMERS
+  static time_t old_time = 0;
+  if (timers_active) {
+    time_t new_time = getTime();
+    if (new_time != old_time) {   // Happens once a second
+      old_time = new_time;
+      struct tm *tinfo = localtime(&new_time);
+      for (auto it = timers.cbegin(); it != timers.cend(); it++)
+        if (it->isActive() && it->getHour() == tinfo->tm_hour && it->getMinute() == tinfo->tm_min) {
+          log->println("Timer fired!");
+        }
+    }
+  }
+#endif // DS_CAP_TIMERS
 }
 
 // Return list of configured capabilities
@@ -1114,6 +1159,10 @@ String System::getCapabilities() {
 #ifdef DS_CAP_BUTTON
   capabilities += F("BUTTON ");
 #endif // DS_CAP_BUTTON
+
+#ifdef DS_CAP_TIMERS
+  capabilities += F("TIMERS ");
+#endif // DS_CAP_TIMERS
 
   capabilities.trim();
   return capabilities;
