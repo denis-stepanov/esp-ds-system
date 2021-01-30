@@ -8,6 +8,12 @@
 
 using namespace ds;
 
+// Timer handler
+void myTimerHandler(const Timer& timer) {
+  System::log->printf("Timer %d \"%s\" fired!\n", timer.getID(), timer.getLabel().c_str());
+}
+void (*System::timerHandler)(const Timer&) = myTimerHandler;
+
 time_t old_time, new_time;
 
 void setup() {

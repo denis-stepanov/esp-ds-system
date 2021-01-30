@@ -851,6 +851,7 @@ void System::buttonEventHandler(AceButton* button, uint8_t event_type, uint8_t b
 
 bool System::timers_active = true;
 std::forward_list<Timer> System::timers;
+void (*System::timerHandler)(const Timer& /* timer */) __attribute__ ((weak)) = nullptr;
 
 // Timer constructor
 Timer::Timer(const int _id, const String _label, const uint8_t hour, const uint8_t minute, const uint8_t dow, const bool _active) :
@@ -1098,9 +1099,8 @@ void System::update() {
       old_time = new_time;
       struct tm *tinfo = localtime(&new_time);
       for (auto it = timers.cbegin(); it != timers.cend(); it++)
-        if (it->isActive() && it->getHour() == tinfo->tm_hour && it->getMinute() == tinfo->tm_min && tinfo->tm_sec == 0) {
-          log->printf("Timer %d \"%s\" fired!\n", it->getID(), it->getLabel().c_str());
-        }
+        if (timerHandler && it->isActive() && it->getHour() == tinfo->tm_hour && it->getMinute() == tinfo->tm_min && tinfo->tm_sec == 0)
+          timerHandler(*it);
     }
   }
 #endif // DS_CAP_TIMERS

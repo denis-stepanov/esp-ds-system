@@ -252,6 +252,7 @@ namespace ds {
     public:
       static bool timers_active;                      // True if timers should be served
       static std::forward_list<Timer> timers;         // List of timers
+      static void (*timerHandler)(const Timer& /* timer */); // Timer handler
 #endif // DS_CAP_TIMERS
 
   };
