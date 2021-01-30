@@ -1088,7 +1088,7 @@ void System::update() {
       old_time = new_time;
       struct tm *tinfo = localtime(&new_time);
       for (auto it = timers.cbegin(); it != timers.cend(); it++)
-        if (it->isActive() && it->getHour() == tinfo->tm_hour && it->getMinute() == tinfo->tm_min) {
+        if (it->isActive() && it->getHour() == tinfo->tm_hour && it->getMinute() == tinfo->tm_min && tinfo->tm_sec == 0) {
           log->println("Timer fired!");
         }
     }
