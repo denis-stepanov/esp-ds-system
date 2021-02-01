@@ -854,9 +854,20 @@ bool System::timers_active = true;
 std::forward_list<Timer> System::timers;
 void (*System::timerHandler)(const Timer& /* timer */) __attribute__ ((weak)) = nullptr;
 
+// struct tm (re)usage:
+//   int tm_sec;    - timer offset (-59..59 min); used for sun-based events
+//   int tm_min;    - timer firing minute (0..59)
+//   int tm_hour;   - timer firing hour (0..23)
+//   int tm_mday;   - unused
+//   int tm_mon;    - unused
+//   int tm_year;   - unused
+//   int tm_wday;   - timer firing day of the week (-1..6, Sunday=0, -1=every day)
+//   int tm_yday;   - unused
+//   int tm_isdst;  - timer source (0-fixed time, 1-sunrise, 2-sunset)
+
 // Timer constructor
-Timer::Timer(const int _id, const String _label, const uint8_t hour, const uint8_t minute, const uint8_t dow, const bool _active) :
-  id(_id), label(_label), time({0, minute, hour, 0, 0, 0, dow, 0, 0}), active(_active) {}
+Timer::Timer(const int _id, const String _label, const uint8_t hour, const uint8_t minute, const int8_t dow, const bool _active, const int source) :
+  id(_id), label(_label), time({0, minute, hour, 0, 0, 0, dow, 0, source}), active(_active) {}
 
 // Return timer identifier
 int Timer::getID() const {
@@ -899,12 +910,12 @@ void Timer::setMinute(const uint8_t new_minute) {
 }
 
 // Get day of week setting
-uint8_t Timer::getDayOfWeek() const {
+int8_t Timer::getDayOfWeek() const {
   return time.tm_wday;
 }
 
 // Set day if seek setting
-void Timer::setDayOfWeek(const uint8_t new_dow) {
+void Timer::setDayOfWeek(const int8_t new_dow) {
   time.tm_wday = new_dow;
 }
 
@@ -1214,6 +1225,10 @@ String System::getCapabilities() {
 #ifdef DS_CAP_TIMERS
   capabilities += F("TIMERS ");
 #endif // DS_CAP_TIMERS
+
+#ifdef DS_CAP_TIMERS_SUN
+  capabilities += F("TIMERS_SUN ");
+#endif // DS_CAP_TIMERS_SUN
 
   capabilities.trim();
   return capabilities;

@@ -59,6 +59,10 @@
 #define DS_CAP_SYS_TIME
 #endif // DS_CAP_TIMERS && !DS_CAP_SYS_TIME
 
+#if defined(DS_CAP_TIMERS_SUN) && !defined(DS_CAP_TIMERS)
+#define DS_CAP_TIMERS
+#endif // DS_CAP_TIMERS_SUN && ! DS_CAP_TIMERS
+
 #ifdef DS_CAP_SYS_LED
 #include <jled.h>                   // LED, https://github.com/jandelgado/jled
 #endif // DS_CAP_SYS_LED
@@ -84,9 +88,13 @@
 #include <AceButton.h>              // Button, https://github.com/bxparks/AceButton
 #endif // DS_CAP_BUTTON
 
-#ifdef DS_CAP_TIMERS
+#if defined(DS_CAP_TIMERS) || defined(DS_CAP_TIMERS_SUN)
 #include <forward_list>             // Action list
-#endif // DS_CAP_TIMERS
+#endif // DS_CAP_TIMERS || DS_CAP_TIMERS_SUN
+
+#ifdef DS_CAP_TIMERS_SUN
+#include <Dusk2Dawn.h>              // Sunrise/sunset calculation, https://github.com/dmkishi/Dusk2Dawn  (! get the latest master via ZIP, not v1.0.1 from Arduino IDE !)
+#endif // DS_CAP_TIMERS_SUN
 
 namespace ds {
 
@@ -99,17 +107,35 @@ namespace ds {
 #endif // DS_CAP_SYS_TIME
 
 #ifdef DS_CAP_TIMERS
+  enum {
+    TIMER_SOURCE_FIXED,                               // Timer source from fixed time
+    TIMER_SOURCE_SUNRISE,                             // Timer source from sunrise
+    TIMER_SOURCE_SUNSET                               // Timer source from sunset
+  };
+
+// FIXME is this needed?
+  enum {
+    TIMER_DOW_ANY = -1,                               // Special "day of week" indicating any (or every) day
+    TIMER_DOW_SUNDAY,                                 // Sunday
+    TIMER_DOW_MONDAY,                                 // Monday
+    TIMER_DOW_TUESDAY,                                // Tuesday
+    TIMER_DOW_WEDNESDAY,                              // Wednesday
+    TIMER_DOW_THURSDAY,                               // Thursday
+    TIMER_DOW_FRIDAY,                                 // Friday
+    TIMER_DOW_SATURDAY                                // Saturday
+  };
+
   class Timer {
 
     protected:
       int id;                                         // Timer identifier
       String label;                                   // Timer label (short description of what it supposed to do)
-      struct tm time;                                 // Timer time as provided by user. Day of week = 7 means "every day"
+      struct tm time;                                 // Timer time as provided by user
       bool active;                                    // True if timer should be served
 
     public:
-      Timer(const int id = 0, const String label = "undefined",
-        const uint8_t hour = 0, const uint8_t minute = 0, const uint8_t dow = 7, const bool active = true); // Constructor
+      Timer(const int id = 0, const String label = "undefined", const uint8_t hour = 0, const uint8_t minute = 0,
+        const int8_t dow = TIMER_DOW_ANY, const bool active = true, const int source = TIMER_SOURCE_FIXED); // Constructor
       int getID() const;                              // Return timer identifier
       void setID(const int /* new_id */);             // Set timer identifier
       const String& getLabel() const;                 // Return timer label
@@ -118,8 +144,8 @@ namespace ds {
       void setHour(const uint8_t /* new_hour */);     // Set hour setting
       uint8_t getMinute() const;                      // Return minute setting
       void setMinute(const uint8_t /* new_minute */); // Set minute setting
-      uint8_t getDayOfWeek() const;                   // Get day of week setting
-      void setDayOfWeek(const uint8_t /* new_dow */); // Set day if seek setting
+      int8_t getDayOfWeek() const;                    // Get day of week setting
+      void setDayOfWeek(const int8_t /* new_dow */);  // Set day if seek setting
       bool isActive() const;                          // Return true if timer is active
       void enable();                                  // Enable timer
       void disable();                                 // Disable timer
