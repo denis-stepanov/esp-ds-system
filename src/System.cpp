@@ -17,16 +17,22 @@ using namespace ds;
 #endif // DS_CAP_SYS_TIME && !DS_TIMEZONE
 
 
+
+
 /*************************************************************************
  * Capability: application identification
  *************************************************************************/
 // Note that weak symbol initialization at definition is considered undefined behavior, but it seems to work for all variables except references "&"
 #ifdef DS_CAP_APP_ID
+
 const char *System::app_name    PROGMEM __attribute__ ((weak)) = "My Program";
 const char *System::app_version PROGMEM __attribute__ ((weak)) = "0.1";
 const char *System::app_build   PROGMEM __attribute__ ((weak)) = __DATE__ " " __TIME__;
 const char *System::app_url     PROGMEM __attribute__ ((weak)) = nullptr;
+
 #endif // DS_CAP_APP_ID
+
+
 
 
 /*************************************************************************
@@ -73,6 +79,8 @@ bool System::appLogWriteLn(const String& line, bool copy_to_syslog) {
 #endif // DS_CAP_APP_LOG
 
 
+
+
 /*************************************************************************
  * Capability: builtin LED
  *************************************************************************/
@@ -81,6 +89,8 @@ bool System::appLogWriteLn(const String& line, bool copy_to_syslog) {
 JLed System::led(LED_BUILTIN);
 
 #endif // DS_CAP_SYS_LED
+
+
 
 
 /*************************************************************************
@@ -101,6 +111,8 @@ static const unsigned int LOG_SPEED = 115200;  // Program log serial line speed 
 #endif // DS_CAP_SYS_LOG
 
 
+
+
 /*************************************************************************
  * Capability: software reset interface
  *************************************************************************/
@@ -112,6 +124,8 @@ uint32 System::getResetReason() {
 }
 
 #endif // DS_CAP_SYS_RESET
+
+
 
 
 /*************************************************************************
@@ -129,6 +143,8 @@ bool System::setRTCMem(const uint32_t* source, const uint8_t idx, const uint8_t 
   return ESP.rtcUserMemoryWrite(idx * sizeof(uint32_t), const_cast<uint32_t *>(source), num * sizeof(uint32_t));
 }
 #endif // DS_CAP_SYS_RTCMEM
+
+
 
 
 /*************************************************************************
@@ -209,6 +225,8 @@ String System::getTimeStr(const time_t t) {
 #endif // DS_CAP_SYS_TIME
 
 
+
+
 /*************************************************************************
  * Capability: system uptime
  *************************************************************************/
@@ -258,6 +276,8 @@ String System::getBootTimeStr() {
 #endif // DS_CAP_SYS_UPTIME
 
 
+
+
 /*************************************************************************
  * Capability: file system
  *************************************************************************/
@@ -268,6 +288,8 @@ String System::getBootTimeStr() {
 fs::FS& System::fs = LittleFS;             // Use LittleFS as file system
 
 #endif // DS_CAP_SYS_FS
+
+
 
 
 /*************************************************************************
@@ -408,6 +430,8 @@ bool System::networkIsConnected() {
 #endif // DS_CAP_SYS_NETWORK
 
 
+
+
 /*************************************************************************
  * Capability: Wi-Fi configuration at runtime
  *************************************************************************/
@@ -473,6 +497,8 @@ String System::getNetworkConfigPassword() {
 #endif // DS_CAP_WIFIMANAGER
 
 
+
+
 /*************************************************************************
  * Capability: mDNS
  *************************************************************************/
@@ -481,6 +507,8 @@ String System::getNetworkConfigPassword() {
 #include <ESP8266mDNS.h>            // mDNS support
 
 #endif // DS_CAP_MDNS
+
+
 
 
 /*************************************************************************
@@ -812,6 +840,8 @@ void System::sendWebPage() {
 #endif // DS_CAP_WEBSERVER
 
 
+
+
 /*************************************************************************
  * Capability: builtin button
  *************************************************************************/
@@ -845,29 +875,45 @@ void System::buttonEventHandler(AceButton* button, uint8_t event_type, uint8_t b
 #endif // DS_CAP_BUTTON
 
 
-/*************************************************************************
- * Capability: time-based actions
- *************************************************************************/
-#ifdef DS_CAP_TIMERS
 
-bool System::timers_active = true;
-std::forward_list<Timer> System::timers;
-void (*System::timerHandler)(const Timer& /* timer */) __attribute__ ((weak)) = nullptr;
+
+/*************************************************************************
+ * Capability: timers from absolute time
+ *************************************************************************/
+#if defined(DS_CAP_TIMERS_ABS) || defined (DS_CAP_TIMERS_COUNT)
+
+// Define pure virtual destructor (required by C++)
+Timer::~Timer() {
+}
+
+// Abstract timer comparison operator
+bool Timer::operator==(const Timer& timer) const {
+  return type == timer.getType() && id == timer.getID() && label == timer.getLabel();
+}
+#endif // DS_CAP_TIMERS_ABS || DS_CAP_TIMERS_COUNT
+
+#ifdef DS_CAP_TIMERS_ABS
+
+bool System::abs_timers_active = true;               // Activate timers
+std::forward_list<TimerAbsolute> System::timers;
+void (*System::timerHandler)(const TimerAbsolute& /* timer */) __attribute__ ((weak)) = nullptr;
 
 // struct tm (re)usage:
-//   int tm_sec;    - timer offset (-59..59 min); used for sun-based events
+//   int tm_sec;    - unused
 //   int tm_min;    - timer firing minute (0..59)
 //   int tm_hour;   - timer firing hour (0..23)
-//   int tm_mday;   - unused
+//   int tm_mday;   - timer offset (-59..+59 min); used with solar events
 //   int tm_mon;    - unused
 //   int tm_year;   - unused
 //   int tm_wday;   - timer firing day of the week (-1..6, Sunday=0, -1=every day)
 //   int tm_yday;   - unused
-//   int tm_isdst;  - timer source (0-fixed time, 1-sunrise, 2-sunset)
+//   int tm_isdst;  - unused
 
 // Timer constructor
-Timer::Timer(const int _id, const String _label, const uint8_t hour, const uint8_t minute, const int8_t dow, const bool _active, const int source) :
-  id(_id), label(_label), time({0, minute, hour, 0, 0, 0, dow, 0, source}), active(_active) {}
+Timer::Timer(const timer_type_t _type, const String _label,
+  const bool _armed, const bool _recurrent, const bool _transient, const int _id) :
+  id(_id >= -1 ? _id : -1), type(_type >= 0 && _type <= TIMER_INVALID ? _type : TIMER_INVALID),
+  label(_label), armed(_armed), recurrent(_recurrent), transient(_transient) {}
 
 // Return timer identifier
 int Timer::getID() const {
@@ -876,7 +922,13 @@ int Timer::getID() const {
 
 // Set timer identifier
 void Timer::setID(const int new_id) {
-  id = new_id;
+  if (new_id >= -1)
+    id = new_id;
+}
+
+// Get timer type. There is no setType() function, as we do not allow changing timer type at run-time
+timer_type_t Timer::getType() const {
+  return type;
 }
 
 // Return timer label
@@ -889,52 +941,156 @@ void Timer::setLabel(const String& new_label) {
   label = new_label;
 }
 
+// Return true if timer is armed
+bool Timer::isArmed() const {
+  return armed;
+}
+
+// Arm the timer (default)
+void Timer::arm() {
+  armed = true;
+}
+
+// Disarm the timer
+void Timer::disarm() {
+  armed = false;
+}
+
+// Return true if timer is recurrent
+bool Timer::isRecurrent() const {
+  return recurrent;
+}
+
+// Make timer repetitive (default)
+void Timer::repeatForever() {
+  recurrent = true;
+}
+
+// Make timer a one-time shot
+void Timer::repeatOnce() {
+  recurrent = false;
+}
+
+// Return true if timer is transient (i.e., will be dead after firing)
+bool Timer::isTransient() const {
+  return transient;
+}
+
+// Keep the timer around (default)
+void Timer::keep() {
+  transient = false;
+}
+
+// Mark the timer for disposal
+void Timer::forget() {
+  transient = true;
+}
+
+// Absolute timer constructor
+TimerAbsolute::TimerAbsolute(const String label, const uint8_t hour, const uint8_t minute, const timer_dow_t dow,
+  const bool armed, const bool recurrent, const bool transient, const int id) :
+  Timer(TIMER_ABSOLUTE, label, armed, recurrent, transient, id),
+  time({0, minute <= 59 ? minute : 0, hour <= 23 ? hour : 0, 0, 0, 0, dow >= TIMER_DOW_ANY && dow <= TIMER_DOW_INVALID ? dow : TIMER_DOW_INVALID, 0, 0}) {}
+
 // Return hour setting
-uint8_t Timer::getHour() const {
+uint8_t TimerAbsolute::getHour() const {
   return time.tm_hour;
 }
 
 // Set hour setting
-void Timer::setHour(const uint8_t new_hour) {
-  time.tm_hour = new_hour;
+void TimerAbsolute::setHour(const uint8_t new_hour) {
+  if (new_hour <= 23)
+    time.tm_hour = new_hour;
 }
 
 // Return minute setting
-uint8_t Timer::getMinute() const {
+uint8_t TimerAbsolute::getMinute() const {
   return time.tm_min;
 }
 
 // Set minute setting
-void Timer::setMinute(const uint8_t new_minute) {
-  time.tm_min = new_minute;
+void TimerAbsolute::setMinute(const uint8_t new_minute) {
+  if (new_minute <= 59)
+    time.tm_min = new_minute;
 }
 
 // Get day of week setting
-int8_t Timer::getDayOfWeek() const {
+int8_t TimerAbsolute::getDayOfWeek() const {
   return time.tm_wday;
 }
 
-// Set day if seek setting
-void Timer::setDayOfWeek(const int8_t new_dow) {
-  time.tm_wday = new_dow;
+// Set day of week setting
+void TimerAbsolute::setDayOfWeek(const int8_t new_dow) {
+  if (new_dow >= TIMER_DOW_ANY && new_dow <= TIMER_DOW_INVALID)
+    time.tm_wday = new_dow;
 }
 
-// Return true if timer is active
-bool Timer::isActive() const {
-  return active;
+// Absolute timer comparison operator
+bool TimerAbsolute::operator==(const TimerAbsolute& timer) const {
+  return Timer::operator==(timer) && getHour() == timer.getHour() &&
+    getMinute() == timer.getMinute() && getDayOfWeek() == timer.getDayOfWeek();
 }
 
-// Enable timer
-void Timer::enable() {
-  active = true;
+#endif // DS_CAP_TIMERS_ABS
+
+
+
+
+/*************************************************************************
+ * Capability: timers from solar events
+ *************************************************************************/
+#ifdef DS_CAP_TIMERS_SOLAR
+
+#include <Dusk2Dawn.h>              // Sunrise/sunset calculation, https://github.com/dmkishi/Dusk2Dawn  (! get the latest master via ZIP, not v1.0.1 from Arduino IDE !)
+
+// Solar timer constructor
+TimerSolar::TimerSolar(const timer_type_t _type, const String label, const int8_t offset, const uint8_t hour, const uint8_t minute,
+  const timer_dow_t dow, const bool armed, const bool recurrent, const bool transient, const int id) :
+  TimerAbsolute(label, hour, minute, dow, armed, recurrent, transient, id),
+  type(_type == TIMER_SUNRISE || _type == TIMER_SUNSET ? _type : TIMER_INVALID),
+  time.tm_mday(offset >= -59 && offset <= 59 ? offset : 0) {}
+
+// Return offset in minutes from event
+int8_t TimerSolar::getOffset() const {
+  return time.tm_mday;
 }
 
-// Disable timer
-void Timer::disable() {
-  active = false;
+// Set offset in minutes from event
+void TimerSolar::setOffset(const int8_t offset) {
+  if (offset >= -59 && offset <= 59)
+    time.tm_mday = offset;
 }
 
-#endif // DS_CAP_TIMERS
+// Solar timer comparison operator
+bool TimerSolar::operator==(const TimerSolar& timer) const {
+  return Timer::operator==(timer) && getDayOfWeek() == timer.getDayOfWeek() && getOffset() == timer.getOffset();
+}
+
+#endif // DS_CAP_TIMERS_SOLAR
+
+
+
+
+/*************************************************************************
+ * Capability: countdown timers
+ *************************************************************************/
+#ifdef DS_CAP_TIMERS_COUNT
+
+// Countdown timer constructor
+TimerCountdown::TimerCountdown(const String label, const uint32_t _interval,
+  const bool armed, const bool repeat, const bool transient, const int id) :
+  Timer(TIMER_COUNTDOWN, label, armed, recurrent, transient, id), interval(_interval) {}
+
+#endif // DS_CAP_TIMERS_COUNT
+
+
+
+/*************************************************************************
+ * Capability: timers configuration web form
+ *************************************************************************/
+
+// FIXME
+
 
 
 /*************************************************************************
@@ -1143,19 +1299,24 @@ void System::update() {
   web_server.handleClient();
 #endif // DS_CAP_WEBSERVER
 
-#ifdef DS_CAP_TIMERS
+#ifdef DS_CAP_TIMERS_ABS
   static time_t old_time = 0;
-  if (timers_active) {
+  if (abs_timers_active) {
     time_t new_time = getTime();
     if (new_time != old_time) {   // Happens once a second
       old_time = new_time;
       struct tm *tinfo = localtime(&new_time);
-      for (auto it = timers.cbegin(); it != timers.cend(); it++)
-        if (timerHandler && it->isActive() && it->getHour() == tinfo->tm_hour && it->getMinute() == tinfo->tm_min && tinfo->tm_sec == 0)
+      for (auto it = timers.begin(); it != timers.end(); it++) {
+        if (timerHandler && it->isArmed() && it->getHour() == tinfo->tm_hour && it->getMinute() == tinfo->tm_min && tinfo->tm_sec == 0)
           timerHandler(*it);
+        if (!it->isRecurrent())
+          it->disarm();
+        if (it->isTransient())
+          timers.remove(*it);
+      }
     }
   }
-#endif // DS_CAP_TIMERS
+#endif // DS_CAP_TIMERS_ABS
 }
 
 // Return list of configured capabilities
@@ -1222,13 +1383,21 @@ String System::getCapabilities() {
   capabilities += F("BUTTON ");
 #endif // DS_CAP_BUTTON
 
-#ifdef DS_CAP_TIMERS
-  capabilities += F("TIMERS ");
-#endif // DS_CAP_TIMERS
+#ifdef DS_CAP_TIMERS_ABS
+  capabilities += F("TIMERS_ABS ");
+#endif // DS_CAP_TIMERS_ABS
 
-#ifdef DS_CAP_TIMERS_SUN
-  capabilities += F("TIMERS_SUN ");
-#endif // DS_CAP_TIMERS_SUN
+#ifdef DS_CAP_TIMERS_SOLAR
+  capabilities += F("TIMERS_SOLAR ");
+#endif // DS_CAP_TIMERS_SOLAR
+
+#ifdef DS_CAP_TIMERS_COUNT
+  capabilities += F("TIMERS_COUNT ");
+#endif // DS_CAP_TIMERS_COUNT
+
+#ifdef DS_CAP_WEB_TIMERS
+  capabilities += F("WEB_TIMERS ");
+#endif // DS_CAP_WEB_TIMERS
 
   capabilities.trim();
   return capabilities;

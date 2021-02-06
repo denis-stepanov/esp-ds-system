@@ -7,29 +7,29 @@
 #define _DS_SYSTEM_H_
 
 // System capabilities. Define them in MySystem.h before including this header
-// DS_CAP_APP_ID      - enable application identification
-// DS_CAP_APP_LOG     - enable application log
-// DS_CAP_SYS_LED     - enable builtin LED
-// DS_CAP_SYS_LOG     - enable syslog
-// DS_CAP_SYS_LOG_HW  - enable syslog on hardware serial line (UART 0 or 1)
-// DS_CAP_SYS_RESET   - enable software reset interface
-// DS_CAP_SYS_RTCMEM  - enable RTC memory
-// DS_CAP_SYS_TIME    - enable system time
-// DS_CAP_SYS_UPTIME  - enable system uptime counter
-// DS_CAP_SYS_FS      - enable file system
-// DS_CAP_SYS_NETWORK - enable networking
-// DS_CAP_WIFIMANAGER - enable Wi-Fi configuration at runtime
-// DS_CAP_MDNS        - enable mDNS
-// DS_CAP_WEBSERVER   - enable web server
-// DS_CAP_BUTTON      - enable button
-// DS_CAP_TIMERS      - enable time-based actions
-// DS_CAP_TIMERS_SUN  - enable time-based actions including sun events
-// DS_CAP_TIMERS_WEB  - enable time-based actions web form
+// DS_CAP_APP_ID       - enable application identification
+// DS_CAP_APP_LOG      - enable application log
+// DS_CAP_SYS_LED      - enable builtin LED
+// DS_CAP_SYS_LOG      - enable syslog
+// DS_CAP_SYS_LOG_HW   - enable syslog on hardware serial line (UART 0 or 1)
+// DS_CAP_SYS_RESET    - enable software reset interface
+// DS_CAP_SYS_RTCMEM   - enable RTC memory
+// DS_CAP_SYS_TIME     - enable system time
+// DS_CAP_SYS_UPTIME   - enable system uptime counter
+// DS_CAP_SYS_FS       - enable file system
+// DS_CAP_SYS_NETWORK  - enable networking
+// DS_CAP_WIFIMANAGER  - enable Wi-Fi configuration at runtime
+// DS_CAP_MDNS         - enable mDNS
+// DS_CAP_WEBSERVER    - enable web server
+// DS_CAP_BUTTON       - enable button
+// DS_CAP_TIMERS_ABS   - enable timers from absolute time
+// DS_CAP_TIMERS_SOLAR - enable timers from solar events
+// DS_CAP_TIMERS_COUNT - enable countdown timers
+// DS_CAP_WEB_TIMERS   - enable timers configuration web form
 
 #include <Arduino.h>          // String
 
 // Consistency checks
-// FIXME check
 #if defined(DS_CAP_SYS_LOG_HW) && !defined(DS_CAP_SYS_LOG)
 #define DS_CAP_SYS_LOG
 #endif // DS_CAP_SYS_LOG_HW && !DS_CAP_SYS_LOG
@@ -54,15 +54,21 @@
 #define DS_CAP_SYS_NETWORK
 #endif // DS_CAP_WEBSERVER && !DS_CAP_SYS_NETWORK
 
-#if defined(DS_CAP_TIMERS) && !defined(DS_CAP_SYS_TIME)
-#warning "Timer functionality requires time; enabling"
+#if defined(DS_CAP_TIMERS_SOLAR) && !defined(DS_CAP_TIMERS_ABS)
+#define DS_CAP_TIMERS_ABS
+#endif // DS_CAP_TIMERS_SOLAR && !DS_CAP_TIMERS_ABS
+
+#if defined(DS_CAP_WEB_TIMERS) && !defined(DS_CAP_TIMERS_ABS)
+#warning "Capability DS_CAP_WEB_TIMERS requires at least DS_CAP_TIMERS_ABS; enabling"
+#define DS_CAP_TIMERS_ABS
+#endif // DS_CAP_WEB_TIMERS && !DS_CAP_TIMERS_ABS
+
+#if defined(DS_CAP_TIMERS_ABS) && !defined(DS_CAP_SYS_TIME)
+#warning "Absolute or solar timer functionality requires time; enabling"
 #define DS_CAP_SYS_TIME
 #endif // DS_CAP_TIMERS && !DS_CAP_SYS_TIME
 
-#if defined(DS_CAP_TIMERS_SUN) && !defined(DS_CAP_TIMERS)
-#define DS_CAP_TIMERS
-#endif // DS_CAP_TIMERS_SUN && ! DS_CAP_TIMERS
-
+// External libraries
 #ifdef DS_CAP_SYS_LED
 #include <jled.h>                   // LED, https://github.com/jandelgado/jled
 #endif // DS_CAP_SYS_LED
@@ -88,13 +94,9 @@
 #include <AceButton.h>              // Button, https://github.com/bxparks/AceButton
 #endif // DS_CAP_BUTTON
 
-#if defined(DS_CAP_TIMERS) || defined(DS_CAP_TIMERS_SUN)
+#ifdef DS_CAP_TIMERS_ABS
 #include <forward_list>             // Action list
-#endif // DS_CAP_TIMERS || DS_CAP_TIMERS_SUN
-
-#ifdef DS_CAP_TIMERS_SUN
-#include <Dusk2Dawn.h>              // Sunrise/sunset calculation, https://github.com/dmkishi/Dusk2Dawn  (! get the latest master via ZIP, not v1.0.1 from Arduino IDE !)
-#endif // DS_CAP_TIMERS_SUN
+#endif // DS_CAP_TIMERS_ABS
 
 namespace ds {
 
@@ -106,51 +108,103 @@ namespace ds {
   } time_sync_t;
 #endif // DS_CAP_SYS_TIME
 
-#ifdef DS_CAP_TIMERS
-  enum {
-    TIMER_SOURCE_FIXED,                               // Timer source from fixed time
-    TIMER_SOURCE_SUNRISE,                             // Timer source from sunrise
-    TIMER_SOURCE_SUNSET                               // Timer source from sunset
-  };
+#if defined(DS_CAP_TIMERS_ABS) || defined(DS_CAP_TIMERS_COUNT)
+  typedef enum {
+    TIMER_ABSOLUTE,                                   // Timer fires at a given absolute time
+    TIMER_SUNRISE,                                    // Timer fires at sunrise
+    TIMER_SUNSET,                                     // Timer fires at sunset
+    TIMER_COUNTDOWN,                                  // Timer fires at some moment from now
+    TIMER_INVALID                                     // Unsupported timer type (must be the last)
+  } timer_type_t;
 
-// FIXME is this needed?
-  enum {
-    TIMER_DOW_ANY = -1,                               // Special "day of week" indicating any (or every) day
+  class Timer {                                       // Generic timer (abstract)
+
+    protected:
+      int id;                                         // Timer identifier (optional)
+      timer_type_t type;                              // Timer type
+      String label;                                   // Timer label (short description of what it is supposed to do)
+      bool armed;                                     // True if timer is armed (will fire); false if ignored with no action
+      bool recurrent;                                 // True if timer should be auto-rearmed after firing; false otherwise
+      bool transient;                                 // True if timer should be disposed of after firing
+
+    public:
+      Timer(const timer_type_t /* type */, const String label = "undefined",
+        const bool armed = true, const bool recurrent = true, const bool transient = false, const int id = -1);  // Constructor
+      virtual ~Timer() = 0;                           // Disallow creation of objects of this type
+      int getID() const;                              // Return timer identifier
+      void setID(const int /* new_id */);             // Set timer identifier
+      timer_type_t getType() const;                   // Get timer type. There is no setType() function, as we do not allow changing timer type at run-time
+      const String& getLabel() const;                 // Return timer label
+      void setLabel(const String& /* new_label */);   // Set timer label
+      bool isArmed() const;                           // Return true if timer is armed
+      void arm();                                     // Arm the timer (default)
+      void disarm();                                  // Disarm the timer
+      bool isRecurrent() const;                       // Return true if timer is recurrent
+      void repeatForever();                           // Make timer repetitive (default)
+      void repeatOnce();                              // Make timer a one-time shot
+      bool isTransient() const;                       // Return true if timer is transient (i.e., will be dead after firing)
+      void keep();                                    // Keep the timer around (default)
+      void forget();                                  // Mark the timer for disposal
+      bool operator==(const Timer& /* timer */) const; // Comparison operator
+  };
+#endif // DS_CAP_TIMERS_ABS || DS_CAP_TIMERS_COUNT
+
+#ifdef DS_CAP_TIMERS_ABS
+  typedef enum {
+    TIMER_DOW_ANY = -1,                               // Special "day of week" indicating any (or every) day (must be the first)
     TIMER_DOW_SUNDAY,                                 // Sunday
     TIMER_DOW_MONDAY,                                 // Monday
     TIMER_DOW_TUESDAY,                                // Tuesday
     TIMER_DOW_WEDNESDAY,                              // Wednesday
     TIMER_DOW_THURSDAY,                               // Thursday
     TIMER_DOW_FRIDAY,                                 // Friday
-    TIMER_DOW_SATURDAY                                // Saturday
-  };
+    TIMER_DOW_SATURDAY,                               // Saturday
+    TIMER_DOW_INVALID                                 // Invalid day of week (must be the last)
+  } timer_dow_t;
 
-  class Timer {
+  class TimerAbsolute : public Timer {                // Absolute time timer (abstract)
 
     protected:
-      int id;                                         // Timer identifier
-      String label;                                   // Timer label (short description of what it supposed to do)
-      struct tm time;                                 // Timer time as provided by user
-      bool active;                                    // True if timer should be served
+      struct tm time;                                 // Timer firing details
 
     public:
-      Timer(const int id = 0, const String label = "undefined", const uint8_t hour = 0, const uint8_t minute = 0,
-        const int8_t dow = TIMER_DOW_ANY, const bool active = true, const int source = TIMER_SOURCE_FIXED); // Constructor
-      int getID() const;                              // Return timer identifier
-      void setID(const int /* new_id */);             // Set timer identifier
-      const String& getLabel() const;                 // Return timer label
-      void setLabel(const String& /* new_label */);   // Set timer label
+      TimerAbsolute(const String label = "undefined", const uint8_t hour = 0, const uint8_t minute = 0, const timer_dow_t dow = TIMER_DOW_ANY,
+        const bool armed = true, const bool recurrent = true, const bool transient = false, const int id = -1);  // Constructor
+      virtual ~TimerAbsolute() {}                     // Destructor
       uint8_t getHour() const;                        // Return hour setting
       void setHour(const uint8_t /* new_hour */);     // Set hour setting
       uint8_t getMinute() const;                      // Return minute setting
       void setMinute(const uint8_t /* new_minute */); // Set minute setting
       int8_t getDayOfWeek() const;                    // Get day of week setting
-      void setDayOfWeek(const int8_t /* new_dow */);  // Set day if seek setting
-      bool isActive() const;                          // Return true if timer is active
-      void enable();                                  // Enable timer
-      void disable();                                 // Disable timer
+      void setDayOfWeek(const int8_t /* new_dow */);  // Set day of week setting
+      bool operator==(const TimerAbsolute& /* timer */) const; // Comparison operator
   };
-#endif // DS_CAP_TIMERS
+#endif // DS_CAP_TIMERS_ABS
+
+#ifdef DS_CAP_TIMERS_SOLAR
+  class TimerSolar : public TimerAbsolute {           // Solar event-based timer
+
+    public:
+      TimerSolar(const timer_type_t /* type */, const String label = "undefined", const int8_t offset = 0, const uint8_t hour = 0, const uint8_t minute = 0,
+        const timer_dow_t dow = TIMER_DOW_ANY, const bool armed = true, const bool repeat = true, const bool transient = false, const int id = -1);  // Constructor
+      int8_t getOffset() const;                       // Return offset in minutes from event
+      void setOffset(const int8_t /* offset */);      // Set offset in minutes from event
+      bool operator==(const TimerSolar& /* timer */) const; // Comparison operator
+  };
+#endif // DS_CAP_TIMERS_SOLAR
+
+#ifdef DS_CAP_TIMERS_COUNT
+  class TimerCountdown : public Timer {
+
+    protected:
+      uint32_t interval;                              // Timer interval (s ?FIXME?)
+
+    public:
+      TimerCountdown(const String label = "undefined", const uint32_t interval,
+        const bool armed = true, const bool repeat = true, const bool transient = false, const int id = -1);  // Constructor
+      virtual ~TimerCountdown() {}                    // Destructor
+  };
+#endif // DS_CAP_TIMERS_COUNT
 
   // Class is just a collection of system-wide routines, so all of them are made static on purpose
   class System {
@@ -286,12 +340,12 @@ namespace ds {
       static void (*onButtonPress)(ace_button::AceButton* /* button */, uint8_t /* event_type */, uint8_t /* button_state */); // Hook to be called when button is operated
 #endif // DS_CAP_BUTTON
 
-#ifdef DS_CAP_TIMERS
+#ifdef DS_CAP_TIMERS_ABS
     public:
-      static bool timers_active;                      // True if timers should be served
-      static std::forward_list<Timer> timers;         // List of timers
-      static void (*timerHandler)(const Timer& /* timer */); // Timer handler
-#endif // DS_CAP_TIMERS
+      static bool abs_timers_active;                  // True if absolute or solar timers should be served
+      static std::forward_list<TimerAbsolute> timers; // List of timers
+      static void (*timerHandler)(const TimerAbsolute& /* timer */); // Timer handler
+#endif // DS_CAP_TIMERS_ABS
 
   };
 
