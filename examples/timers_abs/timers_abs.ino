@@ -10,15 +10,17 @@ using namespace ds;
 
 // Timer handler
 void myTimerHandler(const TimerAbsolute& timer) {
-  System::log->printf("Timer \"%s\" fired!\n", timer.getLabel().c_str());
-
   if (timer.getLabel() == "lamp on") {
 
    // Turn the lamp on here
+   // ...
+   System::log->println("Lamp is ON");
   } else
   if (timer.getLabel() == "lamp off") {
 
    // Turn the lamp off here
+   // ...
+   System::log->println("Lamp is OFF");
   }
 }
 void (*System::timerHandler)(const TimerAbsolute&) = myTimerHandler;  // Install the handler

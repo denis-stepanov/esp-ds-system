@@ -19,8 +19,15 @@
 // #define DS_CAP_MDNS         // Enable mDNS
 // #define DS_CAP_WEBSERVER    // Enable web server
 // #define DS_CAP_BUTTON       // Enable button
+// #define DS_CAP_TIMERS_ABS   // Enable timers from absolute time
+// #define DS_CAP_TIMERS_SOLAR // Enable timers from solar events
+// #define DS_CAP_TIMERS_COUNT // Enable countdown timers
+// #define DS_CAP_WEB_TIMERS   // Enable timers configuration web form
+
 
 // #define DS_TIMEZONE TZ_Europe_Paris       // Timezone if system time is used
+// #define DS_LATITUDE 48.85863              // Latitude if solar events are used
+// #define DS_LONGITUDE 2.29443              // Longitude if solar events are used
 // #define DS_LED_VS_SERIAL_CHECKED_OK       // Define if both LED and Serial are used in your sketch in non-conflicting way
 // #define BUTTON_BUILTIN 0                  // Define if your button is connected to GPIO other than 0
 

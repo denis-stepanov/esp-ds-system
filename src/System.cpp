@@ -16,6 +16,16 @@ using namespace ds;
 #define DS_TIMEZONE TZ_Etc_UTC
 #endif // DS_CAP_SYS_TIME && !DS_TIMEZONE
 
+#if defined(DS_CAP_TIMERS_SOLAR) && !defined(DS_LATITUDE)
+#warning "Latitude will be set to Paris. Define DS_LATITUDE to suppress this warning"
+#define DS_LATITUDE 48.85863
+#endif
+
+#if defined(DS_CAP_TIMERS_SOLAR) && !defined(DS_LONGITUDE)
+#warning "Longitude will be set to Paris. Define DS_LONGITUDE to suppress this warning"
+#define DS_LONGITUDE 2.29443
+#endif
+
 
 
 
@@ -1300,21 +1310,48 @@ void System::update() {
 #endif // DS_CAP_WEBSERVER
 
 #ifdef DS_CAP_TIMERS_ABS
-  static time_t old_time = 0;
-  if (abs_timers_active) {
-    time_t new_time = getTime();
-    if (new_time != old_time) {   // Happens once a second
-      old_time = new_time;
-      struct tm *tinfo = localtime(&new_time);
+  static time_t old_time = 0;                  // Last second value
+  const auto new_time = getTime();
+  if (new_time != old_time) {   // Happens once a second
+    old_time = new_time;
+    struct tm tm_local;
+    localtime_r(&new_time, &tm_local);
+
+#ifdef DS_CAP_TIMERS_SOLAR
+    static time_t time_solar_sync = 0;           // Last time the solar events have been calculated
+
+    // Recalculate solar times every morning at 3:30 am, or at least every 24 hours
+    if (tm_local.tm_hour == 3 && tm_local.tm_min == 30 && tm_local.tm_sec == 0 || new_time - time_solar_sync > 24 * 60 * 60) {
+      time_solar_sync = new_time;
+      log->printf(TIMED("Recalculating solar events...\n"));
+      struct tm tm_gmt;
+      gmtime_r(&new_time, &tm_gmt);
+      Dusk2Dawn local(DS_LATITUDE, DS_LONGITUDE, (mktime(&tm_local) - mktime(&tm_gmt)) / 60.0 / 60);
+      const auto sunrise = local.sunrise(tm_local.tm_year + 1900, tm_local.tm_mon + 1, tm_local.tm_mday, tm_local.tm_isdst);
+      const auto sunset  = local.sunset (tm_local.tm_year + 1900, tm_local.tm_mon + 1, tm_local.tm_mday, tm_local.tm_isdst);
       for (auto it = timers.begin(); it != timers.end(); it++) {
-        if (timerHandler && it->isArmed() && it->getHour() == tinfo->tm_hour && it->getMinute() == tinfo->tm_min && tinfo->tm_sec == 0)
+        const auto ttype = it->getType();
+        if (ttype == TIMER_SUNRISE || ttype == TIMER_SUNSET) {
+          it->setHour((ttype == TIMER_SUNRISE ? sunrise : sunset) / 60);
+          it->setMinute((ttype == TIMER_SUNRISE ? sunrise :sunset) % 60);
+        }
+      }
+    }
+#endif // DS_CAP_TIMERS_SOLAR
+
+    // Process timers
+    if (abs_timers_active)
+      for (auto it = timers.begin(); it != timers.end(); it++) {
+        if (timerHandler && it->getType() != TIMER_INVALID && it->isArmed() &&
+            it->getHour() == tm_local.tm_hour && it->getMinute() == tm_local.tm_min && tm_local.tm_sec == 0) {
+          log->printf(TIMED("Timer \"%s\" fired\n"), it->getLabel().c_str());
           timerHandler(*it);
+        }
         if (!it->isRecurrent())
           it->disarm();
         if (it->isTransient())
           timers.remove(*it);
       }
-    }
   }
 #endif // DS_CAP_TIMERS_ABS
 }
