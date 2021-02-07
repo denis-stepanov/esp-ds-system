@@ -349,6 +349,15 @@ namespace ds {
       static void (*timerHandler)(const TimerAbsolute& /* timer */); // Timer handler
 #endif // DS_CAP_TIMERS_ABS
 
+#ifdef DS_CAP_TIMERS_SOLAR
+    protected:
+      static uint16_t getSolarEvent(const timer_type_t /* ev_type */); // Return solar event time
+
+    public:
+      static uint16_t getSunrise();                  // Return sunrise time (in minutes from midnight)
+      static uint16_t getSunset();                   // Return sunset time (in minutes from midnight)
+#endif // DS_CAP_TIMERS_SOLAR
+
   };
 
 } // namespace ds

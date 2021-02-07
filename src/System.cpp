@@ -1082,6 +1082,28 @@ bool TimerSolar::operator==(const TimerSolar& timer) const {
   return Timer::operator==(timer) && getDayOfWeek() == timer.getDayOfWeek() && getOffset() == timer.getOffset();
 }
 
+uint16_t System::getSolarEvent(const timer_type_t ev_type) {
+  struct tm tm_local, tm_gmt;
+
+  const auto cur_time = getTime();
+  localtime_r(&cur_time, &tm_local);
+  gmtime_r(&cur_time, &tm_gmt);
+  Dusk2Dawn local(DS_LATITUDE, DS_LONGITUDE, (mktime(&tm_local) - mktime(&tm_gmt)) / 60.0 / 60);
+  return ev_type == TIMER_SUNRISE ?
+    local.sunrise(tm_local.tm_year + 1900, tm_local.tm_mon + 1, tm_local.tm_mday, tm_local.tm_isdst) :
+    local.sunset (tm_local.tm_year + 1900, tm_local.tm_mon + 1, tm_local.tm_mday, tm_local.tm_isdst);
+}
+
+// Return sunrise time (in minutes from midnight)
+uint16_t System::getSunrise() {
+  return getSolarEvent(TIMER_SUNRISE);
+}
+
+// Return sunset time (in minutes from midnight)
+uint16_t System::getSunset() {
+  return getSolarEvent(TIMER_SUNSET);
+}
+
 #endif // DS_CAP_TIMERS_SOLAR
 
 
@@ -1330,11 +1352,8 @@ void System::update() {
     if ((tm_local.tm_hour == 3 && tm_local.tm_min == 30 && tm_local.tm_sec == 0) || new_time - time_solar_sync > 24 * 60 * 60) {
       time_solar_sync = new_time;
       log->printf(TIMED("Recalculating solar events...\n"));
-      struct tm tm_gmt;
-      gmtime_r(&new_time, &tm_gmt);
-      Dusk2Dawn local(DS_LATITUDE, DS_LONGITUDE, (mktime(&tm_local) - mktime(&tm_gmt)) / 60.0 / 60);
-      const auto sunrise = local.sunrise(tm_local.tm_year + 1900, tm_local.tm_mon + 1, tm_local.tm_mday, tm_local.tm_isdst);
-      const auto sunset  = local.sunset (tm_local.tm_year + 1900, tm_local.tm_mon + 1, tm_local.tm_mday, tm_local.tm_isdst);
+      const auto sunrise = getSunrise();
+      const auto sunset  = getSunset();
       for (auto it = timers.begin(); it != timers.end(); it++) {
         const auto ttype = it->getType();
         if (ttype == TIMER_SUNRISE || ttype == TIMER_SUNSET) {
