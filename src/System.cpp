@@ -936,9 +936,14 @@ void Timer::setID(const int new_id) {
     id = new_id;
 }
 
-// Get timer type. There is no setType() function, as we do not allow changing timer type at run-time
+// Get timer type
 timer_type_t Timer::getType() const {
   return type;
+}
+
+// Set timer type
+void Timer::setType(const timer_type_t _type) {
+  type = _type >= 0 && _type <= TIMER_INVALID ? _type : TIMER_INVALID;
 }
 
 // Return timer label
@@ -1056,9 +1061,10 @@ bool TimerAbsolute::operator==(const TimerAbsolute& timer) const {
 // Solar timer constructor
 TimerSolar::TimerSolar(const timer_type_t _type, const String label, const int8_t offset, const uint8_t hour, const uint8_t minute,
   const timer_dow_t dow, const bool armed, const bool recurrent, const bool transient, const int id) :
-  TimerAbsolute(label, hour, minute, dow, armed, recurrent, transient, id),
-  type(_type == TIMER_SUNRISE || _type == TIMER_SUNSET ? _type : TIMER_INVALID),
-  time.tm_mday(offset >= -59 && offset <= 59 ? offset : 0) {}
+  TimerAbsolute(label, hour, minute, dow, armed, recurrent, transient, id) {
+  setType(_type == TIMER_SUNRISE || _type == TIMER_SUNSET ? _type : TIMER_INVALID);
+  setOffset(offset >= -59 && offset <= 59 ? offset : 0);
+}
 
 // Return offset in minutes from event
 int8_t TimerSolar::getOffset() const {
@@ -1321,7 +1327,7 @@ void System::update() {
     static time_t time_solar_sync = 0;           // Last time the solar events have been calculated
 
     // Recalculate solar times every morning at 3:30 am, or at least every 24 hours
-    if (tm_local.tm_hour == 3 && tm_local.tm_min == 30 && tm_local.tm_sec == 0 || new_time - time_solar_sync > 24 * 60 * 60) {
+    if ((tm_local.tm_hour == 3 && tm_local.tm_min == 30 && tm_local.tm_sec == 0) || new_time - time_solar_sync > 24 * 60 * 60) {
       time_solar_sync = new_time;
       log->printf(TIMED("Recalculating solar events...\n"));
       struct tm tm_gmt;

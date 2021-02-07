@@ -127,13 +127,15 @@ namespace ds {
       bool recurrent;                                 // True if timer should be auto-rearmed after firing; false otherwise
       bool transient;                                 // True if timer should be disposed of after firing
 
+      void setType(const timer_type_t /* type */);    // Set timer type
+
     public:
       Timer(const timer_type_t /* type */, const String label = "undefined",
         const bool armed = true, const bool recurrent = true, const bool transient = false, const int id = -1);  // Constructor
       virtual ~Timer() = 0;                           // Disallow creation of objects of this type
       int getID() const;                              // Return timer identifier
       void setID(const int /* new_id */);             // Set timer identifier
-      timer_type_t getType() const;                   // Get timer type. There is no setType() function, as we do not allow changing timer type at run-time
+      timer_type_t getType() const;                   // Get timer type
       const String& getLabel() const;                 // Return timer label
       void setLabel(const String& /* new_label */);   // Set timer label
       bool isArmed() const;                           // Return true if timer is armed
