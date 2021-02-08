@@ -1354,14 +1354,14 @@ void System::update() {
       log->printf(TIMED("Recalculating solar events...\n"));
       const auto sunrise = getSunrise();
       const auto sunset  = getSunset();
-      for (auto it = timers.begin(); it != timers.end(); it++) {
-        const auto ttype = it->getType();
-        if (ttype == TIMER_SUNRISE || ttype == TIMER_SUNSET) {
-          auto st = static_cast<TimerSolar *>(&*it);
+      for (auto& timer : timers) {
+        const auto timer_type = timer.getType();
+        if (timer_type == TIMER_SUNRISE || timer_type == TIMER_SUNSET) {
+          auto st = static_cast<TimerSolar *>(&timer);
 
            // This might not work properly with solar events happening shortly past midnight, but these are unlikely
-          st->setHour(((ttype == TIMER_SUNRISE ? sunrise : sunset) + st->getOffset()) / 60);
-          st->setMinute(((ttype == TIMER_SUNRISE ? sunrise : sunset) + st->getOffset()) % 60);
+          st->setHour(((timer_type == TIMER_SUNRISE ? sunrise : sunset) + st->getOffset()) / 60);
+          st->setMinute(((timer_type == TIMER_SUNRISE ? sunrise : sunset) + st->getOffset()) % 60);
         }
       }
     }
@@ -1369,16 +1369,16 @@ void System::update() {
 
     // Process timers
     if (abs_timers_active)
-      for (auto it = timers.begin(); it != timers.end(); it++) {
-        if (timerHandler && it->getType() != TIMER_INVALID && it->isArmed() &&
-            it->getHour() == tm_local.tm_hour && it->getMinute() == tm_local.tm_min && tm_local.tm_sec == 0) {
-          log->printf(TIMED("Timer \"%s\" fired\n"), it->getLabel().c_str());
-          timerHandler(*it);
+      for (auto& timer : timers) {
+        if (timerHandler && timer.getType() != TIMER_INVALID && timer.isArmed() &&
+            timer.getHour() == tm_local.tm_hour && timer.getMinute() == tm_local.tm_min && tm_local.tm_sec == 0) {
+          log->printf(TIMED("Timer \"%s\" fired\n"), timer.getLabel().c_str());
+          timerHandler(timer);
         }
-        if (!it->isRecurrent())
-          it->disarm();
-        if (it->isTransient())
-          timers.remove(*it);
+        if (!timer.isRecurrent())
+          timer.disarm();
+        if (timer.isTransient())
+          timers.remove(timer);
       }
   }
 #endif // DS_CAP_TIMERS_ABS
