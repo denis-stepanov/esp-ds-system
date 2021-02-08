@@ -1357,8 +1357,11 @@ void System::update() {
       for (auto it = timers.begin(); it != timers.end(); it++) {
         const auto ttype = it->getType();
         if (ttype == TIMER_SUNRISE || ttype == TIMER_SUNSET) {
-          it->setHour((ttype == TIMER_SUNRISE ? sunrise : sunset) / 60);
-          it->setMinute((ttype == TIMER_SUNRISE ? sunrise :sunset) % 60);
+          auto st = static_cast<TimerSolar *>(&*it);
+
+           // This might not work properly with solar events happening shortly past midnight, but these are unlikely
+          st->setHour(((ttype == TIMER_SUNRISE ? sunrise : sunset) + st->getOffset()) / 60);
+          st->setMinute(((ttype == TIMER_SUNRISE ? sunrise : sunset) + st->getOffset()) % 60);
         }
       }
     }
