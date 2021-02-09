@@ -4,7 +4,8 @@
 
 #include "MySystem.h"
 
-#include <sys/time.h>    //  This header is needed to simulate a time sync. Not needed for time actions
+#include <sys/time.h>    // This header is needed to simulate a time sync. Not needed for time actions
+#include <TZ.h>          // Same, this is just for a sake of example. Should no longer be required after fix https://github.com/denis-stepanov/esp-ds-system/issues/23
 
 using namespace ds;
 
@@ -27,15 +28,21 @@ void (*System::timerHandler)(const TimerAbsolute&) = myTimerHandler;  // Install
 
 time_t old_time, new_time;
 
-void setup() {
-  System::begin();
-
-  // Set system time to some value
-  new_time = 1000000000;                              // Some date around 2001
+void set_clock(const time_t _new_time) {
+  setenv("TZ", String(DS_TIMEZONE).c_str(), 1);       // String() trick is needed because setenv() would not accept a string from flash
+  tzset();
+  new_time = _new_time;
   old_time = new_time;
   struct timeval tv_new_time = {new_time, 0};
   settimeofday(&tv_new_time, NULL);
   delay(100);                                         // Allow new time to propagate
+}
+
+void setup() {
+  System::begin();
+
+  // Set system time to some date around 2001
+  set_clock(1000000000);
 
   // Set up two timers one minute apart
   for (uint8_t n = 1; n <= 2; n++) {

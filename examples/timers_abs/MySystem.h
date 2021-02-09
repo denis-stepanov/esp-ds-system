@@ -4,6 +4,8 @@
 #define DS_CAP_SYS_TIME     // Enable system time
 #define DS_CAP_TIMERS_ABS   // Enable timers from absolute time
 
+#define DS_TIMEZONE TZ_Europe_Paris       // My timezone
+
 #include "System.h"         // System global definitions
 
 #endif // _DS_SYSTEM_H_
