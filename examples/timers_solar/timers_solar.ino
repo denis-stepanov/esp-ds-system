@@ -4,8 +4,8 @@
 
 #include "MySystem.h"
 
-#include <sys/time.h>    //  This header is needed to simulate a time sync. Not needed for time actions
-#include <TZ.h>
+#include <sys/time.h>    // This header is needed to simulate a time sync. Not needed for time actions
+#include <TZ.h>          // Same, this is just for a sake of example. Should no longer be required after fix https://github.com/denis-stepanov/esp-ds-system/issues/23
 
 using namespace ds;
 
@@ -30,7 +30,7 @@ time_t old_time, new_time;
 int counter = 0;
 
 void set_clock(const time_t _new_time) {
-  setenv("TZ", "CET-1CEST,M3.5.0,M10.5.0/3", 1);  // Paris timezone - FIXME: make working through DS_TIMEZONE
+  setenv("TZ", String(DS_TIMEZONE).c_str(), 1);       // String() trick is needed because setenv() would not accept a string from flash
   tzset();
   new_time = _new_time;
   old_time = new_time;
