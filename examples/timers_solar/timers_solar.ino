@@ -1,4 +1,4 @@
-// Example of reacting on sunruse or sunset
+// Solar timer example
 // Board: NodeMCU 1.0(ESP-12E Module)
 // (!) Before compiling, copy System.h and System.cpp into the sketch folder, then reopen the sketch in Arduino
 
@@ -13,15 +13,15 @@ using namespace ds;
 void myTimerHandler(const TimerAbsolute& timer) {
   if (timer.getLabel() == "lamp on") {
 
-   // Turn the lamp on here
-   // ...
-   System::log->println("Lamp is ON");
+    // Turn the lamp on here
+    // ...
+    System::log->println("Lamp is ON");
   } else
   if (timer.getLabel() == "lamp off") {
 
-   // Turn the lamp off here
-   // ...
-   System::log->println("Lamp is OFF");
+    // Turn the lamp off here
+    // ...
+    System::log->println("Lamp is OFF");
   }
 }
 void (*System::timerHandler)(const TimerAbsolute&) = myTimerHandler;  // Install the handler

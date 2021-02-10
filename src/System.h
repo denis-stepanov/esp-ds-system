@@ -54,9 +54,9 @@
 #define DS_CAP_SYS_NETWORK
 #endif // DS_CAP_WEBSERVER && !DS_CAP_SYS_NETWORK
 
-#if defined(DS_CAP_TIMERS_SOLAR) && !defined(DS_CAP_TIMERS_ABS)
+#if (defined(DS_CAP_TIMERS_SOLAR) || defined(DS_CAP_TIMERS_COUNT)) && !defined(DS_CAP_TIMERS_ABS)
 #define DS_CAP_TIMERS_ABS
-#endif // DS_CAP_TIMERS_SOLAR && !DS_CAP_TIMERS_ABS
+#endif // (DS_CAP_TIMERS_SOLAR || DS_CAP_TIMERS_COUNT) && !DS_CAP_TIMERS_ABS
 
 #if defined(DS_CAP_WEB_TIMERS) && !defined(DS_CAP_TIMERS_ABS)
 #warning "Capability DS_CAP_WEB_TIMERS requires at least DS_CAP_TIMERS_ABS; enabling"
@@ -64,7 +64,7 @@
 #endif // DS_CAP_WEB_TIMERS && !DS_CAP_TIMERS_ABS
 
 #if defined(DS_CAP_TIMERS_ABS) && !defined(DS_CAP_SYS_TIME)
-#warning "Absolute or solar timer functionality requires time; enabling"
+#warning "Selected timer functionality requires time; enabling"
 #define DS_CAP_SYS_TIME
 #endif // DS_CAP_TIMERS && !DS_CAP_SYS_TIME
 
@@ -188,7 +188,7 @@ namespace ds {
 
     public:
       TimerSolar(const timer_type_t /* type */, const String label = "undefined", const int8_t offset = 0, const uint8_t hour = 0, const uint8_t minute = 0,
-        const timer_dow_t dow = TIMER_DOW_ANY, const bool armed = true, const bool repeat = true, const bool transient = false, const int id = -1);  // Constructor
+        const timer_dow_t dow = TIMER_DOW_ANY, const bool armed = true, const bool recurrent = true, const bool transient = false, const int id = -1);  // Constructor
       int8_t getOffset() const;                       // Return offset in minutes from event
       void setOffset(const int8_t /* offset */);      // Set offset in minutes from event
       bool operator==(const TimerSolar& /* timer */) const; // Comparison operator
@@ -196,14 +196,13 @@ namespace ds {
 #endif // DS_CAP_TIMERS_SOLAR
 
 #ifdef DS_CAP_TIMERS_COUNT
-  class TimerCountdown : public Timer {
-
-    protected:
-      uint32_t interval;                              // Timer interval (s ?FIXME?)
+  class TimerCountdown : public TimerAbsolute {
 
     public:
-      TimerCountdown(const String label = "undefined", const uint32_t interval,
-        const bool armed = true, const bool repeat = true, const bool transient = false, const int id = -1);  // Constructor
+      TimerCountdown(const String label = "undefined", const uint32_t interval = 1, const uint8_t hour = 0, const uint8_t minute = 0,
+        const bool armed = true, const bool recurrent = true, const bool transient = false, const int id = -1);  // Constructor
+      uint32_t getInterval() const;                   // Return timer interval
+      void setInterval(const uint32_t /* interval */);// Set timer interval
       virtual ~TimerCountdown() {}                    // Destructor
   };
 #endif // DS_CAP_TIMERS_COUNT

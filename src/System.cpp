@@ -912,7 +912,8 @@ void (*System::timerHandler)(const TimerAbsolute& /* timer */) __attribute__ ((w
 //   int tm_sec;    - unused
 //   int tm_min;    - timer firing minute (0..59)
 //   int tm_hour;   - timer firing hour (0..23)
-//   int tm_mday;   - timer offset (-59..+59 min); used with solar events
+//   int tm_mday;   - solar timer: timer offset (-59..+59 min)
+//       >>         - countdown timer: timer interval (> 0 s)
 //   int tm_mon;    - unused
 //   int tm_year;   - unused
 //   int tm_wday;   - timer firing day of the week (-1..6, Sunday=0, -1=every day)
@@ -1114,10 +1115,26 @@ uint16_t System::getSunset() {
  *************************************************************************/
 #ifdef DS_CAP_TIMERS_COUNT
 
+#include <limits.h>           // INT_MAX
+
 // Countdown timer constructor
-TimerCountdown::TimerCountdown(const String label, const uint32_t _interval,
-  const bool armed, const bool repeat, const bool transient, const int id) :
-  Timer(TIMER_COUNTDOWN, label, armed, recurrent, transient, id), interval(_interval) {}
+TimerCountdown::TimerCountdown(const String label, const uint32_t interval, const uint8_t hour, const uint8_t minute,
+  const bool armed, const bool recurrent, const bool transient, const int id) :
+  TimerAbsolute(label, hour, minute, TIMER_DOW_ANY, armed, recurrent, transient, id) {
+    setType(TIMER_COUNTDOWN);
+    setInterval(interval <= INT_MAX ? (interval > 0 ? interval : 1) : INT_MAX);
+}
+
+// Return timer interval
+uint32_t TimerCountdown::getInterval() const {
+  return time.tm_mday;
+}
+
+// Set timer interval
+void TimerCountdown::setInterval(const uint32_t interval) {
+  if (interval > 0 && interval <= INT_MAX)
+    time.tm_mday = interval;
+}
 
 #endif // DS_CAP_TIMERS_COUNT
 

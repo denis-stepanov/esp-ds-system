@@ -1,4 +1,4 @@
-// Absolute timer example
+// Countdown timer example
 // Board: NodeMCU 1.0(ESP-12E Module)
 // (!) Before compiling, copy System.h and System.cpp into the sketch folder, then reopen the sketch in Arduino
 
@@ -11,17 +11,21 @@ using namespace ds;
 
 // Timer handler
 void myTimerHandler(const TimerAbsolute& timer) {
-  if (timer.getLabel() == "lamp on") {
+  static bool lamp_is_on = false;
+  
+  if (timer.getLabel() == "lamp toggle") {
+    if (!lamp_is_on) {
 
-    // Turn the lamp on here
-    // ...
-    System::log->println("Lamp is ON");
-  } else
-  if (timer.getLabel() == "lamp off") {
-
-    // Turn the lamp off here
-    // ...
-    System::log->println("Lamp is OFF");
+      // Turn the lamp on here
+      // ...
+      System::log->println("Lamp is ON");
+    } else {
+      
+     // Turn the lamp off here
+     // ...
+     System::log->println("Lamp is OFF");
+    }
+    lamp_is_on = !lamp_is_on;
   }
 }
 void (*System::timerHandler)(const TimerAbsolute&) = myTimerHandler;  // Install the handler
@@ -44,15 +48,11 @@ void setup() {
   // Set system time to some date around 2001
   set_clock(1000000000);
 
-  // Set up two timers one minute apart
-  for (uint8_t n = 1; n <= 2; n++) {
-    new_time += 60;
-    struct tm *tinfo = localtime(&new_time);
-    TimerAbsolute my_timer(n == 1 ? "lamp on" : "lamp off", tinfo->tm_hour, tinfo->tm_min);
-    System::timers.push_front(my_timer);
-    System::log->printf("Timer %hhu \"%s\" set to fire every day at %02hhuh%02hhum\n",
-      n, my_timer.getLabel().c_str(), my_timer.getHour(), my_timer.getMinute());
-  }
+  // Set up a countdown timer with 5 seconds period
+  TimerCountdown my_timer("lamp toggle", 5);
+  System::timers.push_front(my_timer);
+  System::log->printf("Timer \"%s\" set to fire every %u s counting from %02hhuh%02hhum\n",
+    my_timer.getLabel().c_str(), my_timer.getInterval(), my_timer.getHour(), my_timer.getMinute());  
 }
 
 void loop() {
