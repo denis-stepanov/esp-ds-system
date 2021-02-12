@@ -1155,6 +1155,18 @@ void TimerCountdown::setInterval(const uint32_t interval) {
     time.tm_mday = interval;
 }
 
+// Move timer to the next absolute time
+void TimerCountdown::advance() {
+  setSecond((getSecond() + getInterval()) / 60);
+  auto leap = (getSecond() + getInterval()) % 60;
+  if (leap) {
+    setMinute((getMinute() + leap) / 60);
+    leap = (getMinute() + leap) % 60;
+    if (leap)
+      setHour((getHour() + leap) / 24);
+  }
+}
+
 // Countdown timer comparison operator
 bool TimerCountdown::operator==(const TimerCountdown& timer) const {
   return Timer::operator==(timer) && getInterval() == timer.getInterval();
@@ -1404,7 +1416,7 @@ void System::update() {
            // This might not work properly with solar events happening shortly past midnight, but these are unlikely
           st->setHour(((timer_type == TIMER_SUNRISE ? sunrise : sunset) + st->getOffset()) / 60);
           st->setMinute(((timer_type == TIMER_SUNRISE ? sunrise : sunset) + st->getOffset()) % 60);
-          st->setSecond(0);
+          st->setSecond(0);  // Calculation has minute precision
         }
       }
     }
@@ -1417,6 +1429,10 @@ void System::update() {
           log->printf(TIMED("Timer \"%s\" fired\n"), timer.getLabel().c_str());
           if (timerHandler)
             timerHandler(timer);
+#ifdef DS_CAP_TIMERS_COUNT
+          if (timer.getType() == TIMER_COUNTDOWN)
+            static_cast<TimerCountdown *>(&timer)->advance();
+#endif // DS_CAP_TIMERS_COUNT
           if (!timer.isRecurrent())
             timer.disarm();
           if (timer.isTransient())

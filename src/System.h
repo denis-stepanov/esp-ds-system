@@ -209,6 +209,7 @@ namespace ds {
         const bool armed = true, const bool recurrent = true, const bool transient = false, const int id = -1);  // Constructor
       uint32_t getInterval() const;                   // Return timer interval
       void setInterval(const uint32_t /* interval */);// Set timer interval
+      void advance();                                 // Move timer to the next absolute time
       bool operator==(const TimerCountdown& /* timer */) const; // Comparison operator
       virtual ~TimerCountdown() {}                    // Destructor   FIXME is this needed?
   };
