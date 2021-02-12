@@ -908,8 +908,8 @@ bool System::abs_timers_active = true;               // Activate timers
 std::forward_list<TimerAbsolute> System::timers;
 void (*System::timerHandler)(const TimerAbsolute& /* timer */) __attribute__ ((weak)) = nullptr;
 
-// struct tm (re)usage:
-//   int tm_sec;    - unused
+// struct tm (re)use:
+//   int tm_sec;    - timer firing second (0..59)
 //   int tm_min;    - timer firing minute (0..59)
 //   int tm_hour;   - timer firing hour (0..23)
 //   int tm_mday;   - solar timer: timer offset (-59..+59 min)
@@ -1003,10 +1003,11 @@ void Timer::forget() {
 }
 
 // Absolute timer constructor
-TimerAbsolute::TimerAbsolute(const String label, const uint8_t hour, const uint8_t minute, const timer_dow_t dow,
-  const bool armed, const bool recurrent, const bool transient, const int id) :
+TimerAbsolute::TimerAbsolute(const String label, const uint8_t hour, const uint8_t minute, const uint8_t second,
+  const timer_dow_t dow, const bool armed, const bool recurrent, const bool transient, const int id) :
   Timer(TIMER_ABSOLUTE, label, armed, recurrent, transient, id),
-  time({0, minute <= 59 ? minute : 0, hour <= 23 ? hour : 0, 0, 0, 0, dow >= TIMER_DOW_ANY && dow <= TIMER_DOW_INVALID ? dow : TIMER_DOW_INVALID, 0, 0}) {}
+  time({second <= 59 ? second : 0, minute <= 59 ? minute : 0, hour <= 23 ? hour : 0,
+    0, 0, 0, dow >= TIMER_DOW_ANY && dow <= TIMER_DOW_INVALID ? dow : TIMER_DOW_INVALID, 0, 0}) {}
 
 // Return hour setting
 uint8_t TimerAbsolute::getHour() const {
@@ -1030,6 +1031,17 @@ void TimerAbsolute::setMinute(const uint8_t new_minute) {
     time.tm_min = new_minute;
 }
 
+// Return second setting
+uint8_t TimerAbsolute::getSecond() const {
+  return time.tm_sec;
+}
+
+// Set second setting
+void TimerAbsolute::setSecond(const uint8_t new_second) {
+  if (new_second <= 59)
+    time.tm_sec = new_second;
+}
+
 // Get day of week setting
 int8_t TimerAbsolute::getDayOfWeek() const {
   return time.tm_wday;
@@ -1044,7 +1056,7 @@ void TimerAbsolute::setDayOfWeek(const int8_t new_dow) {
 // Absolute timer comparison operator
 bool TimerAbsolute::operator==(const TimerAbsolute& timer) const {
   return Timer::operator==(timer) && getHour() == timer.getHour() &&
-    getMinute() == timer.getMinute() && getDayOfWeek() == timer.getDayOfWeek();
+    getMinute() == timer.getMinute() && getSecond() == timer.getSecond() && getDayOfWeek() == timer.getDayOfWeek();
 }
 
 #endif // DS_CAP_TIMERS_ABS
@@ -1060,9 +1072,10 @@ bool TimerAbsolute::operator==(const TimerAbsolute& timer) const {
 #include <Dusk2Dawn.h>              // Sunrise/sunset calculation, https://github.com/dmkishi/Dusk2Dawn  (! get the latest master via ZIP, not v1.0.1 from Arduino IDE !)
 
 // Solar timer constructor
-TimerSolar::TimerSolar(const timer_type_t _type, const String label, const int8_t offset, const uint8_t hour, const uint8_t minute,
+TimerSolar::TimerSolar(const timer_type_t _type, const String label, const int8_t offset,
+  const uint8_t hour, const uint8_t minute, const uint8_t second,
   const timer_dow_t dow, const bool armed, const bool recurrent, const bool transient, const int id) :
-  TimerAbsolute(label, hour, minute, dow, armed, recurrent, transient, id) {
+  TimerAbsolute(label, hour, minute, second, dow, armed, recurrent, transient, id) {
   setType(_type == TIMER_SUNRISE || _type == TIMER_SUNSET ? _type : TIMER_INVALID);
   setOffset(offset >= -59 && offset <= 59 ? offset : 0);
 }
@@ -1118,9 +1131,10 @@ uint16_t System::getSunset() {
 #include <limits.h>           // INT_MAX
 
 // Countdown timer constructor
-TimerCountdown::TimerCountdown(const String label, const uint32_t interval, const uint8_t hour, const uint8_t minute,
+TimerCountdown::TimerCountdown(const String label, const uint32_t interval,
+  const uint8_t hour, const uint8_t minute, const uint8_t second,
   const bool armed, const bool recurrent, const bool transient, const int id) :
-  TimerAbsolute(label, hour, minute, TIMER_DOW_ANY, armed, recurrent, transient, id) {
+  TimerAbsolute(label, hour, minute, second, TIMER_DOW_ANY, armed, recurrent, transient, id) {
     setType(TIMER_COUNTDOWN);
     setInterval(interval <= INT_MAX ? (interval > 0 ? interval : 1) : INT_MAX);
 }
@@ -1136,7 +1150,13 @@ void TimerCountdown::setInterval(const uint32_t interval) {
     time.tm_mday = interval;
 }
 
+// Countdown timer comparison operator
+bool TimerCountdown::operator==(const TimerCountdown& timer) const {
+  return Timer::operator==(timer) && getInterval() == timer.getInterval();
+}
+
 #endif // DS_CAP_TIMERS_COUNT
+
 
 
 
@@ -1379,6 +1399,7 @@ void System::update() {
            // This might not work properly with solar events happening shortly past midnight, but these are unlikely
           st->setHour(((timer_type == TIMER_SUNRISE ? sunrise : sunset) + st->getOffset()) / 60);
           st->setMinute(((timer_type == TIMER_SUNRISE ? sunrise : sunset) + st->getOffset()) % 60);
+          st->setSecond(0);
         }
       }
     }
@@ -1387,15 +1408,16 @@ void System::update() {
     // Process timers
     if (abs_timers_active)
       for (auto& timer : timers) {
-        if (timerHandler && timer.getType() != TIMER_INVALID && timer.isArmed() &&
-            timer.getHour() == tm_local.tm_hour && timer.getMinute() == tm_local.tm_min && tm_local.tm_sec == 0) {
+        if (timer.getType() != TIMER_INVALID && timer.isArmed() &&
+            timer.getHour() == tm_local.tm_hour && timer.getMinute() == tm_local.tm_min && timer.getSecond() == tm_local.tm_sec) {
           log->printf(TIMED("Timer \"%s\" fired\n"), timer.getLabel().c_str());
-          timerHandler(timer);
+          if (timerHandler)
+            timerHandler(timer);
+          if (!timer.isRecurrent())
+            timer.disarm();
+          if (timer.isTransient())
+            timers.remove(timer);
         }
-        if (!timer.isRecurrent())
-          timer.disarm();
-        if (timer.isTransient())
-          timers.remove(timer);
       }
   }
 #endif // DS_CAP_TIMERS_ABS

@@ -170,13 +170,16 @@ namespace ds {
       struct tm time;                                 // Timer firing details
 
     public:
-      TimerAbsolute(const String label = "undefined", const uint8_t hour = 0, const uint8_t minute = 0, const timer_dow_t dow = TIMER_DOW_ANY,
-        const bool armed = true, const bool recurrent = true, const bool transient = false, const int id = -1);  // Constructor
+      TimerAbsolute(const String label = "undefined", const uint8_t hour = 0, const uint8_t minute = 0, const uint8_t second = 0,
+        const timer_dow_t dow = TIMER_DOW_ANY, const bool armed = true, const bool recurrent = true, const bool transient = false,
+        const int id = -1);  // Constructor
       virtual ~TimerAbsolute() {}                     // Destructor
       uint8_t getHour() const;                        // Return hour setting
       void setHour(const uint8_t /* new_hour */);     // Set hour setting
       uint8_t getMinute() const;                      // Return minute setting
       void setMinute(const uint8_t /* new_minute */); // Set minute setting
+      uint8_t getSecond() const;                      // Return second setting
+      void setSecond(const uint8_t /* new_second */); // Set second setting
       int8_t getDayOfWeek() const;                    // Get day of week setting
       void setDayOfWeek(const int8_t /* new_dow */);  // Set day of week setting
       bool operator==(const TimerAbsolute& /* timer */) const; // Comparison operator
@@ -187,8 +190,9 @@ namespace ds {
   class TimerSolar : public TimerAbsolute {           // Solar event-based timer
 
     public:
-      TimerSolar(const timer_type_t /* type */, const String label = "undefined", const int8_t offset = 0, const uint8_t hour = 0, const uint8_t minute = 0,
-        const timer_dow_t dow = TIMER_DOW_ANY, const bool armed = true, const bool recurrent = true, const bool transient = false, const int id = -1);  // Constructor
+      TimerSolar(const timer_type_t /* type */, const String label = "undefined", const int8_t offset = 0,
+        const uint8_t hour = 0, const uint8_t minute = 0, const uint8_t second = 0, const timer_dow_t dow = TIMER_DOW_ANY,
+        const bool armed = true, const bool recurrent = true, const bool transient = false, const int id = -1);  // Constructor
       int8_t getOffset() const;                       // Return offset in minutes from event
       void setOffset(const int8_t /* offset */);      // Set offset in minutes from event
       bool operator==(const TimerSolar& /* timer */) const; // Comparison operator
@@ -199,11 +203,13 @@ namespace ds {
   class TimerCountdown : public TimerAbsolute {
 
     public:
-      TimerCountdown(const String label = "undefined", const uint32_t interval = 1, const uint8_t hour = 0, const uint8_t minute = 0,
+      TimerCountdown(const String label = "undefined", const uint32_t interval = 1,
+        const uint8_t hour = 0, const uint8_t minute = 0, const uint8_t second = 0,
         const bool armed = true, const bool recurrent = true, const bool transient = false, const int id = -1);  // Constructor
       uint32_t getInterval() const;                   // Return timer interval
       void setInterval(const uint32_t /* interval */);// Set timer interval
-      virtual ~TimerCountdown() {}                    // Destructor
+      bool operator==(const TimerCountdown& /* timer */) const; // Comparison operator
+      virtual ~TimerCountdown() {}                    // Destructor   FIXME is this needed?
   };
 #endif // DS_CAP_TIMERS_COUNT
 
