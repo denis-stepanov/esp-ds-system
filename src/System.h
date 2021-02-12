@@ -183,6 +183,7 @@ namespace ds {
       int8_t getDayOfWeek() const;                    // Get day of week setting
       void setDayOfWeek(const int8_t /* new_dow */);  // Set day of week setting
       bool operator==(const TimerAbsolute& /* timer */) const; // Comparison operator
+      bool operator==(const struct tm& /* _tm */) const; // Time comparison operator
   };
 #endif // DS_CAP_TIMERS_ABS
 

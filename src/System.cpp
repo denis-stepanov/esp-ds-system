@@ -1059,6 +1059,11 @@ bool TimerAbsolute::operator==(const TimerAbsolute& timer) const {
     getMinute() == timer.getMinute() && getSecond() == timer.getSecond() && getDayOfWeek() == timer.getDayOfWeek();
 }
 
+// Time comparison operator
+bool TimerAbsolute::operator==(const struct tm& _tm) const {
+  return getHour() == _tm.tm_hour && getMinute() == _tm.tm_min && getSecond() == _tm.tm_sec;
+}
+
 #endif // DS_CAP_TIMERS_ABS
 
 
@@ -1408,8 +1413,7 @@ void System::update() {
     // Process timers
     if (abs_timers_active)
       for (auto& timer : timers) {
-        if (timer.getType() != TIMER_INVALID && timer.isArmed() &&
-            timer.getHour() == tm_local.tm_hour && timer.getMinute() == tm_local.tm_min && timer.getSecond() == tm_local.tm_sec) {
+        if (timer.getType() != TIMER_INVALID && timer.isArmed() && timer == tm_local) {
           log->printf(TIMED("Timer \"%s\" fired\n"), timer.getLabel().c_str());
           if (timerHandler)
             timerHandler(timer);
