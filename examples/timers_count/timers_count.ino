@@ -52,7 +52,7 @@ void setup() {
   TimerCountdown my_timer("lamp toggle", 5);
   System::timers.push_front(my_timer);
   System::log->printf("Timer \"%s\" set to fire every %u s counting from %02hhuh%02hhum\n",
-    my_timer.getLabel().c_str(), my_timer.getInterval(), my_timer.getHour(), my_timer.getMinute());  
+    my_timer.getLabel().c_str(), my_timer.getInterval(), my_timer.getRefHour(), my_timer.getRefMinute());
 }
 
 void loop() {

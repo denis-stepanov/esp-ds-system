@@ -1139,9 +1139,44 @@ uint16_t System::getSunset() {
 TimerCountdown::TimerCountdown(const String label, const uint32_t interval,
   const uint8_t hour, const uint8_t minute, const uint8_t second,
   const bool armed, const bool recurrent, const bool transient, const int id) :
-  TimerAbsolute(label, hour, minute, second, TIMER_DOW_ANY, armed, recurrent, transient, id) {
+  TimerAbsolute(label, hour, minute, second, TIMER_DOW_ANY, armed, recurrent, transient, id),
+  ref_hour(hour <= 23 ? hour: 0), ref_minute(minute <= 59 ? minute : 0), ref_second(second <= 59 ? second : 0), next_time(0) {
     setType(TIMER_COUNTDOWN);
     setInterval(interval <= INT_MAX ? (interval > 0 ? interval : 1) : INT_MAX);
+    update();
+}
+
+// Return reference hour setting
+uint8_t TimerCountdown::getRefHour() const {
+  return ref_hour;
+}
+
+// Set reference hour setting
+void TimerCountdown::setRefHour(const uint8_t new_hour) {
+  if (new_hour <= 23)
+    ref_hour = new_hour;
+}
+
+// Return reference minute setting
+uint8_t TimerCountdown::getRefMinute() const {
+  return ref_minute;
+}
+
+// Set reference minute setting
+void TimerCountdown::setRefMinute(const uint8_t new_minute) {
+  if (new_minute <= 59)
+    ref_minute = new_minute;
+}
+
+// Return reference second setting
+uint8_t TimerCountdown::getRefSecond() const {
+  return ref_second;
+}
+
+// Set reference second setting
+void TimerCountdown::setRefSecond(const uint8_t new_second) {
+  if (new_second <= 59)
+    ref_second = new_second;
 }
 
 // Return timer interval
@@ -1155,16 +1190,39 @@ void TimerCountdown::setInterval(const uint32_t interval) {
     time.tm_mday = interval;
 }
 
-// Move timer to the next absolute time
-void TimerCountdown::advance() {
-  setSecond((getSecond() + getInterval()) / 60);
-  auto leap = (getSecond() + getInterval()) % 60;
-  if (leap) {
-    setMinute((getMinute() + leap) / 60);
-    leap = (getMinute() + leap) % 60;
-    if (leap)
-      setHour((getHour() + leap) / 24);
+// Prepare timer for firing
+void TimerCountdown::update(const time_t from_time) {
+  struct tm tm_now, tm_ref;
+  const auto interval = getInterval();
+  const auto cur_time = from_time ? from_time : System::getTime();
+  if (next_time > cur_time && next_time - cur_time < (int) interval)
+    return;     // Countdown goes as planned
+
+  if (next_time == cur_time) {     // Timer fired
+    next_time += interval;
+    auto next = getSecond() + interval;
+    setSecond(next % 60);
+    auto leap = next / 60;
+    next = getMinute() + leap;
+    setMinute(next % 60);
+    leap = next / 60;
+    setHour((getHour() + leap) % 24);
+    return;
   }
+
+  // Otherwise we are out of sync and need to rebase the timer
+  localtime_r(&cur_time, &tm_now);
+  tm_ref = tm_now;
+  tm_ref.tm_hour = ref_hour;
+  tm_ref.tm_min = ref_minute;
+  tm_ref.tm_sec = ref_second;
+  const auto tdiff = interval - abs(cur_time - mktime(&tm_ref)) % interval;
+  next_time = cur_time + tdiff;
+  setSecond((tm_now.tm_sec + tdiff) % 60);
+  auto leap = (tm_now.tm_sec + tdiff) / 60;
+  setMinute((tm_now.tm_min + leap) % 60);
+  leap = (tm_now.tm_min + leap) / 60;
+  setHour((tm_now.tm_hour + leap) % 24);
 }
 
 // Countdown timer comparison operator
@@ -1429,15 +1487,16 @@ void System::update() {
           log->printf(TIMED("Timer \"%s\" fired\n"), timer.getLabel().c_str());
           if (timerHandler)
             timerHandler(timer);
-#ifdef DS_CAP_TIMERS_COUNT
-          if (timer.getType() == TIMER_COUNTDOWN)
-            static_cast<TimerCountdown *>(&timer)->advance();
-#endif // DS_CAP_TIMERS_COUNT
           if (!timer.isRecurrent())
             timer.disarm();
           if (timer.isTransient())
-            timers.remove(timer);
+            timers.remove(timer);           // FIXME check for memory leak
         }
+#ifdef DS_CAP_TIMERS_COUNT
+        if (timer.getType() == TIMER_COUNTDOWN) {
+          static_cast<TimerCountdown *>(&timer)->update(old_time);
+        }
+#endif // DS_CAP_TIMERS_COUNT
       }
   }
 #endif // DS_CAP_TIMERS_ABS
