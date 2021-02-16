@@ -890,18 +890,6 @@ void System::buttonEventHandler(AceButton* button, uint8_t event_type, uint8_t b
 /*************************************************************************
  * Capability: timers from absolute time
  *************************************************************************/
-#if defined(DS_CAP_TIMERS_ABS) || defined (DS_CAP_TIMERS_COUNT)
-
-// Define pure virtual destructor (required by C++)
-Timer::~Timer() {
-}
-
-// Abstract timer comparison operator
-bool Timer::operator==(const Timer& timer) const {
-  return type == timer.getType() && id == timer.getID() && label == timer.getLabel();
-}
-#endif // DS_CAP_TIMERS_ABS || DS_CAP_TIMERS_COUNT
-
 #ifdef DS_CAP_TIMERS_ABS
 
 bool System::abs_timers_active = true;               // Activate timers
@@ -925,6 +913,10 @@ Timer::Timer(const timer_type_t _type, const String _label,
   const bool _armed, const bool _recurrent, const bool _transient, const int _id) :
   id(_id >= -1 ? _id : -1), type(_type >= 0 && _type <= TIMER_INVALID ? _type : TIMER_INVALID),
   label(_label), armed(_armed), recurrent(_recurrent), transient(_transient) {}
+
+// Define pure virtual destructor (required by C++)
+Timer::~Timer() {
+}
 
 // Return timer identifier
 int Timer::getID() const {
@@ -1000,6 +992,11 @@ void Timer::keep() {
 // Mark the timer for disposal
 void Timer::forget() {
   transient = true;
+}
+
+// Abstract timer comparison operator
+bool Timer::operator==(const Timer& timer) const {
+  return type == timer.getType() && id == timer.getID() && label == timer.getLabel();
 }
 
 // Absolute timer constructor
@@ -1140,7 +1137,7 @@ TimerCountdown::TimerCountdown(const String label, const uint32_t interval,
   const uint8_t hour, const uint8_t minute, const uint8_t second,
   const bool armed, const bool recurrent, const bool transient, const int id) :
   TimerAbsolute(label, hour, minute, second, TIMER_DOW_ANY, armed, recurrent, transient, id),
-  ref_hour(hour <= 23 ? hour: 0), ref_minute(minute <= 59 ? minute : 0), ref_second(second <= 59 ? second : 0), next_time(0) {
+  next_time(0), ref_hour(hour <= 23 ? hour: 0), ref_minute(minute <= 59 ? minute : 0), ref_second(second <= 59 ? second : 0) {
     setType(TIMER_COUNTDOWN);
     setInterval(interval <= INT_MAX ? (interval > 0 ? interval : 1) : INT_MAX);
     update();
@@ -1192,7 +1189,6 @@ void TimerCountdown::setInterval(const uint32_t interval) {
 
 // Prepare timer for firing
 void TimerCountdown::update(const time_t from_time) {
-  struct tm tm_now, tm_ref;
   const auto interval = getInterval();
   const auto cur_time = from_time ? from_time : System::getTime();
   if (next_time > cur_time && next_time - cur_time < (int) interval)
@@ -1211,6 +1207,7 @@ void TimerCountdown::update(const time_t from_time) {
   }
 
   // Otherwise we are out of sync and need to rebase the timer
+  struct tm tm_now, tm_ref;
   localtime_r(&cur_time, &tm_now);
   tm_ref = tm_now;
   tm_ref.tm_hour = ref_hour;
@@ -1494,7 +1491,7 @@ void System::update() {
         }
 #ifdef DS_CAP_TIMERS_COUNT
         if (timer.getType() == TIMER_COUNTDOWN) {
-          static_cast<TimerCountdown *>(&timer)->update(old_time);
+          static_cast<TimerCountdown &>(timer).update(old_time);
         }
 #endif // DS_CAP_TIMERS_COUNT
       }

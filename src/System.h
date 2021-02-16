@@ -204,10 +204,11 @@ namespace ds {
   class TimerCountdown : public TimerAbsolute {
 
     protected:
+      // Important: order of fields is important; if bytes come before words, the class will misbehave (g++ bug?)
+      time_t next_time;                               // Next time the timer will be fired
       uint8_t ref_hour;                               // Reference hour
       uint8_t ref_minute;                             // Reference minute
       uint8_t ref_second;                             // Reference second
-      time_t next_time;                               // Next time the timer will be fired
 
     public:
       TimerCountdown(const String label = "undefined", const uint32_t interval = 1,
@@ -223,7 +224,6 @@ namespace ds {
       void setInterval(const uint32_t /* interval */);// Set timer interval
       void update(const time_t from_time = 0);        // Prepare timer for firing. 0 means from current time
       bool operator==(const TimerCountdown& /* timer */) const; // Comparison operator
-      virtual ~TimerCountdown() {}                    // Destructor   FIXME is this needed?
   };
 #endif // DS_CAP_TIMERS_COUNT
 
