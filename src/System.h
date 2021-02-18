@@ -203,13 +203,6 @@ namespace ds {
 #ifdef DS_CAP_TIMERS_COUNT
   class TimerCountdown : public TimerAbsolute {
 
-    protected:
-      // Important: order of fields is important; if bytes come before words, the class will misbehave (g++ bug?)
-      time_t next_time;                               // Next time the timer will be fired
-      uint8_t ref_hour;                               // Reference hour
-      uint8_t ref_minute;                             // Reference minute
-      uint8_t ref_second;                             // Reference second
-
     public:
       TimerCountdown(const String label = "undefined", const uint32_t interval = 1,
         const uint8_t hour = 0, const uint8_t minute = 0, const uint8_t second = 0,

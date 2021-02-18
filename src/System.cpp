@@ -902,11 +902,11 @@ void (*System::timerHandler)(const TimerAbsolute& /* timer */) __attribute__ ((w
 //   int tm_hour;   - timer firing hour (0..23)
 //   int tm_mday;   - solar timer: timer offset (-59..+59 min)
 //       >>         - countdown timer: timer interval (> 0 s)
-//   int tm_mon;    - unused
-//   int tm_year;   - unused
+//   int tm_mon;    - countdown timer: timer reference second (0..59)
+//   int tm_year;   - countdown timer: timer reference minute (0..59)
 //   int tm_wday;   - timer firing day of the week (-1..6, Sunday=0, -1=every day)
-//   int tm_yday;   - unused
-//   int tm_isdst;  - unused
+//   int tm_yday;   - countdown timer: timer reference hour (0..23)
+//   int tm_isdst;  - countdown timer: next firing time (time_t)
 
 // Timer constructor
 Timer::Timer(const timer_type_t _type, const String _label,
@@ -1136,44 +1136,47 @@ uint16_t System::getSunset() {
 TimerCountdown::TimerCountdown(const String label, const uint32_t interval,
   const uint8_t hour, const uint8_t minute, const uint8_t second,
   const bool armed, const bool recurrent, const bool transient, const int id) :
-  TimerAbsolute(label, hour, minute, second, TIMER_DOW_ANY, armed, recurrent, transient, id),
-  next_time(0), ref_hour(hour <= 23 ? hour: 0), ref_minute(minute <= 59 ? minute : 0), ref_second(second <= 59 ? second : 0) {
+  TimerAbsolute(label, hour, minute, second, TIMER_DOW_ANY, armed, recurrent, transient, id) {
     setType(TIMER_COUNTDOWN);
     setInterval(interval <= INT_MAX ? (interval > 0 ? interval : 1) : INT_MAX);
+    setRefHour(hour <= 23 ? hour : 0);
+    setRefMinute(minute <= 59 ? minute : 0);
+    setRefSecond(second <= 59 ? second : 0);
+    time.tm_isdst = 0;
     update();
 }
 
 // Return reference hour setting
 uint8_t TimerCountdown::getRefHour() const {
-  return ref_hour;
+  return time.tm_yday;
 }
 
 // Set reference hour setting
 void TimerCountdown::setRefHour(const uint8_t new_hour) {
   if (new_hour <= 23)
-    ref_hour = new_hour;
+    time.tm_yday = new_hour;
 }
 
 // Return reference minute setting
 uint8_t TimerCountdown::getRefMinute() const {
-  return ref_minute;
+  return time.tm_year;
 }
 
 // Set reference minute setting
 void TimerCountdown::setRefMinute(const uint8_t new_minute) {
   if (new_minute <= 59)
-    ref_minute = new_minute;
+    time.tm_year = new_minute;
 }
 
 // Return reference second setting
 uint8_t TimerCountdown::getRefSecond() const {
-  return ref_second;
+  return time.tm_mon;
 }
 
 // Set reference second setting
 void TimerCountdown::setRefSecond(const uint8_t new_second) {
   if (new_second <= 59)
-    ref_second = new_second;
+    time.tm_mon = new_second;
 }
 
 // Return timer interval
@@ -1191,6 +1194,7 @@ void TimerCountdown::setInterval(const uint32_t interval) {
 void TimerCountdown::update(const time_t from_time) {
   const auto interval = getInterval();
   const auto cur_time = from_time ? from_time : System::getTime();
+  auto& next_time = time.tm_isdst;
   if (next_time > cur_time && next_time - cur_time < (int) interval)
     return;     // Countdown goes as planned
 
@@ -1210,9 +1214,9 @@ void TimerCountdown::update(const time_t from_time) {
   struct tm tm_now, tm_ref;
   localtime_r(&cur_time, &tm_now);
   tm_ref = tm_now;
-  tm_ref.tm_hour = ref_hour;
-  tm_ref.tm_min = ref_minute;
-  tm_ref.tm_sec = ref_second;
+  tm_ref.tm_hour = getRefHour();
+  tm_ref.tm_min = getRefMinute();
+  tm_ref.tm_sec = getRefSecond();
   const auto tdiff = interval - abs(cur_time - mktime(&tm_ref)) % interval;
   next_time = cur_time + tdiff;
   setSecond((tm_now.tm_sec + tdiff) % 60);
