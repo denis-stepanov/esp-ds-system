@@ -901,7 +901,7 @@ void (*System::timerHandler)(const TimerAbsolute& /* timer */) __attribute__ ((w
 //   int tm_min;    - timer firing minute (0..59)
 //   int tm_hour;   - timer firing hour (0..23)
 //   int tm_mday;   - solar timer: timer offset (-59..+59 min)
-//       >>         - countdown timer: timer offset (0..86399 s)
+//       >>         - countdown timer: timer offset (0..86399 s < interval)
 //   int tm_mon;    - countdown timer: time interval (1..86400 s)
 //   int tm_year;   - (not used)
 //   int tm_wday;   - timer firing day of the week (-1..6, Sunday=0, -1=every day)
@@ -1136,7 +1136,7 @@ TimerCountdown::TimerCountdown(const String label, const uint32_t interval, cons
   TimerAbsolute(label, 0, 0, 0, TIMER_DOW_ANY, armed, recurrent, transient, id) {
     setType(TIMER_COUNTDOWN);
     setInterval(interval <= 24 * 60 * 60 ? (interval > 0 ? interval : 1) : 24 * 60 * 60);
-    setOffset(offset < 24 * 60 * 60 ? offset : 24 * 60 * 60 - 1);
+    setOffset(offset < getInterval() ? offset : 0);
     setNextTime(0);  // Next firing time. Setting it to 0 will force recalculation
     update();
 }
@@ -1160,6 +1160,8 @@ uint32_t TimerCountdown::getInterval() const {
 void TimerCountdown::setInterval(const uint32_t interval) {
   if (interval > 0 && interval <= 24 * 60 * 60)
     time.tm_mon = interval;
+  if (getOffset() >= getInterval())
+    setOffset(0);
 }
 
 // Return timer offset in seconds from midnight
@@ -1169,7 +1171,7 @@ uint32_t TimerCountdown::getOffset() const {
 
 // Set timer offset in seconds from midnight
 void TimerCountdown::setOffset(const uint32_t offset) {
-  if (offset < 24 * 60 * 60)
+  if (offset < getInterval())
     time.tm_mday = offset;
 }
 
