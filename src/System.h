@@ -203,18 +203,17 @@ namespace ds {
 #ifdef DS_CAP_TIMERS_COUNT
   class TimerCountdown : public TimerAbsolute {
 
+    protected:
+      time_t getNextTime() const;                     // Return next firing time
+      void setNextTime(const time_t /* new_time */);  // Set next firing time
+
     public:
-      TimerCountdown(const String label = "undefined", const uint32_t interval = 1,
-        const uint8_t hour = 0, const uint8_t minute = 0, const uint8_t second = 0,
+      TimerCountdown(const String label = "undefined", const uint32_t interval = 1, const uint32_t offset = 0,
         const bool armed = true, const bool recurrent = true, const bool transient = false, const int id = -1);  // Constructor
-      uint8_t getRefHour() const;                     // Return reference hour setting
-      void setRefHour(const uint8_t /* new_hour */);  // Set reference hour setting. FIXME: some action needed when ref time gets updated?
-      uint8_t getRefMinute() const;                   // Return reference minute setting
-      void setRefMinute(const uint8_t /* new_minute */); // Set reference minute setting
-      uint8_t getRefSecond() const;                      // Return reference second setting
-      void setRefSecond(const uint8_t /* new_second */); // Set reference second setting
       uint32_t getInterval() const;                   // Return timer interval
       void setInterval(const uint32_t /* interval */);// Set timer interval
+      uint32_t getOffset() const;                     // Return timer offset in seconds from midnight
+      void setOffset(const uint32_t /* offset */);    // Set timer offset in seconds from midnight
       void update(const time_t from_time = 0);        // Prepare timer for firing. 0 means from current time
       bool operator==(const TimerCountdown& /* timer */) const; // Comparison operator
   };
