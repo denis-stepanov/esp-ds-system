@@ -11,21 +11,17 @@ using namespace ds;
 
 // Timer handler
 void myTimerHandler(const TimerAbsolute& timer) {
-  static bool lamp_is_on = false;
-  
-  if (timer.getLabel() == "lamp toggle") {
-    if (!lamp_is_on) {
+  if (timer.getLabel() == "lamp on") {
 
-      // Turn the lamp on here
-      // ...
-      System::log->println("Lamp is ON");
-    } else {
-      
-     // Turn the lamp off here
-     // ...
-     System::log->println("Lamp is OFF");
-    }
-    lamp_is_on = !lamp_is_on;
+    // Turn the lamp on here
+    // ...
+    System::log->println("Lamp is ON");
+  } else
+  if (timer.getLabel() == "lamp off") {
+
+    // Turn the lamp off here
+    // ...
+    System::log->println("Lamp is OFF");
   }
 }
 void (*System::timerHandler)(const TimerAbsolute&) = myTimerHandler;  // Install the handler
@@ -48,16 +44,22 @@ void setup() {
   // Set system time to some date around 2001
   set_clock(1000000000);
 
-  // Set up a countdown timer with 5 seconds period
-  TimerCountdown my_timer("lamp toggle", 5);
+  // Set up a countdown timer with 10 seconds period
+  TimerCountdown my_timer("lamp off", 10);
   System::timers.push_front(my_timer);
-  System::log->printf("Timer \"%s\" set to fire every %u s counting from %02hhuh%02hhum\n",
-    my_timer.getLabel().c_str(), my_timer.getInterval(), my_timer.getRefHour(), my_timer.getRefMinute());
+  System::log->printf("Timer \"%s\" set to fire every %u s with offset of %u s from midnight\n",
+    my_timer.getLabel().c_str(), my_timer.getInterval(), my_timer.getOffset());
+
+  // Set up another countdown timer with 10 seconds period and 5 seconds offset
+  TimerCountdown my_timer2("lamp on", 10, 5);
+  System::timers.push_front(my_timer2);
+  System::log->printf("Timer \"%s\" set to fire every %u s with offset of %u s from midnight\n",
+    my_timer2.getLabel().c_str(), my_timer2.getInterval(), my_timer2.getOffset());
 }
 
 void loop() {
 
-  // Just display current time periodically to see when the timer fires
+  // Just display current time periodically to see when the timers fire. Lamp should toggle every 5 seconds
   new_time = System::getTime();
   if (new_time != old_time) {
     old_time = new_time;
