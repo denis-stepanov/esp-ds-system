@@ -1474,10 +1474,12 @@ void System::update() {
           log->printf(TIMED("Timer \"%s\" fired\n"), timer.getLabel().c_str());
           if (timerHandler)
             timerHandler(timer);
+          if (timer.getType() == TIMER_INVALID || timer.isTransient()) {
+            timers.remove(timer);
+            continue;
+          }
           if (!timer.isRecurrent())
             timer.disarm();
-          if (timer.isTransient())
-            timers.remove(timer);           // FIXME check for memory leak
         }
 #ifdef DS_CAP_TIMERS_COUNT
         if (timer.getType() == TIMER_COUNTDOWN) {

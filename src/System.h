@@ -169,6 +169,9 @@ namespace ds {
     protected:
       struct tm time;                                 // Timer firing details
 
+    // It is important that timers inheriting TimerAbsolute do not introduce additional fields beyond "time" struct,
+    // as these will not be copied over when timer is placed in the queue. This may lead to odd behavior and / or crashes
+
     public:
       TimerAbsolute(const String label = "undefined", const uint8_t hour = 0, const uint8_t minute = 0, const uint8_t second = 0,
         const timer_dow_t dow = TIMER_DOW_ANY, const bool armed = true, const bool recurrent = true, const bool transient = false,
