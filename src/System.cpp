@@ -1058,7 +1058,8 @@ bool TimerAbsolute::operator==(const TimerAbsolute& timer) const {
 
 // Time comparison operator
 bool TimerAbsolute::operator==(const struct tm& _tm) const {
-  return getHour() == _tm.tm_hour && getMinute() == _tm.tm_min && getSecond() == _tm.tm_sec;
+  return getHour() == _tm.tm_hour && getMinute() == _tm.tm_min && getSecond() == _tm.tm_sec &&
+    (getDayOfWeek() == _tm.tm_wday || getDayOfWeek() == TIMER_DOW_ANY);
 }
 
 #endif // DS_CAP_TIMERS_ABS
