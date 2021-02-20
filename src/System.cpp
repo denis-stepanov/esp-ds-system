@@ -1214,7 +1214,7 @@ void TimerCountdown::update(const time_t from_time) {
 
 // Countdown timer comparison operator
 bool TimerCountdown::operator==(const TimerCountdown& timer) const {
-  return Timer::operator==(timer) && getInterval() == timer.getInterval();
+  return Timer::operator==(timer) && getInterval() == timer.getInterval() && getOffset() == timer.getOffset();
 }
 
 #endif // DS_CAP_TIMERS_COUNT
