@@ -194,8 +194,7 @@ namespace ds {
   class TimerSolar : public TimerAbsolute {           // Solar event-based timer
 
     public:
-      TimerSolar(const timer_type_t /* type */, const String label = "undefined", const int8_t offset = 0,
-        const uint8_t hour = 0, const uint8_t minute = 0, const uint8_t second = 0, const timer_dow_t dow = TIMER_DOW_ANY,
+      TimerSolar(const timer_type_t /* type */, const String label = "undefined", const int8_t offset = 0, const timer_dow_t dow = TIMER_DOW_ANY,
         const bool armed = true, const bool recurrent = true, const bool transient = false, const int id = -1);  // Constructor
       int8_t getOffset() const;                       // Return offset in minutes from event
       void setOffset(const int8_t /* offset */);      // Set offset in minutes from event
