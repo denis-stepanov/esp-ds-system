@@ -210,7 +210,7 @@ namespace ds {
       void setNextTime(const time_t /* new_time */);  // Set next firing time
 
     public:
-      TimerCountdown(const String label = "undefined", const uint32_t interval = 1, const uint32_t offset = 0,
+      TimerCountdown(const String label = "undefined", const uint32_t interval = 1, const uint32_t offset = 0, const timer_dow_t dow = TIMER_DOW_ANY,
         const bool armed = true, const bool recurrent = true, const bool transient = false, const int id = -1);  // Constructor
       uint32_t getInterval() const;                   // Return timer interval
       void setInterval(const uint32_t /* interval */);// Set timer interval

@@ -1131,8 +1131,8 @@ uint16_t System::getSunset() {
 
 // Countdown timer constructor
 TimerCountdown::TimerCountdown(const String label, const uint32_t interval, const uint32_t offset,
-  const bool armed, const bool recurrent, const bool transient, const int id) :
-  TimerAbsolute(label, 0, 0, 0, TIMER_DOW_ANY, armed, recurrent, transient, id) {
+  const timer_dow_t dow, const bool armed, const bool recurrent, const bool transient, const int id) :
+  TimerAbsolute(label, 0, 0, 0, dow, armed, recurrent, transient, id) {
     setType(TIMER_COUNTDOWN);
     setInterval(interval <= 24 * 60 * 60 ? (interval > 0 ? interval : 1) : 24 * 60 * 60);
     setOffset(offset < getInterval() ? offset : 0);
