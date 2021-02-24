@@ -1,31 +1,31 @@
 /* DS System definition
  * * Use capability macros to enable/disable available system features
- * (c) DNS 2020
+ * (c) DNS 2020-2021
  */
 
 #ifndef _DS_SYSTEM_H_
 #define _DS_SYSTEM_H_
 
 // System capabilities. Define them in MySystem.h before including this header
-// DS_CAP_APP_ID       - enable application identification
-// DS_CAP_APP_LOG      - enable application log
-// DS_CAP_SYS_LED      - enable builtin LED
-// DS_CAP_SYS_LOG      - enable syslog
-// DS_CAP_SYS_LOG_HW   - enable syslog on hardware serial line (UART 0 or 1)
-// DS_CAP_SYS_RESET    - enable software reset interface
-// DS_CAP_SYS_RTCMEM   - enable RTC memory
-// DS_CAP_SYS_TIME     - enable system time
-// DS_CAP_SYS_UPTIME   - enable system uptime counter
-// DS_CAP_SYS_FS       - enable file system
-// DS_CAP_SYS_NETWORK  - enable networking
-// DS_CAP_WIFIMANAGER  - enable Wi-Fi configuration at runtime
-// DS_CAP_MDNS         - enable mDNS
-// DS_CAP_WEBSERVER    - enable web server
-// DS_CAP_BUTTON       - enable button
-// DS_CAP_TIMERS_ABS   - enable timers from absolute time
-// DS_CAP_TIMERS_SOLAR - enable timers from solar events
-// DS_CAP_TIMERS_COUNT - enable countdown timers
-// DS_CAP_WEB_TIMERS   - enable timers configuration web form
+// DS_CAP_APP_ID            - enable application identification
+// DS_CAP_APP_LOG           - enable application log
+// DS_CAP_SYS_LED           - enable builtin LED
+// DS_CAP_SYS_LOG           - enable syslog
+// DS_CAP_SYS_LOG_HW        - enable syslog on hardware serial line (UART 0 or 1)
+// DS_CAP_SYS_RESET         - enable software reset interface
+// DS_CAP_SYS_RTCMEM        - enable RTC memory
+// DS_CAP_SYS_TIME          - enable system time
+// DS_CAP_SYS_UPTIME        - enable system uptime counter
+// DS_CAP_SYS_FS            - enable file system
+// DS_CAP_SYS_NETWORK       - enable networking
+// DS_CAP_WIFIMANAGER       - enable Wi-Fi configuration at runtime
+// DS_CAP_MDNS              - enable mDNS
+// DS_CAP_WEBSERVER         - enable web server
+// DS_CAP_BUTTON            - enable button
+// DS_CAP_TIMERS_ABS        - enable timers from absolute time
+// DS_CAP_TIMERS_SOLAR      - enable timers from solar events
+// DS_CAP_TIMERS_COUNT_ABS  - enable countdown timers via absolute time
+// DS_CAP_WEB_TIMERS        - enable timers configuration web form
 
 #include <Arduino.h>          // String
 
@@ -54,9 +54,9 @@
 #define DS_CAP_SYS_NETWORK
 #endif // DS_CAP_WEBSERVER && !DS_CAP_SYS_NETWORK
 
-#if (defined(DS_CAP_TIMERS_SOLAR) || defined(DS_CAP_TIMERS_COUNT)) && !defined(DS_CAP_TIMERS_ABS)
+#if (defined(DS_CAP_TIMERS_SOLAR) || defined(DS_CAP_TIMERS_COUNT_ABS)) && !defined(DS_CAP_TIMERS_ABS)
 #define DS_CAP_TIMERS_ABS
-#endif // (DS_CAP_TIMERS_SOLAR || DS_CAP_TIMERS_COUNT) && !DS_CAP_TIMERS_ABS
+#endif // (DS_CAP_TIMERS_SOLAR || DS_CAP_TIMERS_COUNT_ABS) && !DS_CAP_TIMERS_ABS
 
 #if defined(DS_CAP_WEB_TIMERS) && !defined(DS_CAP_TIMERS_ABS)
 #warning "Capability DS_CAP_WEB_TIMERS requires at least DS_CAP_TIMERS_ABS; enabling"
@@ -108,12 +108,12 @@ namespace ds {
   } time_sync_t;
 #endif // DS_CAP_SYS_TIME
 
-#if defined(DS_CAP_TIMERS_ABS) || defined(DS_CAP_TIMERS_COUNT)
+#if defined(DS_CAP_TIMERS_ABS) || defined(DS_CAP_TIMERS_COUNT_ABS)
   typedef enum {
     TIMER_ABSOLUTE,                                   // Timer fires at a given absolute time
     TIMER_SUNRISE,                                    // Timer fires at sunrise
     TIMER_SUNSET,                                     // Timer fires at sunset
-    TIMER_COUNTDOWN,                                  // Timer fires at some moment from now
+    TIMER_COUNTDOWN_ABS,                              // Timer fires at some moment from now, counted via absolute time
     TIMER_INVALID                                     // Unsupported timer type (must be the last)
   } timer_type_t;
 
@@ -149,7 +149,7 @@ namespace ds {
       void forget();                                  // Mark the timer for disposal
       bool operator==(const Timer& /* timer */) const; // Comparison operator
   };
-#endif // DS_CAP_TIMERS_ABS || DS_CAP_TIMERS_COUNT
+#endif // DS_CAP_TIMERS_ABS || DS_CAP_TIMERS_COUNT_ABS
 
 #ifdef DS_CAP_TIMERS_ABS
   typedef enum {
@@ -202,24 +202,24 @@ namespace ds {
   };
 #endif // DS_CAP_TIMERS_SOLAR
 
-#ifdef DS_CAP_TIMERS_COUNT
-  class TimerCountdown : public TimerAbsolute {
+#ifdef DS_CAP_TIMERS_COUNT_ABS
+  class TimerCountdownAbs : public TimerAbsolute {
 
     protected:
       time_t getNextTime() const;                     // Return next firing time
       void setNextTime(const time_t /* new_time */);  // Set next firing time
 
     public:
-      TimerCountdown(const String label = "undefined", const uint32_t interval = 1, const uint32_t offset = 0, const timer_dow_t dow = TIMER_DOW_ANY,
+      TimerCountdownAbs(const String label = "undefined", const uint32_t interval = 1, const uint32_t offset = 0, const timer_dow_t dow = TIMER_DOW_ANY,
         const bool armed = true, const bool recurrent = true, const bool transient = false, const int id = -1);  // Constructor
       uint32_t getInterval() const;                   // Return timer interval
       void setInterval(const uint32_t /* interval */);// Set timer interval
       uint32_t getOffset() const;                     // Return timer offset in seconds from midnight
       void setOffset(const uint32_t /* offset */);    // Set timer offset in seconds from midnight
       void update(const time_t from_time = 0);        // Prepare timer for firing. 0 means from current time
-      bool operator==(const TimerCountdown& /* timer */) const; // Comparison operator
+      bool operator==(const TimerCountdownAbs& /* timer */) const; // Comparison operator
   };
-#endif // DS_CAP_TIMERS_COUNT
+#endif // DS_CAP_TIMERS_COUNT_ABS
 
   // Class is just a collection of system-wide routines, so all of them are made static on purpose
   class System {

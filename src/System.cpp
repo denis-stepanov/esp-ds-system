@@ -1,5 +1,5 @@
 /* DS System implementation
- * (c) DNS 2020
+ * (c) DNS 2020-2021
  */
 
 #include "MySystem.h"        // Read the defined capabilities
@@ -1128,13 +1128,13 @@ uint16_t System::getSunset() {
 /*************************************************************************
  * Capability: countdown timers
  *************************************************************************/
-#ifdef DS_CAP_TIMERS_COUNT
+#ifdef DS_CAP_TIMERS_COUNT_ABS
 
 // Countdown timer constructor
-TimerCountdown::TimerCountdown(const String label, const uint32_t interval, const uint32_t offset,
+TimerCountdownAbs::TimerCountdownAbs(const String label, const uint32_t interval, const uint32_t offset,
   const timer_dow_t dow, const bool armed, const bool recurrent, const bool transient, const int id) :
   TimerAbsolute(label, 0, 0, 0, dow, armed, recurrent, transient, id) {
-    setType(TIMER_COUNTDOWN);
+    setType(TIMER_COUNTDOWN_ABS);
     setInterval(interval <= 24 * 60 * 60 ? (interval > 0 ? interval : 1) : 24 * 60 * 60);
     setOffset(offset < getInterval() ? offset : 0);
     setNextTime(0);  // Next firing time. Setting it to 0 will force recalculation
@@ -1142,22 +1142,22 @@ TimerCountdown::TimerCountdown(const String label, const uint32_t interval, cons
 }
 
 // Return next firing time
-time_t TimerCountdown::getNextTime() const {
+time_t TimerCountdownAbs::getNextTime() const {
   return time.tm_isdst;
 }
 
 // Set next firing time
-void TimerCountdown::setNextTime(const time_t new_time) {
+void TimerCountdownAbs::setNextTime(const time_t new_time) {
   time.tm_isdst = new_time;
 }
 
 // Return timer interval
-uint32_t TimerCountdown::getInterval() const {
+uint32_t TimerCountdownAbs::getInterval() const {
   return time.tm_mon;
 }
 
 // Set timer interval
-void TimerCountdown::setInterval(const uint32_t interval) {
+void TimerCountdownAbs::setInterval(const uint32_t interval) {
   if (interval > 0 && interval <= 24 * 60 * 60)
     time.tm_mon = interval;
   if (getOffset() >= getInterval())
@@ -1165,18 +1165,18 @@ void TimerCountdown::setInterval(const uint32_t interval) {
 }
 
 // Return timer offset in seconds from midnight
-uint32_t TimerCountdown::getOffset() const {
+uint32_t TimerCountdownAbs::getOffset() const {
   return time.tm_mday;
 }
 
 // Set timer offset in seconds from midnight
-void TimerCountdown::setOffset(const uint32_t offset) {
+void TimerCountdownAbs::setOffset(const uint32_t offset) {
   if (offset < getInterval())
     time.tm_mday = offset;
 }
 
 // Prepare timer for firing
-void TimerCountdown::update(const time_t from_time) {
+void TimerCountdownAbs::update(const time_t from_time) {
   const auto interval = getInterval();
   auto next_time = getNextTime();
   const auto cur_time = from_time ? from_time : System::getTime();
@@ -1213,11 +1213,11 @@ void TimerCountdown::update(const time_t from_time) {
 }
 
 // Countdown timer comparison operator
-bool TimerCountdown::operator==(const TimerCountdown& timer) const {
+bool TimerCountdownAbs::operator==(const TimerCountdownAbs& timer) const {
   return Timer::operator==(timer) && getInterval() == timer.getInterval() && getOffset() == timer.getOffset();
 }
 
-#endif // DS_CAP_TIMERS_COUNT
+#endif // DS_CAP_TIMERS_COUNT_ABS
 
 
 
@@ -1481,11 +1481,11 @@ void System::update() {
           if (!timer.isRecurrent())
             timer.disarm();
         }
-#ifdef DS_CAP_TIMERS_COUNT
-        if (timer.getType() == TIMER_COUNTDOWN) {
-          static_cast<TimerCountdown &>(timer).update(old_time);
+#ifdef DS_CAP_TIMERS_COUNT_ABS
+        if (timer.getType() == TIMER_COUNTDOWN_ABS) {
+          static_cast<TimerCountdownAbs &>(timer).update(old_time);
         }
-#endif // DS_CAP_TIMERS_COUNT
+#endif // DS_CAP_TIMERS_COUNT_ABS
       }
   }
 #endif // DS_CAP_TIMERS_ABS
@@ -1563,9 +1563,9 @@ String System::getCapabilities() {
   capabilities += F("TIMERS_SOLAR ");
 #endif // DS_CAP_TIMERS_SOLAR
 
-#ifdef DS_CAP_TIMERS_COUNT
+#ifdef DS_CAP_TIMERS_COUNT_ABS
   capabilities += F("TIMERS_COUNT ");
-#endif // DS_CAP_TIMERS_COUNT
+#endif // DS_CAP_TIMERS_COUNT_ABS
 
 #ifdef DS_CAP_WEB_TIMERS
   capabilities += F("WEB_TIMERS ");

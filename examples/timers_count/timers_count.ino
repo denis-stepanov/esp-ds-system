@@ -1,4 +1,4 @@
-// Countdown timer example
+// Countdown timer example, using absolute time
 // Board: NodeMCU 1.0(ESP-12E Module)
 // (!) Before compiling, copy System.h and System.cpp into the sketch folder, then reopen the sketch in Arduino
 
@@ -45,13 +45,13 @@ void setup() {
   set_clock(1000000000);
 
   // Set up a countdown timer with 10 seconds period
-  TimerCountdown my_timer("lamp off", 10);
+  TimerCountdownAbs my_timer("lamp off", 10);
   System::timers.push_front(my_timer);
   System::log->printf("Timer \"%s\" set to fire every %u s with offset of %u s from midnight\n",
     my_timer.getLabel().c_str(), my_timer.getInterval(), my_timer.getOffset());
 
   // Set up another countdown timer with 10 seconds period and 5 seconds offset
-  TimerCountdown my_timer2("lamp on", 10, 5);
+  TimerCountdownAbs my_timer2("lamp on", 10, 5);
   System::timers.push_front(my_timer2);
   System::log->printf("Timer \"%s\" set to fire every %u s with offset of %u s from midnight\n",
     my_timer2.getLabel().c_str(), my_timer2.getInterval(), my_timer2.getOffset());
