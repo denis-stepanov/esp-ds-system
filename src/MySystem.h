@@ -19,9 +19,11 @@
 // #define DS_CAP_MDNS              // Enable mDNS
 // #define DS_CAP_WEBSERVER         // Enable web server
 // #define DS_CAP_BUTTON            // Enable button
+// #define DS_CAP_TIMERS            // Enable timers
 // #define DS_CAP_TIMERS_ABS        // Enable timers from absolute time
 // #define DS_CAP_TIMERS_SOLAR      // Enable timers from solar events
 // #define DS_CAP_TIMERS_COUNT_ABS  // Enable countdown timers via absolute time
+// #define DS_CAP_TIMERS_COUNT_TICK // Enable countdown timers via ticker
 // #define DS_CAP_WEB_TIMERS        // Enable timers configuration web form
 
 

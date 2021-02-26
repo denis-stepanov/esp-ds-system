@@ -22,12 +22,13 @@
 // DS_CAP_MDNS              - enable mDNS
 // DS_CAP_WEBSERVER         - enable web server
 // DS_CAP_BUTTON            - enable button
+// DS_CAP_TIMERS            - enable timers
 // DS_CAP_TIMERS_ABS        - enable timers from absolute time
 // DS_CAP_TIMERS_SOLAR      - enable timers from solar events
 // DS_CAP_TIMERS_COUNT_ABS  - enable countdown timers via absolute time
+// DS_CAP_TIMERS_COUNT_TICK - enable countdown timers via ticker
 // DS_CAP_WEB_TIMERS        - enable timers configuration web form
 
-#include <Arduino.h>          // String
 
 // Consistency checks
 #if defined(DS_CAP_SYS_LOG_HW) && !defined(DS_CAP_SYS_LOG)
@@ -58,6 +59,10 @@
 #define DS_CAP_TIMERS_ABS
 #endif // (DS_CAP_TIMERS_SOLAR || DS_CAP_TIMERS_COUNT_ABS) && !DS_CAP_TIMERS_ABS
 
+#if (defined(DS_CAP_TIMERS_ABS) || defined(DS_CAP_TIMERS_COUNT_TICK)) && !defined(DS_CAP_TIMERS)
+#define DS_CAP_TIMERS
+#endif // (DS_CAP_TIMERS_ABS || DS_CAP_TIMERS_COUNT_TICK) && !DS_CAP_TIMERS
+
 #if defined(DS_CAP_WEB_TIMERS) && !defined(DS_CAP_TIMERS_ABS)
 #warning "Capability DS_CAP_WEB_TIMERS requires at least DS_CAP_TIMERS_ABS; enabling"
 #define DS_CAP_TIMERS_ABS
@@ -68,7 +73,10 @@
 #define DS_CAP_SYS_TIME
 #endif // DS_CAP_TIMERS && !DS_CAP_SYS_TIME
 
+
 // External libraries
+#include <Arduino.h>                // String
+
 #ifdef DS_CAP_SYS_LED
 #include <jled.h>                   // LED, https://github.com/jandelgado/jled
 #endif // DS_CAP_SYS_LED
@@ -108,12 +116,13 @@ namespace ds {
   } time_sync_t;
 #endif // DS_CAP_SYS_TIME
 
-#if defined(DS_CAP_TIMERS_ABS) || defined(DS_CAP_TIMERS_COUNT_ABS)
+#ifdef DS_CAP_TIMERS
   typedef enum {
     TIMER_ABSOLUTE,                                   // Timer fires at a given absolute time
     TIMER_SUNRISE,                                    // Timer fires at sunrise
     TIMER_SUNSET,                                     // Timer fires at sunset
     TIMER_COUNTDOWN_ABS,                              // Timer fires at some moment from now, counted via absolute time
+    TIMER_COUNTDOWN_TICK,                             // Timer fires at some moment from now, counted via ticker
     TIMER_INVALID                                     // Unsupported timer type (must be the last)
   } timer_type_t;
 
@@ -133,23 +142,24 @@ namespace ds {
       Timer(const timer_type_t /* type */, const String label = "undefined",
         const bool armed = true, const bool recurrent = true, const bool transient = false, const int id = -1);  // Constructor
       virtual ~Timer() = 0;                           // Disallow creation of objects of this type
-      int getID() const;                              // Return timer identifier
-      void setID(const int /* new_id */);             // Set timer identifier
-      timer_type_t getType() const;                   // Get timer type
-      const String& getLabel() const;                 // Return timer label
-      void setLabel(const String& /* new_label */);   // Set timer label
-      bool isArmed() const;                           // Return true if timer is armed
-      void arm();                                     // Arm the timer (default)
-      void disarm();                                  // Disarm the timer
-      bool isRecurrent() const;                       // Return true if timer is recurrent
-      void repeatForever();                           // Make timer repetitive (default)
-      void repeatOnce();                              // Make timer a one-time shot
-      bool isTransient() const;                       // Return true if timer is transient (i.e., will be dead after firing)
-      void keep();                                    // Keep the timer around (default)
-      void forget();                                  // Mark the timer for disposal
+      virtual int getID() const;                      // Return timer identifier
+      virtual void setID(const int /* new_id */);     // Set timer identifier
+      virtual timer_type_t getType() const;           // Get timer type
+      virtual const String& getLabel() const;         // Return timer label
+      virtual void setLabel(const String& /* new_label */); // Set timer label
+      virtual bool isArmed() const;                   // Return true if timer is armed
+      virtual void arm();                             // Arm the timer (default)
+      virtual void disarm();                          // Disarm the timer
+      virtual bool isRecurrent() const;               // Return true if timer is recurrent
+      virtual void repeatForever();                   // Make timer repetitive (default)
+      virtual void repeatOnce();                      // Make timer a one-time shot
+      virtual bool isTransient() const;               // Return true if timer is transient (i.e., will be dead after firing)
+      virtual void keep();                            // Keep the timer around (default)
+      virtual void forget();                          // Mark the timer for disposal
       bool operator==(const Timer& /* timer */) const; // Comparison operator
+      bool operator!=(const Timer& /* timer */) const; // Comparison operator
   };
-#endif // DS_CAP_TIMERS_ABS || DS_CAP_TIMERS_COUNT_ABS
+#endif // DS_CAP_TIMERS
 
 #ifdef DS_CAP_TIMERS_ABS
   typedef enum {
@@ -164,64 +174,86 @@ namespace ds {
     TIMER_DOW_INVALID                                 // Invalid day of week (must be the last)
   } timer_dow_t;
 
-  class TimerAbsolute : public Timer {                // Absolute time timer (abstract)
+  class TimerAbsolute : public virtual Timer {        // Absolute time timer
 
     protected:
       struct tm time;                                 // Timer firing details
 
     // It is important that timers inheriting TimerAbsolute do not introduce additional fields beyond "time" struct,
     // as these will not be copied over when timer is placed in the queue. This may lead to odd behavior and / or crashes
+    // FIXME: this is unrealiable, relax
 
     public:
       TimerAbsolute(const String label = "undefined", const uint8_t hour = 0, const uint8_t minute = 0, const uint8_t second = 0,
         const timer_dow_t dow = TIMER_DOW_ANY, const bool armed = true, const bool recurrent = true, const bool transient = false,
         const int id = -1);  // Constructor
       virtual ~TimerAbsolute() {}                     // Destructor
-      uint8_t getHour() const;                        // Return hour setting
-      void setHour(const uint8_t /* new_hour */);     // Set hour setting
-      uint8_t getMinute() const;                      // Return minute setting
-      void setMinute(const uint8_t /* new_minute */); // Set minute setting
-      uint8_t getSecond() const;                      // Return second setting
-      void setSecond(const uint8_t /* new_second */); // Set second setting
-      int8_t getDayOfWeek() const;                    // Get day of week setting
-      void setDayOfWeek(const int8_t /* new_dow */);  // Set day of week setting
+      virtual uint8_t getHour() const;                // Return hour setting
+      virtual void setHour(const uint8_t /* new_hour */); // Set hour setting
+      virtual uint8_t getMinute() const;              // Return minute setting
+      virtual void setMinute(const uint8_t /* new_minute */); // Set minute setting
+      virtual uint8_t getSecond() const;              // Return second setting
+      virtual void setSecond(const uint8_t /* new_second */); // Set second setting
+      virtual int8_t getDayOfWeek() const;            // Get day of week setting
+      virtual void setDayOfWeek(const int8_t /* new_dow */); // Set day of week setting
       bool operator==(const TimerAbsolute& /* timer */) const; // Comparison operator
+      bool operator!=(const TimerAbsolute& /* timer */) const; // Comparison operator
       bool operator==(const struct tm& /* _tm */) const; // Time comparison operator
+      bool operator!=(const struct tm& /* _tm */) const; // Time comparison operator
   };
 #endif // DS_CAP_TIMERS_ABS
 
 #ifdef DS_CAP_TIMERS_SOLAR
-  class TimerSolar : public TimerAbsolute {           // Solar event-based timer
+  class TimerSolar : public TimerAbsolute {   // Solar event-based timer
 
     public:
       TimerSolar(const timer_type_t /* type */, const String label = "undefined", const int8_t offset = 0, const timer_dow_t dow = TIMER_DOW_ANY,
         const bool armed = true, const bool recurrent = true, const bool transient = false, const int id = -1);  // Constructor
-      int8_t getOffset() const;                       // Return offset in minutes from event
-      void setOffset(const int8_t /* offset */);      // Set offset in minutes from event
+      virtual int8_t getOffset() const;               // Return offset in minutes from event
+      virtual void setOffset(const int8_t /* offset */); // Set offset in minutes from event
       bool operator==(const TimerSolar& /* timer */) const; // Comparison operator
+      bool operator!=(const TimerSolar& /* timer */) const; // Comparison operator
   };
 #endif // DS_CAP_TIMERS_SOLAR
 
+#if defined(DS_CAP_TIMERS_COUNT_ABS) || defined(DS_CAP_TIMERS_COUNT_TICK)
+  class TimerCountdown : public virtual Timer {       // Countdown timer
+
+    protected:
+      float interval;                                 // Countdown duration (s)
+
+    public:
+      TimerCountdown(const timer_type_t /* type */, const String label = "undefined", const float interval = 1,
+        const bool armed = true, const bool recurrent = true, const bool transient = false, const int id = -1);  // Constructor
+      virtual ~TimerCountdown() = 0;                  // Disallow creation of objects of this type
+      virtual float getInterval() const;              // Return timer interval
+      virtual void setInterval(const float /* interval */); // Set timer interval
+      bool operator==(const TimerCountdown& /* timer */) const; // Comparison operator
+      bool operator!=(const TimerCountdown& /* timer */) const; // Comparison operator
+  };
+#endif // DS_CAP_TIMERS_COUNT_ABS || DS_CAP_TIMERS_COUNT_TICK
+
 #ifdef DS_CAP_TIMERS_COUNT_ABS
-  class TimerCountdownAbs : public TimerAbsolute {
+  class TimerCountdownAbs : public TimerCountdown, public TimerAbsolute {
 
     protected:
       time_t getNextTime() const;                     // Return next firing time
       void setNextTime(const time_t /* new_time */);  // Set next firing time
 
     public:
-      TimerCountdownAbs(const String label = "undefined", const uint32_t interval = 1, const uint32_t offset = 0, const timer_dow_t dow = TIMER_DOW_ANY,
+      TimerCountdownAbs(const String label = "undefined", const float interval = 1, const uint32_t offset = 0, const timer_dow_t dow = TIMER_DOW_ANY,
         const bool armed = true, const bool recurrent = true, const bool transient = false, const int id = -1);  // Constructor
-      uint32_t getInterval() const;                   // Return timer interval
-      void setInterval(const uint32_t /* interval */);// Set timer interval
-      uint32_t getOffset() const;                     // Return timer offset in seconds from midnight
-      void setOffset(const uint32_t /* offset */);    // Set timer offset in seconds from midnight
-      void update(const time_t from_time = 0);        // Prepare timer for firing. 0 means from current time
+      virtual float getInterval() const;              // Return timer interval
+      virtual void setInterval(const float /* interval */); // Set timer interval
+      virtual uint32_t getOffset() const;             // Return timer offset in seconds from midnight
+      virtual void setOffset(const uint32_t /* offset */); // Set timer offset in seconds from midnight
+      virtual void update(const time_t from_time = 0); // Prepare timer for firing. 0 means from current time
       bool operator==(const TimerCountdownAbs& /* timer */) const; // Comparison operator
+      bool operator!=(const TimerCountdownAbs& /* timer */) const; // Comparison operator
   };
 #endif // DS_CAP_TIMERS_COUNT_ABS
 
-  // Class is just a collection of system-wide routines, so all of them are made static on purpose
+  // System class is just a collection of system-wide routines, so all of them are made static on purpose
   class System {
 
     public:

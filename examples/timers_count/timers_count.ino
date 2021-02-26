@@ -47,13 +47,13 @@ void setup() {
   // Set up a countdown timer with 10 seconds period
   TimerCountdownAbs my_timer("lamp off", 10);
   System::timers.push_front(my_timer);
-  System::log->printf("Timer \"%s\" set to fire every %u s with offset of %u s from midnight\n",
+  System::log->printf("Timer \"%s\" set to fire every %f s with offset of %u s from midnight\n",
     my_timer.getLabel().c_str(), my_timer.getInterval(), my_timer.getOffset());
 
   // Set up another countdown timer with 10 seconds period and 5 seconds offset
   TimerCountdownAbs my_timer2("lamp on", 10, 5);
   System::timers.push_front(my_timer2);
-  System::log->printf("Timer \"%s\" set to fire every %u s with offset of %u s from midnight\n",
+  System::log->printf("Timer \"%s\" set to fire every %f s with offset of %u s from midnight\n",
     my_timer2.getLabel().c_str(), my_timer2.getInterval(), my_timer2.getOffset());
 }
 

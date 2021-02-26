@@ -888,25 +888,9 @@ void System::buttonEventHandler(AceButton* button, uint8_t event_type, uint8_t b
 
 
 /*************************************************************************
- * Capability: timers from absolute time
+ * Capability: timers
  *************************************************************************/
-#ifdef DS_CAP_TIMERS_ABS
-
-bool System::abs_timers_active = true;               // Activate timers
-std::forward_list<TimerAbsolute> System::timers;
-void (*System::timerHandler)(const TimerAbsolute& /* timer */) __attribute__ ((weak)) = nullptr;
-
-// struct tm (re)use:
-//   int tm_sec;    - timer firing second (0..59)
-//   int tm_min;    - timer firing minute (0..59)
-//   int tm_hour;   - timer firing hour (0..23)
-//   int tm_mday;   - solar timer: timer offset (-59..+59 min)
-//       >>         - countdown timer: timer offset (0..86399 s < interval)
-//   int tm_mon;    - countdown timer: time interval (1..86400 s)
-//   int tm_year;   - (not used)
-//   int tm_wday;   - timer firing day of the week (-1..6, Sunday=0, -1=every day)
-//   int tm_yday;   - (not used)
-//   int tm_isdst;  - countdown timer: next firing time (time_t)
+#ifdef DS_CAP_TIMERS
 
 // Timer constructor
 Timer::Timer(const timer_type_t _type, const String _label,
@@ -999,6 +983,36 @@ bool Timer::operator==(const Timer& timer) const {
   return type == timer.getType() && id == timer.getID() && label == timer.getLabel();
 }
 
+// Abstract timer comparison operator
+bool Timer::operator!=(const Timer& timer) const {
+  return !(*this == timer);
+}
+#endif // DS_CAP_TIMERS
+
+
+
+
+/*************************************************************************
+ * Capability: timers from absolute time
+ *************************************************************************/
+#ifdef DS_CAP_TIMERS_ABS
+
+bool System::abs_timers_active = true;               // Activate timers
+std::forward_list<TimerAbsolute> System::timers;
+void (*System::timerHandler)(const TimerAbsolute& /* timer */) __attribute__ ((weak)) = nullptr;
+
+// struct tm (re)use:
+//   int tm_sec;    - timer firing second (0..59)
+//   int tm_min;    - timer firing minute (0..59)
+//   int tm_hour;   - timer firing hour (0..23)
+//   int tm_mday;   - solar timer: timer offset (-59..+59 min)
+//       >>         - countdown timer: timer offset (0..86399 s < interval)
+//   int tm_mon;    - (not used)
+//   int tm_year;   - (not used)
+//   int tm_wday;   - timer firing day of the week (-1..6, Sunday=0, -1=every day)
+//   int tm_yday;   - (not used)
+//   int tm_isdst;  - countdown timer: next firing time (time_t)
+
 // Absolute timer constructor
 TimerAbsolute::TimerAbsolute(const String label, const uint8_t hour, const uint8_t minute, const uint8_t second,
   const timer_dow_t dow, const bool armed, const bool recurrent, const bool transient, const int id) :
@@ -1056,10 +1070,20 @@ bool TimerAbsolute::operator==(const TimerAbsolute& timer) const {
     getMinute() == timer.getMinute() && getSecond() == timer.getSecond() && getDayOfWeek() == timer.getDayOfWeek();
 }
 
+// Absolute timer comparison operator
+bool TimerAbsolute::operator!=(const TimerAbsolute& timer) const {
+  return !(*this == timer);
+}
+
 // Time comparison operator
 bool TimerAbsolute::operator==(const struct tm& _tm) const {
   return getHour() == _tm.tm_hour && getMinute() == _tm.tm_min && getSecond() == _tm.tm_sec &&
     (getDayOfWeek() == _tm.tm_wday || getDayOfWeek() == TIMER_DOW_ANY);
+}
+
+// Time comparison operator
+bool TimerAbsolute::operator!=(const struct tm& _tm) const {
+  return !(*this == _tm);
 }
 
 #endif // DS_CAP_TIMERS_ABS
@@ -1098,6 +1122,11 @@ bool TimerSolar::operator==(const TimerSolar& timer) const {
   return Timer::operator==(timer) && getDayOfWeek() == timer.getDayOfWeek() && getOffset() == timer.getOffset();
 }
 
+// Solar timer comparison operator
+bool TimerSolar::operator!=(const TimerSolar& timer) const {
+  return !(*this == timer);
+}
+
 uint16_t System::getSolarEvent(const timer_type_t ev_type) {
   struct tm tm_local, tm_gmt;
 
@@ -1105,9 +1134,17 @@ uint16_t System::getSolarEvent(const timer_type_t ev_type) {
   localtime_r(&cur_time, &tm_local);
   gmtime_r(&cur_time, &tm_gmt);
   Dusk2Dawn local(DS_LATITUDE, DS_LONGITUDE, (mktime(&tm_local) - mktime(&tm_gmt)) / 60.0 / 60);
-  return ev_type == TIMER_SUNRISE ?
-    local.sunrise(tm_local.tm_year + 1900, tm_local.tm_mon + 1, tm_local.tm_mday, tm_local.tm_isdst) :
-    local.sunset (tm_local.tm_year + 1900, tm_local.tm_mon + 1, tm_local.tm_mday, tm_local.tm_isdst);
+  switch (ev_type) {
+
+    case TIMER_SUNRISE:
+      return local.sunrise(tm_local.tm_year + 1900, tm_local.tm_mon + 1, tm_local.tm_mday, tm_local.tm_isdst);
+
+    case TIMER_SUNSET:
+      return local.sunset (tm_local.tm_year + 1900, tm_local.tm_mon + 1, tm_local.tm_mday, tm_local.tm_isdst);
+
+    default:
+      return 0;
+  }
 }
 
 // Return sunrise time (in minutes from midnight)
@@ -1128,13 +1165,56 @@ uint16_t System::getSunset() {
 /*************************************************************************
  * Capability: countdown timers
  *************************************************************************/
-#ifdef DS_CAP_TIMERS_COUNT_ABS
+#if defined(DS_CAP_TIMERS_COUNT_ABS) || defined(DS_CAP_TIMERS_COUNT_TICK)
 
 // Countdown timer constructor
-TimerCountdownAbs::TimerCountdownAbs(const String label, const uint32_t interval, const uint32_t offset,
+TimerCountdown::TimerCountdown(const timer_type_t type, const String label, const float _interval,
+  const bool armed, const bool recurrent, const bool transient, const int id) :
+  Timer(type, label, armed, recurrent, transient, id) {
+    setInterval(_interval > 0 ? interval : 1);
+}
+
+// Define pure virtual destructor (required by C++)
+TimerCountdown::~TimerCountdown() {
+}
+
+// Return timer interval
+float TimerCountdown::getInterval() const {
+  return interval;
+}
+
+// Set timer interval
+void TimerCountdown::setInterval(const float _interval) {
+  if (interval > 0)
+    interval = _interval;
+}
+
+// Countdown timer comparison operator
+bool TimerCountdown::operator==(const TimerCountdown& timer) const {
+  return Timer::operator==(timer) && getInterval() == timer.getInterval();
+}
+
+// Countdown timer comparison operator
+bool TimerCountdown::operator!=(const TimerCountdown& timer) const {
+  return !(*this == timer);
+}
+
+#endif // DS_CAP_TIMERS_COUNT_ABS || DS_CAP_TIMERS_COUNT_TICK
+
+
+
+
+/*************************************************************************
+ * Capability: countdown timers, counting via absolute time
+ *************************************************************************/
+ #ifdef DS_CAP_TIMERS_COUNT_ABS
+
+// Countdown timer constructor
+TimerCountdownAbs::TimerCountdownAbs(const String label, const float interval, const uint32_t offset,
   const timer_dow_t dow, const bool armed, const bool recurrent, const bool transient, const int id) :
+  Timer(TIMER_COUNTDOWN_ABS),
+  TimerCountdown(TIMER_COUNTDOWN_ABS),
   TimerAbsolute(label, 0, 0, 0, dow, armed, recurrent, transient, id) {
-    setType(TIMER_COUNTDOWN_ABS);
     setInterval(interval <= 24 * 60 * 60 ? (interval > 0 ? interval : 1) : 24 * 60 * 60);
     setOffset(offset < getInterval() ? offset : 0);
     setNextTime(0);  // Next firing time. Setting it to 0 will force recalculation
@@ -1152,14 +1232,14 @@ void TimerCountdownAbs::setNextTime(const time_t new_time) {
 }
 
 // Return timer interval
-uint32_t TimerCountdownAbs::getInterval() const {
-  return time.tm_mon;
+float TimerCountdownAbs::getInterval() const {
+  return TimerCountdown::getInterval();
 }
 
 // Set timer interval
-void TimerCountdownAbs::setInterval(const uint32_t interval) {
-  if (interval > 0 && interval <= 24 * 60 * 60)
-    time.tm_mon = interval;
+void TimerCountdownAbs::setInterval(const float _interval) {
+  if (_interval > 0 && _interval <= 24 * 60 * 60)
+    TimerCountdown::setInterval(_interval);
   if (getOffset() >= getInterval())
     setOffset(0);
 }
@@ -1177,7 +1257,7 @@ void TimerCountdownAbs::setOffset(const uint32_t offset) {
 
 // Prepare timer for firing
 void TimerCountdownAbs::update(const time_t from_time) {
-  const auto interval = getInterval();
+  const uint32_t interval = getInterval();
   auto next_time = getNextTime();
   const auto cur_time = from_time ? from_time : System::getTime();
   if (next_time > cur_time && next_time - cur_time < (int) interval)
@@ -1215,6 +1295,11 @@ void TimerCountdownAbs::update(const time_t from_time) {
 // Countdown timer comparison operator
 bool TimerCountdownAbs::operator==(const TimerCountdownAbs& timer) const {
   return Timer::operator==(timer) && getInterval() == timer.getInterval() && getOffset() == timer.getOffset();
+}
+
+// Countdown timer comparison operator
+bool TimerCountdownAbs::operator!=(const TimerCountdownAbs& timer) const {
+  return !(*this == timer);
 }
 
 #endif // DS_CAP_TIMERS_COUNT_ABS
