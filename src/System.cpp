@@ -998,8 +998,8 @@ bool Timer::operator!=(const Timer& timer) const {
 #ifdef DS_CAP_TIMERS_ABS
 
 bool System::abs_timers_active = true;               // Activate timers
-std::forward_list<TimerAbsolute> System::timers;
-void (*System::timerHandler)(const TimerAbsolute& /* timer */) __attribute__ ((weak)) = nullptr;
+std::forward_list<TimerAbsolute *> System::timers;
+void (*System::timerHandler)(const TimerAbsolute* /* timer */) __attribute__ ((weak)) = nullptr;
 
 // struct tm (re)use:
 //   int tm_sec;    - timer firing second (0..59)
@@ -1539,9 +1539,9 @@ void System::update() {
       const auto sunrise = getSunrise();
       const auto sunset  = getSunset();
       for (auto& timer : timers) {
-        const auto timer_type = timer.getType();
+        const auto timer_type = timer->getType();
         if (timer_type == TIMER_SUNRISE || timer_type == TIMER_SUNSET) {
-          auto st = static_cast<TimerSolar *>(&timer);
+          auto st = static_cast<TimerSolar *>(timer);
 
            // This might not work properly with solar events happening shortly past midnight, but these are unlikely
           st->setHour(((timer_type == TIMER_SUNRISE ? sunrise : sunset) + st->getOffset()) / 60);
@@ -1555,20 +1555,20 @@ void System::update() {
     // Process timers
     if (abs_timers_active)
       for (auto& timer : timers) {
-        if (timer.getType() != TIMER_INVALID && timer.isArmed() && timer == tm_local) {
-          log->printf(TIMED("Timer \"%s\" fired\n"), timer.getLabel().c_str());
+        if (timer->getType() != TIMER_INVALID && timer->isArmed() && *timer == tm_local) {
+          log->printf(TIMED("Timer \"%s\" fired\n"), timer->getLabel().c_str());
           if (timerHandler)
             timerHandler(timer);
-          if (timer.getType() == TIMER_INVALID || timer.isTransient()) {
+          if (timer->getType() == TIMER_INVALID || timer->isTransient()) {
             timers.remove(timer);
             continue;
           }
-          if (!timer.isRecurrent())
-            timer.disarm();
+          if (!timer->isRecurrent())
+            timer->disarm();
         }
 #ifdef DS_CAP_TIMERS_COUNT_ABS
-        if (timer.getType() == TIMER_COUNTDOWN_ABS) {
-          static_cast<TimerCountdownAbs &>(timer).update(old_time);
+        if (timer->getType() == TIMER_COUNTDOWN_ABS) {
+          static_cast<TimerCountdownAbs *>(timer)->update(old_time);
         }
 #endif // DS_CAP_TIMERS_COUNT_ABS
       }
