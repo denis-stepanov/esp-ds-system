@@ -239,6 +239,7 @@ namespace ds {
     public:
       TimerCountdownAbs(const String label = "undefined", const float interval = 1, const uint32_t offset = 0, const timer_dow_t dow = TIMER_DOW_ANY,
         const bool armed = true, const bool recurrent = true, const bool transient = false, const int id = -1);  // Constructor
+      ~TimerCountdownAbs() {}                         // Destructor
       virtual float getInterval() const;              // Return timer interval
       virtual void setInterval(const float /* interval */); // Set timer interval
       virtual uint32_t getOffset() const;             // Return timer offset in seconds from midnight

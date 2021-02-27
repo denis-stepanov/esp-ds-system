@@ -1212,9 +1212,9 @@ bool TimerCountdown::operator!=(const TimerCountdown& timer) const {
 // Countdown timer constructor
 TimerCountdownAbs::TimerCountdownAbs(const String label, const float interval, const uint32_t offset,
   const timer_dow_t dow, const bool armed, const bool recurrent, const bool transient, const int id) :
-  Timer(TIMER_COUNTDOWN_ABS),
+  Timer(TIMER_COUNTDOWN_ABS, label, armed, recurrent, transient, id),
   TimerCountdown(TIMER_COUNTDOWN_ABS),
-  TimerAbsolute(label, 0, 0, 0, dow, armed, recurrent, transient, id) {
+  TimerAbsolute(label, 0, 0, 0, dow) {
     setInterval(interval <= 24 * 60 * 60 ? (interval > 0 ? interval : 1) : 24 * 60 * 60);
     setOffset(offset < getInterval() ? offset : 0);
     setNextTime(0);  // Next firing time. Setting it to 0 will force recalculation
