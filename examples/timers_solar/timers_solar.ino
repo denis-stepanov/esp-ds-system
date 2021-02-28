@@ -10,21 +10,21 @@
 using namespace ds;
 
 // Timer handler
-void myTimerHandler(const TimerAbsolute& timer) {
-  if (timer.getLabel() == "lamp on") {
+void myTimerHandler(const TimerAbsolute* timer) {
+  if (timer->getLabel() == "lamp on") {
 
     // Turn the lamp on here
     // ...
     System::log->println("Lamp is ON");
   } else
-  if (timer.getLabel() == "lamp off") {
+  if (timer->getLabel() == "lamp off") {
 
     // Turn the lamp off here
     // ...
     System::log->println("Lamp is OFF");
   }
 }
-void (*System::timerHandler)(const TimerAbsolute&) = myTimerHandler;  // Install the handler
+void (*System::timerHandler)(const TimerAbsolute*) = myTimerHandler;  // Install the handler
 
 time_t old_time, new_time;
 int counter = 0;
@@ -52,13 +52,17 @@ void setup() {
     sunrise / 60, sunrise % 60, sunset / 60, sunset % 60);
 
   // Set up two timers: one to turn on the lamp on sunset and another to turn off the lamp 5 mins after sunrise
-  TimerSolar timer_sunset(TIMER_SUNSET, "lamp on");
-  System::timers.push_front(timer_sunset);
-  System::log->println("Timer 1 set at sunset");
+  auto timer_sunset = new TimerSolar(TIMER_SUNSET, "lamp on");
+  if (timer_sunset) {
+    System::timers.push_front(timer_sunset);
+    System::log->println("Timer 1 set at sunset");
+  }
   
-  TimerSolar timer_sunrise(TIMER_SUNRISE, "lamp off", 5);  
-  System::timers.push_front(timer_sunrise);
-  System::log->println("Timer 2 set at sunrise + 5 mins");
+  auto timer_sunrise = new TimerSolar(TIMER_SUNRISE, "lamp off", 5);
+  if (timer_sunrise) {
+    System::timers.push_front(timer_sunrise);
+    System::log->println("Timer 2 set at sunrise + 5 mins");
+  }
 }
 
 

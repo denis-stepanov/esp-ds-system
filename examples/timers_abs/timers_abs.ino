@@ -10,21 +10,21 @@
 using namespace ds;
 
 // Timer handler
-void myTimerHandler(const TimerAbsolute& timer) {
-  if (timer.getLabel() == "lamp on") {
+void myTimerHandler(const TimerAbsolute* timer) {
+  if (timer->getLabel() == "lamp on") {
 
     // Turn the lamp on here
     // ...
     System::log->println("Lamp is ON");
   } else
-  if (timer.getLabel() == "lamp off") {
+  if (timer->getLabel() == "lamp off") {
 
     // Turn the lamp off here
     // ...
     System::log->println("Lamp is OFF");
   }
 }
-void (*System::timerHandler)(const TimerAbsolute&) = myTimerHandler;  // Install the handler
+void (*System::timerHandler)(const TimerAbsolute*) = myTimerHandler;  // Install the handler
 
 time_t old_time, new_time;
 
@@ -48,10 +48,12 @@ void setup() {
   for (uint8_t n = 1; n <= 2; n++) {
     new_time += 60;
     struct tm *tinfo = localtime(&new_time);
-    TimerAbsolute my_timer(n == 1 ? "lamp on" : "lamp off", tinfo->tm_hour, tinfo->tm_min);
-    System::timers.push_front(my_timer);
-    System::log->printf("Timer %hhu \"%s\" set to fire every day at %02hhuh%02hhum\n",
-      n, my_timer.getLabel().c_str(), my_timer.getHour(), my_timer.getMinute());
+    auto my_timer = new TimerAbsolute(n == 1 ? "lamp on" : "lamp off", tinfo->tm_hour, tinfo->tm_min);
+    if (my_timer) {
+      System::timers.push_front(my_timer);
+      System::log->printf("Timer %hhu \"%s\" set to fire every day at %02hhuh%02hhum\n",
+        n, my_timer->getLabel().c_str(), my_timer->getHour(), my_timer->getMinute());
+    }
   }
 }
 

@@ -1101,8 +1101,8 @@ bool TimerAbsolute::operator!=(const struct tm& _tm) const {
 // Solar timer constructor
 TimerSolar::TimerSolar(const timer_type_t _type, const String label, const int8_t offset,
   const timer_dow_t dow, const bool armed, const bool recurrent, const bool transient, const int id) :
-  TimerAbsolute(label, 0, 0, 0, dow, armed, recurrent, transient, id) {
-  setType(_type == TIMER_SUNRISE || _type == TIMER_SUNSET ? _type : TIMER_INVALID);
+  Timer(_type == TIMER_SUNRISE || _type == TIMER_SUNSET ? _type : TIMER_INVALID, label, armed, recurrent, transient, id),
+  TimerAbsolute(label, 0, 0, 0, dow) {
   setOffset(offset >= -59 && offset <= 59 ? offset : 0);
 }
 
