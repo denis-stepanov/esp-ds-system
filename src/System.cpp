@@ -1171,7 +1171,7 @@ uint16_t System::getSunset() {
 TimerCountdown::TimerCountdown(const timer_type_t type, const String label, const float _interval,
   const bool armed, const bool recurrent, const bool transient, const int id) :
   Timer(type, label, armed, recurrent, transient, id) {
-    setInterval(_interval > 0 ? interval : 1);
+    setInterval(_interval > 0 ? _interval : 1);
 }
 
 // Define pure virtual destructor (required by C++)
@@ -1185,7 +1185,7 @@ float TimerCountdown::getInterval() const {
 
 // Set timer interval
 void TimerCountdown::setInterval(const float _interval) {
-  if (interval > 0)
+  if (_interval > 0)
     interval = _interval;
 }
 
@@ -1210,15 +1210,14 @@ bool TimerCountdown::operator!=(const TimerCountdown& timer) const {
  #ifdef DS_CAP_TIMERS_COUNT_ABS
 
 // Countdown timer constructor
-TimerCountdownAbs::TimerCountdownAbs(const String label, const float interval, const uint32_t offset,
+TimerCountdownAbs::TimerCountdownAbs(const String label, const float _interval, const uint32_t offset,
   const timer_dow_t dow, const bool armed, const bool recurrent, const bool transient, const int id) :
   Timer(TIMER_COUNTDOWN_ABS, label, armed, recurrent, transient, id),
   TimerCountdown(TIMER_COUNTDOWN_ABS),
   TimerAbsolute(label, 0, 0, 0, dow) {
-    setInterval(interval <= 24 * 60 * 60 ? (interval > 0 ? interval : 1) : 24 * 60 * 60);
+    setInterval(_interval <= 24 * 60 * 60 ? (_interval > 0 ? _interval : 1) : 24 * 60 * 60);
     setOffset(offset < getInterval() ? offset : 0);
     setNextTime(0);  // Next firing time. Setting it to 0 will force recalculation
-    update();
 }
 
 // Return next firing time
