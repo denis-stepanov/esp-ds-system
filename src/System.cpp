@@ -1307,6 +1307,78 @@ bool TimerCountdownAbs::operator!=(const TimerCountdownAbs& timer) const {
 
 
 /*************************************************************************
+ * Capability: countdown timers, counting via ticker
+ *************************************************************************/
+ #ifdef DS_CAP_TIMERS_COUNT_TICK
+
+// Countdown timer constructor
+TimerCountdownTick::TimerCountdownTick(const String label, const float _interval, Ticker::callback_function_t _callback,
+  const bool armed, const bool recurrent, const bool transient, const int id) :
+  Timer(TIMER_COUNTDOWN_TICK, label, armed, recurrent, transient, id),
+  TimerCountdown(TIMER_COUNTDOWN_TICK, label, _interval), callback(_callback) {
+    arm();
+}
+
+// Arm the timer (default)
+void TimerCountdownTick::arm() {
+  if (callback) {
+    if (!ticker.active()) {
+      Timer::arm();
+      if (recurrent)
+        ticker.attach_ms_scheduled(1000 * interval, callback);
+      else
+        ticker.once_ms_scheduled(1000 * interval, callback);
+    } else
+      Timer::disarm();
+  } else
+    Timer::disarm();
+}
+
+// Disarm the timer
+void TimerCountdownTick::disarm() {
+  if (ticker.active())
+    ticker.detach();
+  Timer::disarm();
+}
+
+// Make timer repetitive (default)
+void TimerCountdownTick::repeatForever() {
+  if (!recurrent) {
+    Timer::repeatForever();
+    if(isArmed()) {
+      disarm();
+      arm();
+    }
+  }
+}
+
+// Make timer a one-time shot
+void TimerCountdownTick::repeatOnce() {
+  if (recurrent) {
+    Timer::repeatOnce();
+    if(isArmed()) {
+      disarm();
+      arm();
+    }
+  }
+}
+
+// Countdown timer comparison operator
+bool TimerCountdownTick::operator==(const TimerCountdownTick& timer) const {
+  return Timer::operator==(timer) && getInterval() == timer.getInterval();
+}
+
+// Countdown timer comparison operator
+bool TimerCountdownTick::operator!=(const TimerCountdownTick& timer) const {
+  return !(*this == timer);
+}
+
+#endif // DS_CAP_TIMERS_COUNT_ABS
+
+
+
+
+/*************************************************************************
  * Capability: timers configuration web form
  *************************************************************************/
 

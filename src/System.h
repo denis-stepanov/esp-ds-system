@@ -106,6 +106,10 @@
 #include <forward_list>             // Action list
 #endif // DS_CAP_TIMERS_ABS
 
+#ifdef DS_CAP_TIMERS_COUNT_TICK
+#include <Ticker.h>                 // Periodic events
+#endif // DS_CAP_TIMERS_COUNT_TICK
+
 namespace ds {
 
 #ifdef DS_CAP_SYS_TIME
@@ -249,6 +253,26 @@ namespace ds {
       bool operator!=(const TimerCountdownAbs& /* timer */) const; // Comparison operator
   };
 #endif // DS_CAP_TIMERS_COUNT_ABS
+
+#ifdef DS_CAP_TIMERS_COUNT_TICK
+  class TimerCountdownTick : public TimerCountdown {
+
+    protected:
+      Ticker ticker;                                  // Ticker instance
+      Ticker::callback_function_t callback;           // Ticker callback
+
+    public:
+      TimerCountdownTick(const String label = "undefined", const float interval = 1, Ticker::callback_function_t callback = nullptr,
+        const bool armed = true, const bool recurrent = true, const bool transient = false, const int id = -1);  // Constructor
+      ~TimerCountdownTick() {}                        // Destructor
+      virtual void arm();                             // Arm the timer (default)
+      virtual void disarm();                          // Disarm the timer
+      virtual void repeatForever();                   // Make timer repetitive (default)
+      virtual void repeatOnce();                      // Make timer a one-time shot
+      bool operator==(const TimerCountdownTick& /* timer */) const; // Comparison operator
+      bool operator!=(const TimerCountdownTick& /* timer */) const; // Comparison operator
+  };
+#endif // DS_CAP_TIMERS_COUNT_TICK
 
   // System class is just a collection of system-wide routines, so all of them are made static on purpose
   class System {
