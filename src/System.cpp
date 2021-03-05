@@ -1711,6 +1711,10 @@ String System::getCapabilities() {
   capabilities += F("BUTTON ");
 #endif // DS_CAP_BUTTON
 
+#ifdef DS_CAP_TIMERS
+  capabilities += F("TIMERS ");
+#endif // DS_CAP_TIMERS
+
 #ifdef DS_CAP_TIMERS_ABS
   capabilities += F("TIMERS_ABS ");
 #endif // DS_CAP_TIMERS_ABS
@@ -1720,8 +1724,12 @@ String System::getCapabilities() {
 #endif // DS_CAP_TIMERS_SOLAR
 
 #ifdef DS_CAP_TIMERS_COUNT_ABS
-  capabilities += F("TIMERS_COUNT ");
+  capabilities += F("TIMERS_COUNT_ABS ");
 #endif // DS_CAP_TIMERS_COUNT_ABS
+
+#ifdef DS_CAP_TIMERS_COUNT_TICK
+  capabilities += F("TIMERS_COUNT_TICK ");
+#endif // DS_CAP_TIMERS_COUNT_TICK
 
 #ifdef DS_CAP_WEB_TIMERS
   capabilities += F("WEB_TIMERS ");
