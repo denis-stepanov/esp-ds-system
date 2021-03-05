@@ -27,8 +27,8 @@ void myTimerHandler_lamp_toggle() {
 // Set up a countdown timer with 5 seconds period
 TimerCountdownTick my_timer("lamp toggle", 5, myTimerHandler_lamp_toggle);
 
-// Another timer is just to print a timestamp once a second
-TimerCountdownTick my_timer2("metronome", 1, [](){ System::log->println(System::getTimeStr()); });
+// Another timer is just to print a time beat
+TimerCountdownTick my_timer2("metronome", 1, [](){ System::log->printf(TIMED("\n") / 1000); });
 
 void setup() {
   System::begin();
