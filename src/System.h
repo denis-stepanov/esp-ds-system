@@ -27,7 +27,6 @@
 // DS_CAP_TIMERS_SOLAR      - enable timers from solar events
 // DS_CAP_TIMERS_COUNT_ABS  - enable countdown timers via absolute time
 // DS_CAP_TIMERS_COUNT_TICK - enable countdown timers via ticker
-// DS_CAP_WEB_TIMERS        - enable timers configuration web form
 
 
 // Consistency checks
@@ -62,11 +61,6 @@
 #if (defined(DS_CAP_TIMERS_ABS) || defined(DS_CAP_TIMERS_COUNT_TICK)) && !defined(DS_CAP_TIMERS)
 #define DS_CAP_TIMERS
 #endif // (DS_CAP_TIMERS_ABS || DS_CAP_TIMERS_COUNT_TICK) && !DS_CAP_TIMERS
-
-#if defined(DS_CAP_WEB_TIMERS) && !defined(DS_CAP_TIMERS_ABS)
-#warning "Capability DS_CAP_WEB_TIMERS requires at least DS_CAP_TIMERS_ABS; enabling"
-#define DS_CAP_TIMERS_ABS
-#endif // DS_CAP_WEB_TIMERS && !DS_CAP_TIMERS_ABS
 
 #if defined(DS_CAP_TIMERS_ABS) && !defined(DS_CAP_SYS_TIME)
 #warning "Selected timer functionality requires time; enabling"
@@ -387,6 +381,9 @@ namespace ds {
 #ifdef DS_CAP_APP_LOG
       static void serveAppLog();                      // Serve the "log" page
 #endif // DS_CAP_APP_LOG
+#ifdef DS_CAP_TIMERS_ABS
+      static void serveTimers();                      // Serve the "timers" page
+#endif // DS_CAP_TIMERS_ABS
 
     public:
       static ESP8266WebServer web_server;             // Web server
@@ -394,8 +391,10 @@ namespace ds {
       static void pushHTMLHeader(const String& title = "", const String& head_user = "", bool redirect = false);  // Add standard header to the web page
       static void pushHTMLFooter();                   // Add standard footer to the web page
       static void (*registerWebPages)();              // Hook for registering user-supplied pages
-
       static void sendWebPage();                      // Send a web page
+#ifdef DS_CAP_TIMERS_ABS
+      static std::forward_list<String> timer_actions; // List of timer actions
+#endif // DS_CAP_TIMERS_ABS
 #endif // DS_CAP_WEBSERVER
 
 #ifdef DS_CAP_BUTTON

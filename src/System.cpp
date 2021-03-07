@@ -537,6 +537,10 @@ static const char *FAV_ICON_PATH PROGMEM = "/favicon.png"; // Favicon on disk
 #endif // DS_CAP_SYS_FS
 static const size_t MAX_WEB_PAGE_SIZE = 2048;    // Preallocated web page buffer size (B)
 
+#ifdef DS_CAP_TIMERS_ABS
+std::forward_list<String> System::timer_actions; // List of timer actions
+#endif // DS_CAP_TIMERS_ABS
+
 // Add standard header to the web page
 void System::pushHTMLHeader(const String& title, const String& head_user, bool redirect) {
   web_page = F(
@@ -833,6 +837,116 @@ void System::serveAppLog() {
   sendWebPage();
 }
 #endif // DS_CAP_APP_LOG
+
+#ifdef DS_CAP_TIMERS_ABS
+
+// Scripting for timers web page
+static const char *timer_script PROGMEM = R"TIMERSCRIPT(<script>
+var NT = 0;
+
+function populate(what, n, sun = 0, pad = 1, from = 0) {
+  var select = document.getElementById(what);
+  while (select.firstChild)
+    select.removeChild(select.firstChild);
+  var width = n < 10 ? 1 : (n < 100 ? 2 : (n < 1000 ? 3 : 4));
+  for (var i = from; i < n; i++) {
+    var opt = document.createElement('option');
+    opt.value = i;
+    var optstr = '';
+    if (pad == 1) {
+      var width2 = i < 10 ? 1 : (i < 100 ? 2 : (i < 1000 ? 3 : 4));
+      for (var j = 0; j < width - width2; j++)
+        optstr += '0';
+    }
+    opt.innerHTML = optstr + i;
+    select.appendChild(opt);
+  }
+  if (sun) {
+    var opt = document.createElement('option');
+    opt.value = 'sunrise';
+    opt.innerHTML = 'sunrise';
+    select.appendChild(opt);
+    opt = document.createElement('option');
+    opt.value = 'sunset';
+    opt.innerHTML = 'sunset';
+    select.appendChild(opt);
+  }
+}
+
+function addtime() {
+  var container = document.createElement('p');
+  container.id = 'timer' + ++NT;
+  container.style = 'background: WhiteSmoke;';
+  container.innerHTML = '\n&nbsp;&nbsp;&nbsp;<input name="active' + NT + '" type="checkbox" value="1" checked="checked" style="vertical-align: middle;" title="deactivate timer"/>&nbsp;\n' +
+    '<a style="text-decoration: none; color: black;" href="javascript:deltime(' + NT + ')" title="delete timer">&#x2326;</a>&nbsp;&nbsp;\n' +
+    'every <select name="dow' + NT + '"><option value="-1">day</option><option value="1">Monday</option><option value="2">Tuesday</option><option value="3">Wednesday</option>' +
+    '<option value="4">Thursday</option><option value="5">Friday</option><option value="6">Saturday</option><option value="0">Sunday</option></select>&nbsp;&nbsp;&nbsp;\n' +
+    '<select id="at' + NT + '" name="at' + NT + '" onchange="changeat(' + NT + ', this.value)"><option value="1">at</option><option value="2">every</option></select>&nbsp;' +
+    '<select id="h' + NT + '" name="h' + NT + '" onchange="changesep(' + NT + ', this.value)" style="text-align-last: right;"></select>\n' +
+    '<span id="sep' + NT + '">h&nbsp;</span>\n' +
+    '<select id="m' + NT + '" name="m' + NT + '" style="text-align-last: right;"></select> min&nbsp;&nbsp;&nbsp;\n' +
+    'execute <select name="action' + NT + '"><option value="lamp_on">lamp on</option><option value="lamp_off">lamp off</option><option value="lamp_toggle">lamp toggle</option></select>\n';
+  var nl = document.createTextNode('\n\n');
+  document.getElementById('timers').appendChild(nl);
+  document.getElementById('timers').appendChild(container);
+  populate('h' + NT, 24, 1);
+  populate('m' + NT, 60);
+}
+
+function deltime(num) {
+  document.getElementById('timers').removeChild(document.getElementById('timer' + num));
+}
+
+function changesep(n, val) {
+  var sep = document.getElementById('sep' + n);
+  var at = document.getElementById('at' + n);
+  if (at.value == 1) {
+    if (isNaN(val))
+      sep.innerHTML = '<select name="sign' + NT + '"><option value="+">+</option><option value="-">&#x2212;</option></select>';
+    else
+      sep.innerHTML = 'h&nbsp;';
+  } else {
+    sep.innerHTML = 'min offset from midnight by';
+    populate('m' + n, parseInt(val), 0, 0);
+  }
+}
+
+function changeat(n, val) {
+  if (val == 1) {
+    populate('h' + n, 24, 1);
+    populate('m' + n, 60);
+  } else
+    populate('h' + n, 1441, 0, 0, 1);
+  changesep(n, 1);
+}
+
+</script>)TIMERSCRIPT";
+
+// Serve the "timers" page
+void System::serveTimers() {
+  pushHTMLHeader(F("Timer Configuration"), timer_script);
+
+  web_page += F(
+    "<h3>Timer Configuration</h3>\n"
+    "[ <a href=\"/\">home</a> ]<hr/>\n"
+  );
+  web_page += F(
+    "<form action=\"/timers-save\">\n"
+    "  <p>\n"
+    "    <input name=\"active\" type=\"checkbox\" value=\"1\" checked=\"checked\" style=\"vertical-align: middle;\"/> activate timers\n"
+    "  </p>\n"
+    "  <p id=\"timers\"/>\n"
+    "  <p>\n"
+    "    <a style=\"text-decoration: none; font-size: x-large;\" href=\"javascript:addtime()\" title=\"add new timer\">&#x2795;</a>\n"
+    "  </p>\n"
+    "  <input type=\"submit\" value=\"Save\"/>\n"
+    "</form>\n"
+  );
+
+  pushHTMLFooter();
+  sendWebPage();
+}
+#endif // DS_CAP_TIMERS_ABS
 
 // Send a web page
 void System::sendWebPage() {
@@ -1379,14 +1493,6 @@ bool TimerCountdownTick::operator!=(const TimerCountdownTick& timer) const {
 
 
 /*************************************************************************
- * Capability: timers configuration web form
- *************************************************************************/
-
-// FIXME
-
-
-
-/*************************************************************************
  * Shared methods that are always defined
  *************************************************************************/
 // Initialize system
@@ -1513,6 +1619,9 @@ void System::begin() {
 #ifdef DS_CAP_APP_LOG
   web_server.on("/log", serveAppLog);
 #endif // DS_CAP_APP_LOG
+#ifdef DS_CAP_TIMERS_ABS
+  web_server.on("/timers", serveTimers);
+#endif // DS_CAP_TIMERS_ABS
 #ifdef DS_CAP_SYS_FS
   if (fs.exists(FAV_ICON_PATH))
     web_server.serveStatic(FAV_ICON_PATH, fs, FAV_ICON_PATH);
