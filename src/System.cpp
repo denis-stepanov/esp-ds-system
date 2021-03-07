@@ -930,18 +930,21 @@ void System::serveTimers() {
     "<h3>Timer Configuration</h3>\n"
     "[ <a href=\"/\">home</a> ]<hr/>\n"
   );
-  web_page += F(
-    "<form action=\"/timers-save\">\n"
-    "  <p>\n"
-    "    <input name=\"active\" type=\"checkbox\" value=\"1\" checked=\"checked\" style=\"vertical-align: middle;\"/> activate timers\n"
-    "  </p>\n"
-    "  <p id=\"timers\"/>\n"
-    "  <p>\n"
-    "    <a style=\"text-decoration: none; font-size: x-large;\" href=\"javascript:addtime()\" title=\"add new timer\">&#x2795;</a>\n"
-    "  </p>\n"
-    "  <input type=\"submit\" value=\"Save\"/>\n"
-    "</form>\n"
-  );
+  if (timer_actions.empty())
+    web_page += F("<p>No timer actions available to configure.</p>");
+  else
+    web_page += F(
+      "<form action=\"/timers-save\">\n"
+      "  <p>\n"
+      "    <input name=\"active\" type=\"checkbox\" value=\"1\" checked=\"checked\" style=\"vertical-align: middle;\"/> activate timers\n"
+      "  </p>\n"
+      "  <p id=\"timers\"/>\n"
+      "  <p>\n"
+      "    <a style=\"text-decoration: none; font-size: x-large;\" href=\"javascript:addtime()\" title=\"add new timer\">&#x2795;</a>\n"
+      "  </p>\n"
+      "  <input type=\"submit\" value=\"Save\"/>\n"
+      "</form>\n"
+    );
 
   pushHTMLFooter();
   sendWebPage();
