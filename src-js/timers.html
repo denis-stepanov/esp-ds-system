@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <script>
+// ====== USER SECTION ======
+
+//// List of possible actions
+var ACTIONS = ['\uD83D\uDCA1 lamp off', '\uD83D\uDCA1 lamp on', '\uD83D\uDCA1 lamp toggle'];
+
+//// Pre-configured timers
+function addTimes() { 
+  //     |         action           | active | day of week |  type  |  hours  | mins | diff |
+  addTime('\uD83D\uDCA1 lamp off'   ,      1 ,            0, 'at'   ,        7, 50          );
+  addTime('\uD83D\uDCA1 lamp on'    ,      1 ,           -1, 'at'   , 'sunset', 15   , '-'  );
+  addTime('\uD83D\uDCA1 lamp toggle',      0 ,           -1, 'every',       60, 30          );
+}
+
+// ====== END OF USER SECTION ======
+    </script>
+    <script>
+// ====== START JAVASCRIPT COMPRESSOR ======
+var DOW = { 'day': -1, 'Monday': 1, 'Tuesday': 2, 'Wednesday': 3, 'Thursday': 4, 'Friday': 5, 'Saturday': 6, 'Sunday': 0 };
+var TID = 0;
+window.onload = addTimes;
+
+function clockIcon(hrs) {
+  return String.fromCharCode(0xD83D, 0xDD4F + (hrs % 12 ? hrs % 12 : 12)); // UTF 'CLOCK FACE TWELVE OCLOCK' (U+1F55B)
+}
+
+function populateDoW(what, dow = -1) {
+  var select = document.getElementById(what);
+  for (var d in DOW) {
+    var opt = document.createElement('option');
+    opt.value = DOW[d];
+    opt.text = '\uD83D\uDDD3 ' + d;   // UTF 'SPIRAL CALENDAR PAD' (U+1F5D3)
+    if (DOW[d] == dow)
+      opt.setAttribute('selected', 'selected');
+    select.appendChild(opt);
+  }
+}
+
+function populateTime(what, n, sun = 0, pad = 1, from = 0, icon = 0, def = 0) {
+  var select = document.getElementById(what);
+  while (select.firstChild)
+    select.removeChild(select.firstChild);
+  var width = n < 10 ? 1 : (n < 100 ? 2 : (n < 1000 ? 3 : 4));
+  for (var i = from; i < n; i++) {
+    var opt = document.createElement('option');
+    opt.value = i;
+    if (i == def)
+      opt.setAttribute('selected', 'selected');
+    var optstr = '';
+    if (pad == 1) {
+      var width2 = i < 10 ? 1 : (i < 100 ? 2 : (i < 1000 ? 3 : 4));
+      for (var j = 0; j < width - width2; j++)
+        optstr += '0';
+    } 
+    opt.text = (icon ? clockIcon(i) + ' ' : '') + optstr + i;
+    select.appendChild(opt);
+  }
+  if (sun) {
+    var opt = document.createElement('option');
+    opt.value = 'sunrise';
+    opt.text = '\uD83C\uDF05 ' + opt.value;  // UTF 'SUNRISE' (U+1F305)
+    if (opt.value == def)
+      opt.setAttribute('selected', 'selected');
+    select.appendChild(opt);
+    opt = document.createElement('option');
+    opt.value = 'sunset';
+    opt.text = '\uD83C\uDF07 ' + opt.value;  // UTF 'SUNSET OVER BUILDINGS' (U+1F307)
+    if (opt.value == def)
+      opt.setAttribute('selected', 'selected');
+    select.appendChild(opt);
+  }
+}
+
+function populateAction(what, action) {
+  var select = document.getElementById(what);
+  for (var i = 0; i < ACTIONS.length; i++) {
+    var opt = document.createElement('option');
+    opt.value = ACTIONS[i];
+    opt.text = opt.value;
+    if (opt.value == action)
+      opt.setAttribute('selected', 'selected');
+    select.appendChild(opt);
+  }
+}
+
+function changeSep(n, val, min = 0, sign = '+') {
+  var sep = document.getElementById('sep' + n); 
+  var at = document.getElementById('at' + n);
+  if (at.value == 'at') {
+    if (isNaN(val))
+      sep.innerHTML = '<select name="sign' + TID + '"><option value="+"' +
+        (sign == '+' ? ' selected="selected"' : '') + '>+</option><option value="-"' +
+        (sign == '-' ? ' selected="selected"' : '') + '>&#x2212;</option></select>';  // UTF 'MINUS SIGN' (U+2212)
+    else
+      sep.innerHTML = 'h&nbsp;';
+  } else {
+    sep.innerHTML = 'min offset from midnight by';
+    populateTime('m' + n, parseInt(val), 0, 0, 0, 0, min);
+  }
+}
+
+function changeAt(n, at, hrs = 0, min = 0, sign = '+') {
+  if (at == 'at') {
+    populateTime('h' + n, 24, 1, 1, 0, 1, hrs);
+    populateTime('m' + n, 60, 0, 1, 0, 0, min);
+  } else {
+    hrs = hrs ? hrs : 1;
+    populateTime('h' + n, 1441, 0, 0, 1, 0, hrs);
+  }
+  changeSep(n, hrs, min, sign);
+}
+
+function addTime(action = ACTIONS[0], active = 1, dow = -1, at = 'at', hrs = 0, min = 0, sign = '+') {
+  var container = document.createElement('p');
+  container.id = 'timer' + ++TID;
+  container.style = 'background: WhiteSmoke;';
+  container.innerHTML = '\n&nbsp;&nbsp;&nbsp;<input name="active' + TID + '" type="checkbox" value="1"' +
+    (active ? ' checked="checked"' : '') + 
+    ' style="vertical-align: middle;" title="deactivate timer"/>&nbsp;\n' +
+    '<a style="text-decoration: none; color: black;" href="javascript:delTime(' + TID + ')" ' +
+    'title="delete timer">&#x2326;</a>&nbsp;&nbsp;\n' +  // UTF 'ERASE TO THE RIGHT' (U+2326)
+    'every <select id="dow' + TID + '" name="dow' + TID + '"></select>&nbsp;&nbsp;&nbsp;\n' +
+    '<select id="at' + TID + '" name="at' + TID + '" onchange="changeAt(' + TID + ', this.value)">' +
+    '<option value="at">&#x23f0; at</option>' + // UTF 'ALARM CLOCK' (U+23F0)
+    '<option value="every">&#x1f503; every</option></select>&nbsp;' + // UTF 'CLOCKWISE DOWNWARDS AND UPWARDS OPEN CIRCLE ARROWS' (U+1F503)
+    '<select id="h' + TID + '" name="h' + TID + '" onchange="changeSep(' + TID + ', this.value)" style="text-align-last: right;"></select>\n' +
+    '<span id="sep' + TID + '">h&nbsp;</span>\n' +
+    '<select id="m' + TID + '" name="m' + TID + '" style="text-align-last: right;"></select> min&nbsp;&nbsp;&nbsp;\n' +
+    'execute <select id="action' + TID + '" name="action' + TID + '"></select>\n';
+  var nl = document.createTextNode('\n\n');
+  document.getElementById('timers').appendChild(nl);
+  document.getElementById('timers').appendChild(container);
+  populateDoW('dow' + TID, dow);
+  populateAction('action' + TID, action);
+  document.getElementById('at' + TID).value = at;
+  changeAt(TID, at, hrs, min, sign);
+}
+
+function delTime(num) {
+  document.getElementById('timers').removeChild(document.getElementById('timer' + num));
+}
+// ====== END JAVASCRIPT COMPRESSOR ======
+    </script>
+  </head>
+  <body>
+    <form action="">
+      <p>
+        <input name="active" type="checkbox" value="1" checked="checked" style="vertical-align: middle;"/>
+        &#x23f2; <!-- UTF 'TIMER CLOCK' (U+23F2) --> activate timers
+      </p>
+      <p id="timers">
+      </p>
+      <p>
+        <a style="text-decoration: none; font-size: x-large;" href="javascript:addTime()" title="add new timer">
+          &#x2795; <!-- UTF 'HEAVY PLUS SIGN' (U+2795) -->
+        </a>
+      </p>
+      <input type="submit" value="Save"/>
+    </form>
+  </body>
+</html>
