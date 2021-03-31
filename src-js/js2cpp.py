@@ -44,10 +44,11 @@ for i in range(len(jsm)):
         print('  "', end = "")
     if (jsm[i] == '"'):
         print("\\", end = "");
+        count += 1
     print(jsm[i], end = "")
     count += 1
-    if (count == width):
-        count -= width
+    if (count >= width):
+        count = 0
         print('"')
 if (count != 0):
     print('"', end = "")
