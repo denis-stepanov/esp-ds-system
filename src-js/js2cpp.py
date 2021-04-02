@@ -42,7 +42,7 @@ print('static const char *{}_script PROGMEM = "<script>"'.format(html_file.rstri
 for i in range(len(jsm)):
     if (count == 0):
         print('  "', end = "")
-    if (jsm[i] == '"'):
+    if (jsm[i] == '"' or jsm[i] == '\\'):
         print("\\", end = "");
         count += 1
     print(jsm[i], end = "")
