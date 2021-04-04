@@ -876,7 +876,16 @@ static const char *timers_script PROGMEM = "<script>"
 
 // Serve the "timers" page
 void System::serveTimers() {
-  pushHTMLHeader(F("Timer Configuration"), timers_script);
+  String header = F("<script>var ACTIONS = [");
+  for (auto action : timer_actions) {
+    header += "'";
+    header += action;
+    header += "',";                     // JS is tolerant to a trailing comma
+  }
+  header += "];";
+  header += "function addTimes() {}</script>\n";   // FIXME expand
+  header += timers_script;              // This is a memory-eater
+  pushHTMLHeader(F("Timer Configuration"), header);
 
   web_page += F(
     "<h3>Timer Configuration</h3>\n"
