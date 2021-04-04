@@ -840,91 +840,43 @@ void System::serveAppLog() {
 
 #ifdef DS_CAP_TIMERS_ABS
 
-// Scripting for timers web page
-static const char *timer_script PROGMEM = R"TIMERSCRIPT(<script>
-var NT = 0;
-
-function populate(what, n, sun = 0, pad = 1, from = 0) {
-  var select = document.getElementById(what);
-  while (select.firstChild)
-    select.removeChild(select.firstChild);
-  var width = n < 10 ? 1 : (n < 100 ? 2 : (n < 1000 ? 3 : 4));
-  for (var i = from; i < n; i++) {
-    var opt = document.createElement('option');
-    opt.value = i;
-    var optstr = '';
-    if (pad == 1) {
-      var width2 = i < 10 ? 1 : (i < 100 ? 2 : (i < 1000 ? 3 : 4));
-      for (var j = 0; j < width - width2; j++)
-        optstr += '0';
-    }
-    opt.innerHTML = optstr + i;
-    select.appendChild(opt);
-  }
-  if (sun) {
-    var opt = document.createElement('option');
-    opt.value = 'sunrise';
-    opt.innerHTML = 'sunrise';
-    select.appendChild(opt);
-    opt = document.createElement('option');
-    opt.value = 'sunset';
-    opt.innerHTML = 'sunset';
-    select.appendChild(opt);
-  }
-}
-
-function addtime() {
-  var container = document.createElement('p');
-  container.id = 'timer' + ++NT;
-  container.style = 'background: WhiteSmoke;';
-  container.innerHTML = '\n&nbsp;&nbsp;&nbsp;<input name="active' + NT + '" type="checkbox" value="1" checked="checked" style="vertical-align: middle;" title="deactivate timer"/>&nbsp;\n' +
-    '<a style="text-decoration: none; color: black;" href="javascript:deltime(' + NT + ')" title="delete timer">&#x2326;</a>&nbsp;&nbsp;\n' +
-    'every <select name="dow' + NT + '"><option value="-1">day</option><option value="1">Monday</option><option value="2">Tuesday</option><option value="3">Wednesday</option>' +
-    '<option value="4">Thursday</option><option value="5">Friday</option><option value="6">Saturday</option><option value="0">Sunday</option></select>&nbsp;&nbsp;&nbsp;\n' +
-    '<select id="at' + NT + '" name="at' + NT + '" onchange="changeat(' + NT + ', this.value)"><option value="1">at</option><option value="2">every</option></select>&nbsp;' +
-    '<select id="h' + NT + '" name="h' + NT + '" onchange="changesep(' + NT + ', this.value)" style="text-align-last: right;"></select>\n' +
-    '<span id="sep' + NT + '">h&nbsp;</span>\n' +
-    '<select id="m' + NT + '" name="m' + NT + '" style="text-align-last: right;"></select> min&nbsp;&nbsp;&nbsp;\n' +
-    'execute <select name="action' + NT + '"><option value="lamp_on">lamp on</option><option value="lamp_off">lamp off</option><option value="lamp_toggle">lamp toggle</option></select>\n';
-  var nl = document.createTextNode('\n\n');
-  document.getElementById('timers').appendChild(nl);
-  document.getElementById('timers').appendChild(container);
-  populate('h' + NT, 24, 1);
-  populate('m' + NT, 60);
-}
-
-function deltime(num) {
-  document.getElementById('timers').removeChild(document.getElementById('timer' + num));
-}
-
-function changesep(n, val) {
-  var sep = document.getElementById('sep' + n);
-  var at = document.getElementById('at' + n);
-  if (at.value == 1) {
-    if (isNaN(val))
-      sep.innerHTML = '<select name="sign' + NT + '"><option value="+">+</option><option value="-">&#x2212;</option></select>';
-    else
-      sep.innerHTML = 'h&nbsp;';
-  } else {
-    sep.innerHTML = 'min offset from midnight by';
-    populate('m' + n, parseInt(val), 0, 0);
-  }
-}
-
-function changeat(n, val) {
-  if (val == 1) {
-    populate('h' + n, 24, 1);
-    populate('m' + n, 60);
-  } else
-    populate('h' + n, 1441, 0, 0, 1);
-  changesep(n, 1);
-}
-
-</script>)TIMERSCRIPT";
+// Scripting for timers web page. See src-js/ for the source and compressor
+static const char *timers_script PROGMEM = "<script>"
+  "var DOW={day:-1,Monday:1,Tuesday:2,Wednesday:3,Thursday:4,Friday:5,Saturday:6,Sunday:0},TID=0;function clockIcon(e){retu"
+  "rn String.fromCharCode(55357,56655+(e%12?e%12:12))}function populateDoW(e,t=-1){var n=document.getElementById(e);for(var"
+  " a in DOW){var l=document.createElement(\"option\");l.value=DOW[a],l.text=\"&#128467; \"+a,DOW[a]==t&&l.setAttribute(\"s"
+  "elected\",\"selected\"),n.appendChild(l)}}function populateTime(e,t,n=0,a=1,l=0,i=0,o=0){for(var d=document.getElementBy"
+  "Id(e);d.firstChild;)d.removeChild(d.firstChild);for(var c=t<10?1:t<100?2:t<1e3?3:4,s=l;s<t;s++){var p;(p=document.create"
+  "Element(\"option\")).value=s,s==o&&p.setAttribute(\"selected\",\"selected\");var m=\"\";if(1==a)for(var u=s<10?1:s<100?2"
+  ":s<1e3?3:4,r=0;r<c-u;r++)m+=\"0\";p.text=(i?clockIcon(s)+\" \":\"\")+m+s,d.appendChild(p)}n&&((p=document.createElement("
+  "\"option\")).value=\"sunrise\",p.text=\"&#127749; \"+p.value,p.value==o&&p.setAttribute(\"selected\",\"selected\"),d.app"
+  "endChild(p),(p=document.createElement(\"option\")).value=\"sunset\",p.text=\"&#127751; \"+p.value,p.value==o&&p.setAttri"
+  "bute(\"selected\",\"selected\"),d.appendChild(p))}function populateAction(e,t){for(var n=document.getElementById(e),a=0;"
+  "a<ACTIONS.length;a++){var l=document.createElement(\"option\");l.value=ACTIONS[a],l.text=l.value,l.value==t&&l.setAttrib"
+  "ute(\"selected\",\"selected\"),n.appendChild(l)}}function changeSep(e,t,n=0,a=\"+\"){var l=document.getElementById(\"sep"
+  "\"+e);\"at\"==document.getElementById(\"at\"+e).value?isNaN(t)?l.innerHTML='<select name=\"sign'+TID+'\"><option value=\""
+  "+\"'+(\"+\"==a?' selected=\"selected\"':\"\")+'>+</option><option value=\"-\"'+(\"-\"==a?' selected=\"selected\"':\"\")+"
+  "\">&#x2212;</option></select>\":l.innerHTML=\"h&nbsp;\":(l.innerHTML=\"min offset from midnight by\",populateTime(\"m\"+"
+  "e,parseInt(t),0,0,0,0,n))}function changeAt(e,t,n=0,a=0,l=\"+\"){\"at\"==t?(populateTime(\"h\"+e,24,1,1,0,1,n),populateT"
+  "ime(\"m\"+e,60,0,1,0,0,a)):populateTime(\"h\"+e,1441,0,0,1,0,n=n||1),changeSep(e,n,a,l)}function addTime(e=ACTIONS[0],t="
+  "1,n=-1,a=\"at\",l=0,i=0,o=\"+\"){var d=document.createElement(\"p\");d.id=\"timer\"+ ++TID,d.style=\"background: WhiteSm"
+  "oke;\",d.innerHTML='\\n&nbsp;&nbsp;&nbsp;<input name=\"active'+TID+'\" type=\"checkbox\" value=\"1\"'+(t?' checked=\"che"
+  "cked\"':\"\")+' style=\"vertical-align: middle;\" title=\"deactivate timer\"/>&nbsp;\\n<a style=\"text-decoration: none;"
+  " color: black;\" href=\"javascript:delTime('+TID+')\" title=\"delete timer\">&#x2326;</a>&nbsp;&nbsp;\\nevery <select id"
+  "=\"dow'+TID+'\" name=\"dow'+TID+'\"></select>&nbsp;&nbsp;&nbsp;\\n<select id=\"at'+TID+'\" name=\"at'+TID+'\" onchange=\""
+  "changeAt('+TID+', this.value)\"><option value=\"at\">&#x23f0; at</option><option value=\"every\">&#x1f503; every</option"
+  "></select>&nbsp;<select id=\"h'+TID+'\" name=\"h'+TID+'\" onchange=\"changeSep('+TID+', this.value)\" style=\"text-align"
+  "-last: right;\"></select>\\n<span id=\"sep'+TID+'\">h&nbsp;</span>\\n<select id=\"m'+TID+'\" name=\"m'+TID+'\" style=\"t"
+  "ext-align-last: right;\"></select> min&nbsp;&nbsp;&nbsp;\\nexecute <select id=\"action'+TID+'\" name=\"action'+TID+'\"><"
+  "/select>\\n';var c=document.createTextNode(\"\\n\\n\");document.getElementById(\"timers\").appendChild(c),document.getEl"
+  "ementById(\"timers\").appendChild(d),populateDoW(\"dow\"+TID,n),populateAction(\"action\"+TID,e),document.getElementById"
+  "(\"at\"+TID).value=a,changeAt(TID,a,l,i,o)}function delTime(e){document.getElementById(\"timers\").removeChild(document."
+  "getElementById(\"timer\"+e))}window.onload=addTimes;"
+  "</script>";
 
 // Serve the "timers" page
 void System::serveTimers() {
-  pushHTMLHeader(F("Timer Configuration"), timer_script);
+  pushHTMLHeader(F("Timer Configuration"), timers_script);
 
   web_page += F(
     "<h3>Timer Configuration</h3>\n"
@@ -936,11 +888,12 @@ void System::serveTimers() {
     web_page += F(
       "<form action=\"/timers-save\">\n"
       "  <p>\n"
-      "    <input name=\"active\" type=\"checkbox\" value=\"1\" checked=\"checked\" style=\"vertical-align: middle;\"/> activate timers\n"
+      "    <input name=\"active\" type=\"checkbox\" value=\"1\" checked=\"checked\" style=\"vertical-align: middle;\"/>&#x23f2; activate timers\n"
       "  </p>\n"
-      "  <p id=\"timers\"/>\n"
+      "  <p id=\"timers\">\n"
+      "  </p>\n"
       "  <p>\n"
-      "    <a style=\"text-decoration: none; font-size: x-large;\" href=\"javascript:addtime()\" title=\"add new timer\">&#x2795;</a>\n"
+      "    <a style=\"text-decoration: none; font-size: x-large;\" href=\"javascript:addTime()\" title=\"add new timer\">&#x2795;</a>\n"
       "  </p>\n"
       "  <input type=\"submit\" value=\"Save\"/>\n"
       "</form>\n"
