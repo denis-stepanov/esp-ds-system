@@ -32,8 +32,7 @@ with open(html_file, 'r') as f:
 # Compress
 payload = {"input": js}
 url = "https://javascript-minifier.com/raw"
-## Reencode UTF-8 back to HTML entities, as UTF-8 icons appear ugly in Arduino IDE
-jsm = requests.post(url, payload).text.encode('ascii', 'xmlcharrefreplace').decode()
+jsm = requests.post(url, payload).text
 
 # Output as C-string
 width = 120
