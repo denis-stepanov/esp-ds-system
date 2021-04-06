@@ -33,6 +33,8 @@ with open(html_file, 'r') as f:
 payload = {"input": js}
 url = "https://javascript-minifier.com/raw"
 jsm = requests.post(url, payload).text
+print('{}/{} compressed ({}%)'.format(len(jsm), len(js), int(round(100 * len(jsm) / len(js)))))
+print()
 
 # Output as C-string
 width = 120
