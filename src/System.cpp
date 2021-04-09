@@ -901,12 +901,12 @@ void System::serveTimers() {
   for (auto action : timer_actions) {
     header += F("'");
     header += action;
-    header += F("',");                  // JS is tolerant to a trailing comma
+    header += F("', ");                 // JS is tolerant to a trailing comma
   }
   header += F("];\n  function addTimes() {\n");
   for (auto timer : timers) {
     auto timer_type = timer->getType();
-    header += F("  addTime('");
+    header += F("    addTime('");
     header += timer->getLabel();
     header += F("', ");
     header += timer->isArmed();
@@ -936,7 +936,7 @@ void System::serveTimers() {
     }
     header += F(");\n");
   }
-  header += F("}</script>\n");
+  header += F("  }</script>\n");
   header += timers_script;              // This is a memory-eater
   pushHTMLHeader(F("Timer Configuration"), header);
 
