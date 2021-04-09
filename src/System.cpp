@@ -936,7 +936,7 @@ void System::serveTimers() {
     }
     header += F(");\n");
   }
-  header += F("  }</script>\n");
+  header += F("  }\n</script>\n");
   header += timers_script;              // This is a memory-eater
   pushHTMLHeader(F("Timer Configuration"), header);
 
