@@ -840,7 +840,7 @@ void System::serveAppLog() {
 
 #ifdef DS_CAP_TIMERS_ABS
 
-// Scripting for timers web page. Do not edit this compressed code; edit the master copy in src-js/ and regenerate
+// Scripting for timers web page. Do not edit compressed code; edit the master copy in src-js/ and regenerate
 static const char *timers_script PROGMEM = "<script>"
   "var DOW={day:-1,Monday:1,Tuesday:2,Wednesday:3,Thursday:4,Friday:5,Saturday:6,Sunday:0},TID=0;function clockIcon(e){retu"
   "rn String.fromCharCode(55357,56655+(e%12?e%12:12))}function populateDoW(e,t=-1){var n=document.getElementById(e);for(var"

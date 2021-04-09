@@ -27,9 +27,10 @@
 // DS_CAP_TIMERS_SOLAR      - enable timers from solar events
 // DS_CAP_TIMERS_COUNT_ABS  - enable countdown timers via absolute time
 // DS_CAP_TIMERS_COUNT_TICK - enable countdown timers via ticker
+// DS_CAP_WEB_TIMERS        - enable timer configuration via web
 
 
-// Consistency checks
+// Consistency checks. Policy: whenever one capability requires another, issue a warning and enable. Whenever one capability extends another, enable without a warning
 #if defined(DS_CAP_SYS_LOG_HW) && !defined(DS_CAP_SYS_LOG)
 #define DS_CAP_SYS_LOG
 #endif // DS_CAP_SYS_LOG_HW && !DS_CAP_SYS_LOG
@@ -39,10 +40,15 @@
 #define DS_CAP_SYS_FS
 #endif // DS_CAP_APP_LOG && !DS_CAP_SYS_FS
 
-#if defined(DS_CAP_WIFIMANAGER) && !defined(DS_CAP_SYS_NETWORK)
-#warning "Capability DS_CAP_WIFIMANAGER requires DS_CAP_SYS_NETWORK; enabling"
-#define DS_CAP_SYS_NETWORK
-#endif // DS_CAP_WIFIMANAGER && !DS_CAP_SYS_NETWORK
+#if defined(DS_CAP_WIFIMANAGER) && !defined(DS_CAP_WEBSERVER)
+#warning "Capability DS_CAP_WIFIMANAGER requires DS_CAP_WEBSERVER; enabling"
+#define DS_CAP_WEBSERVER
+#endif // DS_CAP_WIFIMANAGER && !DS_CAP_WEBSERVER
+
+#if defined(DS_CAP_WEB_TIMERS) && !defined(DS_CAP_WEBSERVER)
+#warning "Capability DS_CAP_WEB_TIMERS requires DS_CAP_WEBSERVER; enabling"
+#define DS_CAP_WEBSERVER
+#endif // DS_CAP_WEB_TIMERS && !DS_CAP_WEBSERVER
 
 #if defined(DS_CAP_MDNS) && !defined(DS_CAP_SYS_NETWORK)
 #warning "Capability DS_CAP_MDNS requires DS_CAP_SYS_NETWORK; enabling"
@@ -53,6 +59,21 @@
 #warning "Capability DS_CAP_WEBSERVER requires DS_CAP_SYS_NETWORK; enabling"
 #define DS_CAP_SYS_NETWORK
 #endif // DS_CAP_WEBSERVER && !DS_CAP_SYS_NETWORK
+
+#if defined(DS_CAP_WEB_TIMERS) && !defined(DS_CAP_TIMERS_ABS)
+#warning "Capability DS_CAP_WEB_TIMERS requires DS_CAP_TIMERS_ABS; enabling"
+#define DS_CAP_TIMERS_ABS
+#endif // DS_CAP_WEB_TIMERS && !DS_CAP_TIMERS_ABS
+
+#if defined(DS_CAP_WEB_TIMERS) && !defined(DS_CAP_TIMERS_SOLAR)
+#warning "Capability DS_CAP_WEB_TIMERS requires DS_CAP_TIMERS_SOLAR; enabling"
+#define DS_CAP_TIMERS_SOLAR
+#endif // DS_CAP_WEB_TIMERS && !DS_CAP_TIMERS_SOLAR
+
+#if defined(DS_CAP_WEB_TIMERS) && !defined(DS_CAP_TIMERS_COUNT_ABS)
+#warning "Capability DS_CAP_WEB_TIMERS requires DS_CAP_TIMERS_COUNT_ABS; enabling"
+#define DS_CAP_TIMERS_COUNT_ABS
+#endif // DS_CAP_WEB_TIMERS && !DS_CAP_TIMERS_COUNT_ABS
 
 #if (defined(DS_CAP_TIMERS_SOLAR) || defined(DS_CAP_TIMERS_COUNT_ABS)) && !defined(DS_CAP_TIMERS_ABS)
 #define DS_CAP_TIMERS_ABS

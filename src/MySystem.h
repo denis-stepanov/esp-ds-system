@@ -24,6 +24,7 @@
 // #define DS_CAP_TIMERS_SOLAR      // Enable timers from solar events
 // #define DS_CAP_TIMERS_COUNT_ABS  // Enable countdown timers via absolute time
 // #define DS_CAP_TIMERS_COUNT_TICK // Enable countdown timers via ticker
+// #define DS_CAP_WEB_TIMERS        // Enable timer configuration via web
 
 
 // #define DS_TIMEZONE TZ_Europe_Paris       // Timezone if system time is used
