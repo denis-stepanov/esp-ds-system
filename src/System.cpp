@@ -838,7 +838,28 @@ void System::serveAppLog() {
 }
 #endif // DS_CAP_APP_LOG
 
-#ifdef DS_CAP_TIMERS_ABS
+// Send a web page
+void System::sendWebPage() {
+
+#ifdef DS_CAP_SYS_LOG
+  log->printf(TIMED("Serving webpage \""));
+  log->print(web_server.uri());
+  log->print(F("\" to "));
+  log->println(web_server.client().remoteIP().toString());
+#endif // DS_CAP_SYS_LOG
+
+  web_server.send(HTTP_CODE_OK, "text/html", web_page);
+}
+
+#endif // DS_CAP_WEBSERVER
+
+
+
+
+/*************************************************************************
+ * Capability: web timers
+ *************************************************************************/
+#ifdef DS_CAP_WEB_TIMERS
 
 // Scripting for timers web page. Do not edit compressed code; edit the master copy in src-js/ and regenerate
 static const char *timers_script PROGMEM = "<script>"
@@ -911,22 +932,7 @@ void System::serveTimers() {
   pushHTMLFooter();
   sendWebPage();
 }
-#endif // DS_CAP_TIMERS_ABS
-
-// Send a web page
-void System::sendWebPage() {
-
-#ifdef DS_CAP_SYS_LOG
-  log->printf(TIMED("Serving webpage \""));
-  log->print(web_server.uri());
-  log->print(F("\" to "));
-  log->println(web_server.client().remoteIP().toString());
-#endif // DS_CAP_SYS_LOG
-
-  web_server.send(HTTP_CODE_OK, "text/html", web_page);
-}
-
-#endif // DS_CAP_WEBSERVER
+#endif // DS_CAP_WEB_TIMERS
 
 
 
