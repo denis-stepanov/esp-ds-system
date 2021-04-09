@@ -897,14 +897,46 @@ static const char *timers_script PROGMEM = "<script>"
 
 // Serve the "timers" page
 void System::serveTimers() {
-  String header = F("<script>var ACTIONS = [");
+  String header = F("<script>\n  var ACTIONS = [");
   for (auto action : timer_actions) {
-    header += "'";
+    header += F("'");
     header += action;
-    header += "',";                     // JS is tolerant to a trailing comma
+    header += F("',");                  // JS is tolerant to a trailing comma
   }
-  header += "];";
-  header += "function addTimes() {}</script>\n";   // FIXME expand
+  header += F("];\n  function addTimes() {\n");
+  for (auto timer : timers) {
+    auto timer_type = timer->getType();
+    header += F("  addTime('");
+    header += timer->getLabel();
+    header += F("', ");
+    header += timer->isArmed();
+    header += F(", ");
+    header += timer->getDayOfWeek();
+    header += F(", ");
+    header += timer_type == TIMER_COUNTDOWN_ABS ? F("'every'") : F("'at'");
+    header += F(", ");
+    switch (timer_type) {
+      case TIMER_ABSOLUTE     : header += timer->getHour();                                                      break;
+      case TIMER_SUNRISE      : header += F("'sunrise'");                                                        break;
+      case TIMER_SUNSET       : header += F("'sunset'" );                                                        break;
+      case TIMER_COUNTDOWN_ABS: header += (unsigned int) static_cast<TimerCountdownAbs *>(timer)->getInterval(); break;
+      default                 : ; // Normally never happens
+    }
+    header += F(", ");
+    switch (timer_type) {
+      case TIMER_ABSOLUTE     : header += timer->getMinute();                                                    break;
+      case TIMER_SUNRISE      : header += abs(static_cast<TimerSolar *>(timer)->getOffset());                    break;
+      case TIMER_SUNSET       : header += abs(static_cast<TimerSolar *>(timer)->getOffset());                    break;
+      case TIMER_COUNTDOWN_ABS: header += static_cast<TimerCountdownAbs *>(timer)->getOffset();                  break;
+      default                 : ; // Normally never happens
+    }
+    if (timer_type == TIMER_SUNRISE || timer_type == TIMER_SUNSET) {
+      header += F(", ");
+      header += static_cast<TimerSolar *>(timer)->getOffset() < 0 ? F("'-'") : F("'+'");
+    }
+    header += F(");\n");
+  }
+  header += F("}</script>\n");
   header += timers_script;              // This is a memory-eater
   pushHTMLHeader(F("Timer Configuration"), header);
 
