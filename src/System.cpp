@@ -954,7 +954,7 @@ void System::serveTimers() {
       "  <p id=\"timers\">\n"
       "  </p>\n"
       "  <p>\n"
-      "    <a style=\"text-decoration: none; font-size: x-large;\" href=\"javascript:addTime()\" title=\"add new timer\">&#x2795;</a>\n"
+      "    <a style=\"text-decoration: none; font-size: x-large;\" href=\"javascript:aT()\" title=\"add new timer\">&#x2795;</a>\n"
       "  </p>\n"
       "  <input type=\"submit\" value=\"Save\"/>\n"
       "</form>\n"
