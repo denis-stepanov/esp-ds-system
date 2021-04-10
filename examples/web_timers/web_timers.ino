@@ -16,7 +16,7 @@ void setup() {
   // Define some timer actions
   System::timer_actions.push_front("lamp off");
   System::timer_actions.push_front("lamp on");
-  System::timer_actions.push_front("lamp toggle");
+  System::timer_actions.push_front("\\uD83D\\uDCA1 lamp toggle");  // Example of action including an icon (must be UTF-16 encoded for use with JS)
   System::timer_actions.reverse();     // Optional; call this to keep the order as written
 
   // Add a timer at 07:50 every Sunday to turn the lamp off
