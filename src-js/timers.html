@@ -8,26 +8,25 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
     <script>
 // ====== START JAVASCRIPT ======
-var DOW = { 'day': -1, 'Monday': 1, 'Tuesday': 2, 'Wednesday': 3, 'Thursday': 4, 'Friday': 5, 'Saturday': 6, 'Sunday': 0 };
-var TID = 0;
+// Short global identifiers are used to decrease the code size
+var DW = { 'day': -1, 'Monday': 1, 'Tuesday': 2, 'Wednesday': 3, 'Thursday': 4, 'Friday': 5, 'Saturday': 6, 'Sunday': 0 };
+var N = 0;
 
-function clockIcon(hrs) {
-  return String.fromCharCode(0xD83D, 0xDD4F + (hrs % 12 ? hrs % 12 : 12)); // UTF 'CLOCK FACE TWELVE OCLOCK' (U+1F55B)
-}
-
-function populateDoW(what, dow = -1) {
+// pW == populate day of week
+function pW(what, dow = -1) {
   var select = document.getElementById(what);
-  for (var d in DOW) {
+  for (var d in DW) {
     var opt = document.createElement('option');
-    opt.value = DOW[d];
+    opt.value = DW[d];
     opt.text = '\uD83D\uDDD3 ' + d;   // UTF 'SPIRAL CALENDAR PAD' (U+1F5D3)
-    if (DOW[d] == dow)
+    if (DW[d] == dow)
       opt.setAttribute('selected', 'selected');
     select.appendChild(opt);
   }
 }
 
-function populateTime(what, n, sun = 0, pad = 1, from = 0, icon = 0, def = 0) {
+// pT == populate time
+function pT(what, n, sun = 0, pad = 1, from = 0, icon = 0, def = 0) {
   var select = document.getElementById(what);
   while (select.firstChild)
     select.removeChild(select.firstChild);
@@ -43,7 +42,7 @@ function populateTime(what, n, sun = 0, pad = 1, from = 0, icon = 0, def = 0) {
       for (var j = 0; j < width - width2; j++)
         optstr += '0';
     } 
-    opt.text = (icon ? clockIcon(i) + ' ' : '') + optstr + i;
+    opt.text = (icon ? String.fromCharCode(0xD83D, 0xDD4F + (i % 12 ? i % 12 : 12)) + ' ' : '') + optstr + i;  // UTF 'CLOCK FACE TWELVE OCLOCK' (U+1F55B)
     select.appendChild(opt);
   }
   if (sun) {
@@ -62,11 +61,12 @@ function populateTime(what, n, sun = 0, pad = 1, from = 0, icon = 0, def = 0) {
   }
 }
 
-function populateAction(what, action) {
+// pA == populate action
+function pA(what, action) {
   var select = document.getElementById(what);
-  for (var i = 0; i < ACTIONS.length; i++) {
+  for (var i = 0; i < A.length; i++) {
     var opt = document.createElement('option');
-    opt.value = ACTIONS[i];
+    opt.value = A[i];
     opt.text = opt.value;
     if (opt.value == action)
       opt.setAttribute('selected', 'selected');
@@ -74,60 +74,64 @@ function populateAction(what, action) {
   }
 }
 
-function changeSep(n, val, min = 0, sign = '+') {
+// cS == change separator
+function cS(n, val, min = 0, sign = '+') {
   var sep = document.getElementById('sep' + n); 
   var at = document.getElementById('at' + n);
   if (at.value == 'at') {
     if (isNaN(val))
-      sep.innerHTML = '<select name="sign' + TID + '"><option value="+"' +
+      sep.innerHTML = '<select name="sign' + N + '"><option value="+"' +
         (sign == '+' ? ' selected="selected"' : '') + '>+</option><option value="-"' +
         (sign == '-' ? ' selected="selected"' : '') + '>&#x2212;</option></select>';  // UTF 'MINUS SIGN' (U+2212)
     else
       sep.innerHTML = 'h&nbsp;';
   } else {
     sep.innerHTML = 'min offset from midnight by';
-    populateTime('m' + n, parseInt(val), 0, 0, 0, 0, min);
+    pT('m' + n, parseInt(val), 0, 0, 0, 0, min);
   }
 }
 
-function changeAt(n, at, hrs = 0, min = 0, sign = '+') {
+// cA == change 'at'
+function cA(n, at, hrs = 0, min = 0, sign = '+') {
   if (at == 'at') {
-    populateTime('h' + n, 24, 1, 1, 0, 1, hrs);
-    populateTime('m' + n, 60, 0, 1, 0, 0, min);
+    pT('h' + n, 24, 1, 1, 0, 1, hrs);
+    pT('m' + n, 60, 0, 1, 0, 0, min);
   } else {
     hrs = hrs ? hrs : 1;
-    populateTime('h' + n, 1441, 0, 0, 1, 0, hrs);
+    pT('h' + n, 1441, 0, 0, 1, 0, hrs);
   }
-  changeSep(n, hrs, min, sign);
+  cS(n, hrs, min, sign);
 }
 
-function addTime(action, active = 1, dow = -1, at = 'at', hrs = 0, min = 0, sign = '+') {
+// aT == add time
+function aT(action, active = 1, dow = -1, at = 'at', hrs = 0, min = 0, sign = '+') {
   var container = document.createElement('p');
-  container.id = 'timer' + ++TID;
+  container.id = 'timer' + ++N;
   container.style = 'background: WhiteSmoke;';
-  container.innerHTML = '\n&nbsp;&nbsp;&nbsp;<input name="active' + TID + '" type="checkbox" value="1"' +
+  container.innerHTML = '\n&nbsp;&nbsp;&nbsp;<input name="active' + N + '" type="checkbox" value="1"' +
     (active ? ' checked="checked"' : '') + 
     ' style="vertical-align: middle;" title="deactivate timer"/>&nbsp;\n' +
-    '<a style="text-decoration: none; color: black;" href="javascript:delTime(' + TID + ')" ' +
+    '<a style="text-decoration: none; color: black;" href="javascript:dT(' + N + ')" ' +
     'title="delete timer">&#x2326;</a>&nbsp;&nbsp;\n' +  // UTF 'ERASE TO THE RIGHT' (U+2326)
-    'every <select id="dow' + TID + '" name="dow' + TID + '"></select>&nbsp;&nbsp;&nbsp;\n' +
-    '<select id="at' + TID + '" name="at' + TID + '" onchange="changeAt(' + TID + ', this.value)">' +
+    'every <select id="dow' + N + '" name="dow' + N + '"></select>&nbsp;&nbsp;&nbsp;\n' +
+    '<select id="at' + N + '" name="at' + N + '" onchange="cA(' + N + ', this.value)">' +
     '<option value="at">&#x23f0; at</option>' + // UTF 'ALARM CLOCK' (U+23F0)
-    '<option value="every">&#x1f503; every</option></select>&nbsp;' + // UTF 'CLOCKWISE DOWNWARDS AND UPWARDS OPEN CIRCLE ARROWS' (U+1F503)
-    '<select id="h' + TID + '" name="h' + TID + '" onchange="changeSep(' + TID + ', this.value)" style="text-align-last: right;"></select>\n' +
-    '<span id="sep' + TID + '">h&nbsp;</span>\n' +
-    '<select id="m' + TID + '" name="m' + TID + '" style="text-align-last: right;"></select> min&nbsp;&nbsp;&nbsp;\n' +
-    'execute <select id="action' + TID + '" name="action' + TID + '"></select>\n';
+    '<option value="every">&#x1f503; every</option></select>&nbsp;' + // UTF 'CLOCKWISE DWNWARDS AND UPWARDS OPEN CIRCLE ARROWS' (U+1F503)
+    '<select id="h' + N + '" name="h' + N + '" onchange="cS(' + N + ', this.value)" style="text-align-last: right;"></select>\n' +
+    '<span id="sep' + N + '">h&nbsp;</span>\n' +
+    '<select id="m' + N + '" name="m' + N + '" style="text-align-last: right;"></select> min&nbsp;&nbsp;&nbsp;\n' +
+    'execute <select id="action' + N + '" name="action' + N + '"></select>\n';
   var nl = document.createTextNode('\n\n');
   document.getElementById('timers').appendChild(nl);
   document.getElementById('timers').appendChild(container);
-  populateDoW('dow' + TID, dow);
-  populateAction('action' + TID, action);
-  document.getElementById('at' + TID).value = at;
-  changeAt(TID, at, hrs, min, sign);
+  pW('dow' + N, dow);
+  pA('action' + N, action);
+  document.getElementById('at' + N).value = at;
+  cA(N, at, hrs, min, sign);
 }
 
-function delTime(num) {
+// dT == delete time
+function dT(num) {
   document.getElementById('timers').removeChild(document.getElementById('timer' + num));
 }
 // ====== END JAVASCRIPT ======
@@ -136,14 +140,14 @@ function delTime(num) {
 // ====== START USER SECTION ======
 
 //// List of possible actions
-var ACTIONS = ['\uD83D\uDCA1 lamp off', '\uD83D\uDCA1 lamp on', '\uD83D\uDCA1 lamp toggle'];
+var A = ['\uD83D\uDCA1 lamp off', '\uD83D\uDCA1 lamp on', '\uD83D\uDCA1 lamp toggle'];
 
 //// Pre-configured timers
 function addTimes() {
   //     |         action           | active | day of week |  type  |  hours  | mins | diff |
-  addTime('\uD83D\uDCA1 lamp off'   ,      1 ,            0, 'at'   ,        7, 50          );
-  addTime('\uD83D\uDCA1 lamp on'    ,      1 ,           -1, 'at'   , 'sunset', 15   , '-'  );
-  addTime('\uD83D\uDCA1 lamp toggle',      0 ,           -1, 'every',       60, 30          );
+  aT('\uD83D\uDCA1 lamp off'   ,      1 ,            0, 'at'   ,        7, 50          );
+  aT('\uD83D\uDCA1 lamp on'    ,      1 ,           -1, 'at'   , 'sunset', 15   , '-'  );
+  aT('\uD83D\uDCA1 lamp toggle',      0 ,           -1, 'every',       60, 30          );
 }
 window.onload = addTimes;
 
@@ -159,7 +163,7 @@ window.onload = addTimes;
       <p id="timers">
       </p>
       <p>
-        <a style="text-decoration: none; font-size: x-large;" href="javascript:addTime()" title="add new timer">
+        <a style="text-decoration: none; font-size: x-large;" href="javascript:aT()" title="add new timer">
           &#x2795; <!-- UTF 'HEAVY PLUS SIGN' (U+2795) -->
         </a>
       </p>
