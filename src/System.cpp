@@ -893,11 +893,12 @@ static const char *timers_script PROGMEM = "<script>"
   "pendChild(d),populateDoW(\"dow\"+TID,n),populateAction(\"action\"+TID,e),document.getElementById(\"at\"+TID).value=a,cha"
   "ngeAt(TID,a,l,i,o)}function delTime(e){document.getElementById(\"timers\").removeChild(document.getElementById(\"timer\""
   "+e))}window.onload=addTimes;"
-  "</script>";
+  "</script>\n";
 
 // Serve the "timers" page
 void System::serveTimers() {
-  String header = F("<script>\n  var ACTIONS = [");
+  String header = timers_script;
+  header += F("<script>\n  var ACTIONS = [");
   for (auto action : timer_actions) {
     header += F("'");
     header += action;
@@ -936,8 +937,9 @@ void System::serveTimers() {
     }
     header += F(");\n");
   }
-  header += F("  }\n</script>\n");
-  header += timers_script;              // This is a memory-eater
+  header += F("  }\n");
+  header += F("  window.onload = addTimes;\n");
+  header += F("</script>\n");
   pushHTMLHeader(F("Timer Configuration"), header);
 
   web_page += F(
