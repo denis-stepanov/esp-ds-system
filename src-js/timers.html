@@ -7,26 +7,9 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
     <script>
-// ====== START USER SECTION ======
-
-//// List of possible actions
-var ACTIONS = ['\uD83D\uDCA1 lamp off', '\uD83D\uDCA1 lamp on', '\uD83D\uDCA1 lamp toggle'];
-
-//// Pre-configured timers
-function addTimes() { 
-  //     |         action           | active | day of week |  type  |  hours  | mins | diff |
-  addTime('\uD83D\uDCA1 lamp off'   ,      1 ,            0, 'at'   ,        7, 50          );
-  addTime('\uD83D\uDCA1 lamp on'    ,      1 ,           -1, 'at'   , 'sunset', 15   , '-'  );
-  addTime('\uD83D\uDCA1 lamp toggle',      0 ,           -1, 'every',       60, 30          );
-}
-
-// ====== END USER SECTION ======
-    </script>
-    <script>
 // ====== START JAVASCRIPT ======
 var DOW = { 'day': -1, 'Monday': 1, 'Tuesday': 2, 'Wednesday': 3, 'Thursday': 4, 'Friday': 5, 'Saturday': 6, 'Sunday': 0 };
 var TID = 0;
-window.onload = addTimes;
 
 function clockIcon(hrs) {
   return String.fromCharCode(0xD83D, 0xDD4F + (hrs % 12 ? hrs % 12 : 12)); // UTF 'CLOCK FACE TWELVE OCLOCK' (U+1F55B)
@@ -118,7 +101,7 @@ function changeAt(n, at, hrs = 0, min = 0, sign = '+') {
   changeSep(n, hrs, min, sign);
 }
 
-function addTime(action = ACTIONS[0], active = 1, dow = -1, at = 'at', hrs = 0, min = 0, sign = '+') {
+function addTime(action, active = 1, dow = -1, at = 'at', hrs = 0, min = 0, sign = '+') {
   var container = document.createElement('p');
   container.id = 'timer' + ++TID;
   container.style = 'background: WhiteSmoke;';
@@ -148,6 +131,23 @@ function delTime(num) {
   document.getElementById('timers').removeChild(document.getElementById('timer' + num));
 }
 // ====== END JAVASCRIPT ======
+    </script>
+    <script>
+// ====== START USER SECTION ======
+
+//// List of possible actions
+var ACTIONS = ['\uD83D\uDCA1 lamp off', '\uD83D\uDCA1 lamp on', '\uD83D\uDCA1 lamp toggle'];
+
+//// Pre-configured timers
+function addTimes() {
+  //     |         action           | active | day of week |  type  |  hours  | mins | diff |
+  addTime('\uD83D\uDCA1 lamp off'   ,      1 ,            0, 'at'   ,        7, 50          );
+  addTime('\uD83D\uDCA1 lamp on'    ,      1 ,           -1, 'at'   , 'sunset', 15   , '-'  );
+  addTime('\uD83D\uDCA1 lamp toggle',      0 ,           -1, 'every',       60, 30          );
+}
+window.onload = addTimes;
+
+// ====== END USER SECTION ======
     </script>
   </head>
   <body>
