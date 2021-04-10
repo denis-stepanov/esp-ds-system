@@ -54,4 +54,4 @@ for i in range(len(jsm)):
 if (count != 0):
     print('"', end = "")
 print()
-print('  "</script>";')
+print('  "</script>\\n";')

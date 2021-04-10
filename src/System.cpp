@@ -863,42 +863,39 @@ void System::sendWebPage() {
 
 // Scripting for timers web page. Do not edit compressed code; edit the master copy in src-js/ and regenerate
 static const char *timers_script PROGMEM = "<script>"
-  "var DOW={day:-1,Monday:1,Tuesday:2,Wednesday:3,Thursday:4,Friday:5,Saturday:6,Sunday:0},TID=0;function clockIcon(e){retu"
-  "rn String.fromCharCode(55357,56655+(e%12?e%12:12))}function populateDoW(e,t=-1){var n=document.getElementById(e);for(var"
-  " a in DOW){var l=document.createElement(\"option\");l.value=DOW[a],l.text=\"🗓 \"+a,DOW[a]==t&&l.setAttribute(\"selected\""
-  ",\"selected\"),n.appendChild(l)}}function populateTime(e,t,n=0,a=1,l=0,i=0,o=0){for(var d=document.getElementById(e);d.f"
-  "irstChild;)d.removeChild(d.firstChild);for(var c=t<10?1:t<100?2:t<1e3?3:4,s=l;s<t;s++){var p;(p=document.createElement(\""
-  "option\")).value=s,s==o&&p.setAttribute(\"selected\",\"selected\");var m=\"\";if(1==a)for(var u=s<10?1:s<100?2:s<1e3?3:4"
-  ",r=0;r<c-u;r++)m+=\"0\";p.text=(i?clockIcon(s)+\" \":\"\")+m+s,d.appendChild(p)}n&&((p=document.createElement(\"option\""
-  ")).value=\"sunrise\",p.text=\"🌅 \"+p.value,p.value==o&&p.setAttribute(\"selected\",\"selected\"),d.appendChild(p),(p=doc"
-  "ument.createElement(\"option\")).value=\"sunset\",p.text=\"🌇 \"+p.value,p.value==o&&p.setAttribute(\"selected\",\"select"
-  "ed\"),d.appendChild(p))}function populateAction(e,t){for(var n=document.getElementById(e),a=0;a<ACTIONS.length;a++){var "
-  "l=document.createElement(\"option\");l.value=ACTIONS[a],l.text=l.value,l.value==t&&l.setAttribute(\"selected\",\"selecte"
-  "d\"),n.appendChild(l)}}function changeSep(e,t,n=0,a=\"+\"){var l=document.getElementById(\"sep\"+e);\"at\"==document.get"
-  "ElementById(\"at\"+e).value?isNaN(t)?l.innerHTML='<select name=\"sign'+TID+'\"><option value=\"+\"'+(\"+\"==a?' selected"
-  "=\"selected\"':\"\")+'>+</option><option value=\"-\"'+(\"-\"==a?' selected=\"selected\"':\"\")+\">&#x2212;</option></sel"
-  "ect>\":l.innerHTML=\"h&nbsp;\":(l.innerHTML=\"min offset from midnight by\",populateTime(\"m\"+e,parseInt(t),0,0,0,0,n))"
-  "}function changeAt(e,t,n=0,a=0,l=\"+\"){\"at\"==t?(populateTime(\"h\"+e,24,1,1,0,1,n),populateTime(\"m\"+e,60,0,1,0,0,a)"
-  "):populateTime(\"h\"+e,1441,0,0,1,0,n=n||1),changeSep(e,n,a,l)}function addTime(e=ACTIONS[0],t=1,n=-1,a=\"at\",l=0,i=0,o"
-  "=\"+\"){var d=document.createElement(\"p\");d.id=\"timer\"+ ++TID,d.style=\"background: WhiteSmoke;\",d.innerHTML='\\n&n"
-  "bsp;&nbsp;&nbsp;<input name=\"active'+TID+'\" type=\"checkbox\" value=\"1\"'+(t?' checked=\"checked\"':\"\")+' style=\"v"
-  "ertical-align: middle;\" title=\"deactivate timer\"/>&nbsp;\\n<a style=\"text-decoration: none; color: black;\" href=\"j"
-  "avascript:delTime('+TID+')\" title=\"delete timer\">&#x2326;</a>&nbsp;&nbsp;\\nevery <select id=\"dow'+TID+'\" name=\"do"
-  "w'+TID+'\"></select>&nbsp;&nbsp;&nbsp;\\n<select id=\"at'+TID+'\" name=\"at'+TID+'\" onchange=\"changeAt('+TID+', this.v"
-  "alue)\"><option value=\"at\">&#x23f0; at</option><option value=\"every\">&#x1f503; every</option></select>&nbsp;<select "
-  "id=\"h'+TID+'\" name=\"h'+TID+'\" onchange=\"changeSep('+TID+', this.value)\" style=\"text-align-last: right;\"></select"
-  ">\\n<span id=\"sep'+TID+'\">h&nbsp;</span>\\n<select id=\"m'+TID+'\" name=\"m'+TID+'\" style=\"text-align-last: right;\""
-  "></select> min&nbsp;&nbsp;&nbsp;\\nexecute <select id=\"action'+TID+'\" name=\"action'+TID+'\"></select>\\n';var c=docum"
-  "ent.createTextNode(\"\\n\\n\");document.getElementById(\"timers\").appendChild(c),document.getElementById(\"timers\").ap"
-  "pendChild(d),populateDoW(\"dow\"+TID,n),populateAction(\"action\"+TID,e),document.getElementById(\"at\"+TID).value=a,cha"
-  "ngeAt(TID,a,l,i,o)}function delTime(e){document.getElementById(\"timers\").removeChild(document.getElementById(\"timer\""
-  "+e))}window.onload=addTimes;"
+  "var DW={day:-1,Monday:1,Tuesday:2,Wednesday:3,Thursday:4,Friday:5,Saturday:6,Sunday:0},N=0;function pW(e,t=-1){var n=doc"
+  "ument.getElementById(e);for(var a in DW){var d=document.createElement(\"option\");d.value=DW[a],d.text=\"🗓 \"+a,DW[a]==t"
+  "&&d.setAttribute(\"selected\",\"selected\"),n.appendChild(d)}}function pT(e,t,n=0,a=1,d=0,l=0,i=0){for(var c=document.ge"
+  "tElementById(e);c.firstChild;)c.removeChild(c.firstChild);for(var o=t<10?1:t<100?2:t<1e3?3:4,s=d;s<t;s++){var r;(r=docum"
+  "ent.createElement(\"option\")).value=s,s==i&&r.setAttribute(\"selected\",\"selected\");var m=\"\";if(1==a)for(var p=s<10"
+  "?1:s<100?2:s<1e3?3:4,u=0;u<o-p;u++)m+=\"0\";r.text=(l?String.fromCharCode(55357,56655+(s%12?s%12:12))+\" \":\"\")+m+s,c."
+  "appendChild(r)}n&&((r=document.createElement(\"option\")).value=\"sunrise\",r.text=\"🌅 \"+r.value,r.value==i&&r.setAttri"
+  "bute(\"selected\",\"selected\"),c.appendChild(r),(r=document.createElement(\"option\")).value=\"sunset\",r.text=\"🌇 \"+r"
+  ".value,r.value==i&&r.setAttribute(\"selected\",\"selected\"),c.appendChild(r))}function pA(e,t){for(var n=document.getEl"
+  "ementById(e),a=0;a<A.length;a++){var d=document.createElement(\"option\");d.value=A[a],d.text=d.value,d.value==t&&d.setA"
+  "ttribute(\"selected\",\"selected\"),n.appendChild(d)}}function cS(e,t,n=0,a=\"+\"){var d=document.getElementById(\"sep\""
+  "+e);\"at\"==document.getElementById(\"at\"+e).value?isNaN(t)?d.innerHTML='<select name=\"sign'+N+'\"><option value=\"+\""
+  "'+(\"+\"==a?' selected=\"selected\"':\"\")+'>+</option><option value=\"-\"'+(\"-\"==a?' selected=\"selected\"':\"\")+\">"
+  "&#x2212;</option></select>\":d.innerHTML=\"h&nbsp;\":(d.innerHTML=\"min offset from midnight by\",pT(\"m\"+e,parseInt(t)"
+  ",0,0,0,0,n))}function cA(e,t,n=0,a=0,d=\"+\"){\"at\"==t?(pT(\"h\"+e,24,1,1,0,1,n),pT(\"m\"+e,60,0,1,0,0,a)):pT(\"h\"+e,1"
+  "441,0,0,1,0,n=n||1),cS(e,n,a,d)}function aT(e,t=1,n=-1,a=\"at\",d=0,l=0,i=\"+\"){var c=document.createElement(\"p\");c.i"
+  "d=\"timer\"+ ++N,c.style=\"background: WhiteSmoke;\",c.innerHTML='\\n&nbsp;&nbsp;&nbsp;<input name=\"active'+N+'\" type="
+  "\"checkbox\" value=\"1\"'+(t?' checked=\"checked\"':\"\")+' style=\"vertical-align: middle;\" title=\"deactivate timer\""
+  "/>&nbsp;\\n<a style=\"text-decoration: none; color: black;\" href=\"javascript:dT('+N+')\" title=\"delete timer\">&#x232"
+  "6;</a>&nbsp;&nbsp;\\nevery <select id=\"dow'+N+'\" name=\"dow'+N+'\"></select>&nbsp;&nbsp;&nbsp;\\n<select id=\"at'+N+'\""
+  " name=\"at'+N+'\" onchange=\"cA('+N+', this.value)\"><option value=\"at\">&#x23f0; at</option><option value=\"every\">&#"
+  "x1f503; every</option></select>&nbsp;<select id=\"h'+N+'\" name=\"h'+N+'\" onchange=\"cS('+N+', this.value)\" style=\"te"
+  "xt-align-last: right;\"></select>\\n<span id=\"sep'+N+'\">h&nbsp;</span>\\n<select id=\"m'+N+'\" name=\"m'+N+'\" style=\""
+  "text-align-last: right;\"></select> min&nbsp;&nbsp;&nbsp;\\nexecute <select id=\"action'+N+'\" name=\"action'+N+'\"></se"
+  "lect>\\n';var o=document.createTextNode(\"\\n\\n\");document.getElementById(\"timers\").appendChild(o),document.getEleme"
+  "ntById(\"timers\").appendChild(c),pW(\"dow\"+N,n),pA(\"action\"+N,e),document.getElementById(\"at\"+N).value=a,cA(N,a,d,"
+  "l,i)}function dT(e){document.getElementById(\"timers\").removeChild(document.getElementById(\"timer\"+e))}"
   "</script>\n";
 
 // Serve the "timers" page
 void System::serveTimers() {
-  String header = timers_script;
-  header += F("<script>\n  var ACTIONS = [");
+  String header(timers_script);
+  header += F("<script>\n  var A = [");
   for (auto action : timer_actions) {
     header += F("'");
     header += action;
@@ -907,7 +904,7 @@ void System::serveTimers() {
   header += F("];\n  function addTimes() {\n");
   for (auto timer : timers) {
     auto timer_type = timer->getType();
-    header += F("    addTime('");
+    header += F("    aT('");
     header += timer->getLabel();
     header += F("', ");
     header += timer->isArmed();
