@@ -404,6 +404,7 @@ namespace ds {
 #endif // DS_CAP_APP_LOG
 #ifdef DS_CAP_TIMERS_ABS
       static void serveTimers();                      // Serve the "timers" page
+      static void serveTimersSave();                  // Serve the "timers save" page
 #endif // DS_CAP_TIMERS_ABS
 
     public:
@@ -432,6 +433,7 @@ namespace ds {
     public:
       static bool abs_timers_active;                  // True if absolute or solar timers should be served
       static std::forward_list<TimerAbsolute *> timers; // List of timers
+      static TimerAbsolute* getTimerAbsByID(const int /* id */); // Return absolute timer with a matching ID
       static void (*timerHandler)(const TimerAbsolute* /* timer */); // Timer handler
 #endif // DS_CAP_TIMERS_ABS
 

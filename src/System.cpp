@@ -963,6 +963,139 @@ void System::serveTimers() {
   pushHTMLFooter();
   sendWebPage();
 }
+
+// Serve the "timers save" page
+void System::serveTimersSave() {
+
+  // Clear the current list
+  for (auto& timer : timers)
+    switch (timer->getType()) {
+      case TIMER_ABSOLUTE:      delete timer;                                   break;
+      case TIMER_SUNRISE :
+      case TIMER_SUNSET  :      delete static_cast<TimerSolar *>(timer);        break;
+      case TIMER_COUNTDOWN_ABS: delete static_cast<TimerCountdownAbs *>(timer); break;
+      default: ;  // Not happening
+    }
+  timers.clear();
+
+
+  // First, create all the timers
+  for (unsigned int i = 0; i < (unsigned int)web_server.args(); i++) {
+    const String arg_name = web_server.argName(i);
+    if (arg_name.startsWith(F("at"))) {
+      const auto id = arg_name.substring(2).toInt();
+      if (id) {
+        if (web_server.arg(i) == F("at")) {
+
+          // Need to further look at "hour" field to decide on timer type
+          String h_field = F("h");
+          h_field += id;
+          for (unsigned int j = 0; j < (unsigned int)web_server.args(); j++) {
+            if (web_server.argName(j) == h_field) {
+              if (web_server.arg(j) == F("sunrise") || web_server.arg(j) == F("sunset")) {
+
+                // New solar timer
+                auto timer = new TimerSolar(web_server.arg(j) == F("sunrise") ? TIMER_SUNRISE : TIMER_SUNSET);
+                timer->setID(id);
+                timers.push_front(timer);
+              } else {  // Invalid hour string values are accepted and treated as hour == 0
+
+                // New absolute timer
+                auto timer = new TimerAbsolute;
+                timer->setID(id);
+                timers.push_front(timer);
+              }
+            }
+          }
+        } else {
+          if (web_server.arg(i) == F("every")) {
+
+            // New periodic timer
+            auto timer = new TimerCountdownAbs;
+            timer->setID(id);
+            timers.push_front(timer);
+          }
+        }
+      }
+    }
+  }
+
+  // Now set timer properties
+  for (unsigned int i = 0; i < (unsigned int)web_server.args(); i++) {
+    const String arg_name = web_server.argName(i);
+
+    if (arg_name == F("active"))
+      abs_timers_active = web_server.arg(i).toInt();
+    else
+
+    if (arg_name.startsWith(F("active"))) {
+      const auto id = arg_name.substring(6).toInt();
+      auto timer = getTimerAbsByID(id);   // Safe if ID is 0 or not a number
+      if (timer) {
+        if (web_server.arg(i).toInt())
+          timer->arm();
+        else
+          timer->disarm();
+      }
+    } else
+
+    if (arg_name.startsWith(F("dow"))) {
+      const auto id = arg_name.substring(3).toInt();
+      auto timer = getTimerAbsByID(id);
+      if (timer)
+        timer->setDayOfWeek(web_server.arg(i).toInt());  // Safe if bogus DoW
+    } else
+
+    if (arg_name.startsWith(F("h"))) {
+      const auto id = arg_name.substring(1).toInt();
+      auto timer = getTimerAbsByID(id);
+      if (timer) {
+        const auto timer_type = timer->getType();
+        const auto arg_i = web_server.arg(i).toInt();
+        if (timer_type == TIMER_ABSOLUTE) {
+          timer->setHour(arg_i);     // Safe if bogus hour
+        } else
+        if (timer_type == TIMER_COUNTDOWN_ABS) {
+          static_cast<TimerCountdownAbs *>(timer)->setInterval(arg_i); // Safe if bogus parameter
+        }
+        // For solar timers, "h" is already handled at timer creation above
+      }
+    } else
+
+    if (arg_name.startsWith(F("m"))) {
+      const auto id = arg_name.substring(1).toInt();
+      auto timer = getTimerAbsByID(id);
+      if (timer) {
+        const auto timer_type = timer->getType();
+        auto arg_i = web_server.arg(i).toInt();
+        if (timer_type == TIMER_ABSOLUTE) {
+          timer->setMinute(arg_i);     // Safe if bogus minute
+        } else
+        if (timer_type == TIMER_SUNRISE || timer_type == TIMER_SUNSET) {
+
+          // In this case, minute is interpreted as offset, and its sign is passed separately
+          String sign_field = F("sign");
+          sign_field += id;
+          for (unsigned int j = 0; j < (unsigned int)web_server.args(); j++)
+            if (web_server.argName(j) == sign_field && web_server.arg(j) == F("-"))
+              arg_i = -arg_i;
+
+          static_cast<TimerSolar *>(timer)->setOffset(arg_i); // Safe if bogus parameter
+        } else
+        if (timer_type == TIMER_COUNTDOWN_ABS) {
+          static_cast<TimerCountdownAbs *>(timer)->setOffset(arg_i); // Safe if bogus parameter
+        }
+      }
+    } else
+
+    if (arg_name.startsWith(F("action"))) {
+      const auto id = arg_name.substring(6).toInt();
+      auto timer = getTimerAbsByID(id);
+      if (timer)
+        timer->setLabel(web_server.arg(i));
+    }
+  }
+}
 #endif // DS_CAP_WEB_TIMERS
 
 
@@ -1019,7 +1152,7 @@ Timer::~Timer() {
 }
 
 // Return timer identifier
-int Timer::getID() const {
+inline int Timer::getID() const {
   return id;
 }
 
@@ -1030,7 +1163,7 @@ void Timer::setID(const int new_id) {
 }
 
 // Get timer type
-timer_type_t Timer::getType() const {
+inline timer_type_t Timer::getType() const {
   return type;
 }
 
@@ -1040,57 +1173,57 @@ void Timer::setType(const timer_type_t _type) {
 }
 
 // Return timer label
-const String& Timer::getLabel() const {
+inline const String& Timer::getLabel() const {
   return label;
 }
 
 // Set timer label
-void Timer::setLabel(const String& new_label) {
+inline void Timer::setLabel(const String& new_label) {
   label = new_label;
 }
 
 // Return true if timer is armed
-bool Timer::isArmed() const {
+inline bool Timer::isArmed() const {
   return armed;
 }
 
 // Arm the timer (default)
-void Timer::arm() {
+inline void Timer::arm() {
   armed = true;
 }
 
 // Disarm the timer
-void Timer::disarm() {
+inline void Timer::disarm() {
   armed = false;
 }
 
 // Return true if timer is recurrent
-bool Timer::isRecurrent() const {
+inline bool Timer::isRecurrent() const {
   return recurrent;
 }
 
 // Make timer repetitive (default)
-void Timer::repeatForever() {
+inline void Timer::repeatForever() {
   recurrent = true;
 }
 
 // Make timer a one-time shot
-void Timer::repeatOnce() {
+inline void Timer::repeatOnce() {
   recurrent = false;
 }
 
 // Return true if timer is transient (i.e., will be dead after firing)
-bool Timer::isTransient() const {
+inline bool Timer::isTransient() const {
   return transient;
 }
 
 // Keep the timer around (default)
-void Timer::keep() {
+inline void Timer::keep() {
   transient = false;
 }
 
 // Mark the timer for disposal
-void Timer::forget() {
+inline void Timer::forget() {
   transient = true;
 }
 
@@ -1178,6 +1311,12 @@ int8_t TimerAbsolute::getDayOfWeek() const {
 void TimerAbsolute::setDayOfWeek(const int8_t new_dow) {
   if (new_dow >= TIMER_DOW_ANY && new_dow <= TIMER_DOW_INVALID)
     time.tm_wday = new_dow;
+}
+
+// Return absolute timer with a matching ID
+TimerAbsolute* System::getTimerAbsByID(const int id) {
+  auto it = std::find_if(timers.begin(), timers.end(), [=](const Timer *timer) { return timer->getID() == id; } );
+  return it == timers.end() ? nullptr : *it;
 }
 
 // Absolute timer comparison operator
@@ -1623,6 +1762,7 @@ void System::begin() {
 #endif // DS_CAP_APP_LOG
 #ifdef DS_CAP_TIMERS_ABS
   web_server.on("/timers", serveTimers);
+  web_server.on("/timers-save", serveTimersSave);
 #endif // DS_CAP_TIMERS_ABS
 #ifdef DS_CAP_SYS_FS
   if (fs.exists(FAV_ICON_PATH))
