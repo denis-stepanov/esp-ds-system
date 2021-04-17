@@ -1023,6 +1023,7 @@ void System::serveTimersSave() {
       }
     }
   }
+  timers.reverse();   // Needed to make the list appear in user-defined order
 
   // Now set timer properties
   for (unsigned int i = 0; i < (unsigned int)web_server.args(); i++) {
