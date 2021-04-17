@@ -880,16 +880,16 @@ static const char *timers_script PROGMEM = "<script>"
   ",0,0,0,0,n))}function cA(e,t,n=0,a=0,d=\"+\"){\"at\"==t?(pT(\"h\"+e,24,1,1,0,1,n),pT(\"m\"+e,60,0,1,0,0,a)):pT(\"h\"+e,1"
   "441,0,0,1,0,n=n||1),cS(e,n,a,d)}function aT(e,t=1,n=-1,a=\"at\",d=0,l=0,i=\"+\"){var c=document.createElement(\"p\");c.i"
   "d=\"timer\"+ ++N,c.style=\"background: WhiteSmoke;\",c.innerHTML='\\n&nbsp;&nbsp;&nbsp;<input name=\"active'+N+'\" type="
-  "\"checkbox\" value=\"1\"'+(t?' checked=\"checked\"':\"\")+' style=\"vertical-align: middle;\" title=\"deactivate timer\""
-  "/>&nbsp;\\n<a style=\"text-decoration: none; color: black;\" href=\"javascript:dT('+N+')\" title=\"delete timer\">&#x232"
-  "6;</a>&nbsp;&nbsp;\\nevery <select id=\"dow'+N+'\" name=\"dow'+N+'\"></select>&nbsp;&nbsp;&nbsp;\\n<select id=\"at'+N+'\""
-  " name=\"at'+N+'\" onchange=\"cA('+N+', this.value)\"><option value=\"at\">&#x23f0; at</option><option value=\"every\">&#"
-  "x1f503; every</option></select>&nbsp;<select id=\"h'+N+'\" name=\"h'+N+'\" onchange=\"cS('+N+', this.value)\" style=\"te"
-  "xt-align-last: right;\"></select>\\n<span id=\"sep'+N+'\">h&nbsp;</span>\\n<select id=\"m'+N+'\" name=\"m'+N+'\" style=\""
-  "text-align-last: right;\"></select> min&nbsp;&nbsp;&nbsp;\\nexecute <select id=\"action'+N+'\" name=\"action'+N+'\"></se"
-  "lect>\\n';var o=document.createTextNode(\"\\n\\n\");document.getElementById(\"timers\").appendChild(o),document.getEleme"
-  "ntById(\"timers\").appendChild(c),pW(\"dow\"+N,n),pA(\"action\"+N,e),document.getElementById(\"at\"+N).value=a,cA(N,a,d,"
-  "l,i)}function dT(e){document.getElementById(\"timers\").removeChild(document.getElementById(\"timer\"+e))}"
+  "\"checkbox\"'+(t?' checked=\"checked\"':\"\")+' style=\"vertical-align: middle;\" title=\"deactivate timer\"/>&nbsp;\\n<"
+  "a style=\"text-decoration: none; color: black;\" href=\"javascript:dT('+N+')\" title=\"delete timer\">&#x2326;</a>&nbsp;"
+  "&nbsp;\\nevery <select id=\"dow'+N+'\" name=\"dow'+N+'\"></select>&nbsp;&nbsp;&nbsp;\\n<select id=\"at'+N+'\" name=\"at'"
+  "+N+'\" onchange=\"cA('+N+', this.value)\"><option value=\"at\">&#x23f0; at</option><option value=\"every\">&#x1f503; eve"
+  "ry</option></select>&nbsp;<select id=\"h'+N+'\" name=\"h'+N+'\" onchange=\"cS('+N+', this.value)\" style=\"text-align-la"
+  "st: right;\"></select>\\n<span id=\"sep'+N+'\">h&nbsp;</span>\\n<select id=\"m'+N+'\" name=\"m'+N+'\" style=\"text-align"
+  "-last: right;\"></select> min&nbsp;&nbsp;&nbsp;\\nexecute <select id=\"action'+N+'\" name=\"action'+N+'\"></select>\\n';"
+  "var o=document.createTextNode(\"\\n\\n\");document.getElementById(\"timers\").appendChild(o),document.getElementById(\"t"
+  "imers\").appendChild(c),pW(\"dow\"+N,n),pA(\"action\"+N,e),document.getElementById(\"at\"+N).value=a,cA(N,a,d,l,i)}funct"
+  "ion dT(e){document.getElementById(\"timers\").removeChild(document.getElementById(\"timer\"+e))}"
   "</script>\n";
 
 // Serve the "timers" page
@@ -977,6 +977,7 @@ void System::serveTimersSave() {
       default: ;  // Not happening
     }
   timers.clear();
+  abs_timers_active = false;
 
 
   // First, create all the timers
@@ -997,12 +998,14 @@ void System::serveTimersSave() {
                 // New solar timer
                 auto timer = new TimerSolar(web_server.arg(j) == F("sunrise") ? TIMER_SUNRISE : TIMER_SUNSET);
                 timer->setID(id);
+                timer->disarm();    // Needed to sync with HTML POST behavior which will send only armed timers
                 timers.push_front(timer);
               } else {  // Invalid hour string values are accepted and treated as hour == 0
 
                 // New absolute timer
                 auto timer = new TimerAbsolute;
                 timer->setID(id);
+                timer->disarm();
                 timers.push_front(timer);
               }
             }
@@ -1013,6 +1016,7 @@ void System::serveTimersSave() {
             // New periodic timer
             auto timer = new TimerCountdownAbs;
             timer->setID(id);
+            timer->disarm();
             timers.push_front(timer);
           }
         }
@@ -1025,18 +1029,14 @@ void System::serveTimersSave() {
     const String arg_name = web_server.argName(i);
 
     if (arg_name == F("active"))
-      abs_timers_active = web_server.arg(i).toInt();
+      abs_timers_active = true;
     else
 
     if (arg_name.startsWith(F("active"))) {
       const auto id = arg_name.substring(6).toInt();
       auto timer = getTimerAbsByID(id);   // Safe if ID is 0 or not a number
-      if (timer) {
-        if (web_server.arg(i).toInt())
-          timer->arm();
-        else
-          timer->disarm();
-      }
+      if (timer)
+        timer->arm();
     } else
 
     if (arg_name.startsWith(F("dow"))) {
