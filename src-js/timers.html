@@ -144,7 +144,7 @@ var A = ['\uD83D\uDCA1 lamp off', '\uD83D\uDCA1 lamp on', '\uD83D\uDCA1 lamp tog
 
 //// Pre-configured timers
 function addTimes() {
-  //     |         action           | active | day of week |  type  |  hours  | mins | diff |
+  // |         action          | active | day of week |  type  |  hours  | mins | diff |
   aT('\uD83D\uDCA1 lamp off'   ,      1 ,            0, 'at'   ,        7, 50          );
   aT('\uD83D\uDCA1 lamp on'    ,      1 ,           -1, 'at'   , 'sunset', 15   , '-'  );
   aT('\uD83D\uDCA1 lamp toggle',      0 ,           -1, 'every',       60, 30          );
