@@ -945,11 +945,14 @@ void System::serveTimers() {
   );
   if (timer_actions.empty())
     web_page += F("<p>No timer actions available to configure.</p>");
-  else
+  else {
     web_page += F(
       "<form action=\"/timers-save\">\n"
       "  <p>\n"
-      "    <input name=\"active\" type=\"checkbox\" checked=\"checked\" style=\"vertical-align: middle;\"/>&#x23f2; activate timers\n"
+      "    <input name=\"active\" type=\"checkbox\"");
+    if (abs_timers_active)
+      web_page += F(" checked=\"checked\"");
+    web_page += F(" style=\"vertical-align: middle;\"/>&#x23f2; activate timers\n"
       "  </p>\n"
       "  <p id=\"timers\">\n"
       "  </p>\n"
@@ -959,6 +962,7 @@ void System::serveTimers() {
       "  <input type=\"submit\" value=\"Save\"/>\n"
       "</form>\n"
     );
+  }
 
   pushHTMLFooter();
   sendWebPage();
