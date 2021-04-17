@@ -28,7 +28,7 @@ void setup() {
   System::timers.push_front(my_timer);
 
   // Add a timer firing every hour offset from midnight by 30 mins. Disable it by default
-  my_timer = new TimerCountdownAbs("lamp toggle", 60, 30, TIMER_DOW_ANY, 0);
+  my_timer = new TimerCountdownAbs("\\uD83D\\uDCA1 lamp toggle", 60, 30, TIMER_DOW_ANY, 0);
   System::timers.push_front(my_timer);
 
   System::timers.reverse();     // Optional; call this to keep the order as written
