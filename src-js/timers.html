@@ -108,7 +108,7 @@ function aT(action, active = 1, dow = -1, at = 'at', hrs = 0, min = 0, sign = '+
   var container = document.createElement('p');
   container.id = 'timer' + ++N;
   container.style = 'background: WhiteSmoke;';
-  container.innerHTML = '\n&nbsp;&nbsp;&nbsp;<input name="active' + N + '" type="checkbox" value="1"' +
+  container.innerHTML = '\n&nbsp;&nbsp;&nbsp;<input name="active' + N + '" type="checkbox"' +
     (active ? ' checked="checked"' : '') + 
     ' style="vertical-align: middle;" title="deactivate timer"/>&nbsp;\n' +
     '<a style="text-decoration: none; color: black;" href="javascript:dT(' + N + ')" ' +
@@ -157,7 +157,7 @@ window.onload = addTimes;
   <body>
     <form action="">
       <p>
-        <input name="active" type="checkbox" value="1" checked="checked" style="vertical-align: middle;"/>
+        <input name="active" type="checkbox" checked="checked" style="vertical-align: middle;"/>
         &#x23f2; <!-- UTF 'TIMER CLOCK' (U+23F2) --> activate timers
       </p>
       <p id="timers">

@@ -949,7 +949,7 @@ void System::serveTimers() {
     web_page += F(
       "<form action=\"/timers-save\">\n"
       "  <p>\n"
-      "    <input name=\"active\" type=\"checkbox\" value=\"1\" checked=\"checked\" style=\"vertical-align: middle;\"/>&#x23f2; activate timers\n"
+      "    <input name=\"active\" type=\"checkbox\" checked=\"checked\" style=\"vertical-align: middle;\"/>&#x23f2; activate timers\n"
       "  </p>\n"
       "  <p id=\"timers\">\n"
       "  </p>\n"
