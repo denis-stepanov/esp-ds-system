@@ -1117,7 +1117,7 @@ void System::serveTimersSave() {
     web_page += F(" active");
   } else
     web_page += F("Timers disabled");
-  web_page += F("/<p>");
+  web_page += F("</p>");
   pushHTMLFooter();
   sendWebPage();
 }
