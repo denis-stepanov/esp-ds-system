@@ -985,6 +985,7 @@ void System::serveTimersSave() {
 
 
   // First, create all the timers
+  //// Create timers inactive by default, to match HTTP POST behavior, which will send checkboxes of active timers only
   for (unsigned int i = 0; i < (unsigned int)web_server.args(); i++) {
     const String arg_name = web_server.argName(i);
     if (arg_name.startsWith(F("at"))) {
@@ -1000,16 +1001,13 @@ void System::serveTimersSave() {
               if (web_server.arg(j) == F("sunrise") || web_server.arg(j) == F("sunset")) {
 
                 // New solar timer
-                auto timer = new TimerSolar(web_server.arg(j) == F("sunrise") ? TIMER_SUNRISE : TIMER_SUNSET);
-                timer->setID(id);
-                timer->disarm();    // Needed to sync with HTML POST behavior which will send only armed timers
+                auto timer = new TimerSolar(web_server.arg(j) == F("sunrise") ? TIMER_SUNRISE : TIMER_SUNSET,
+                  F("undefined"), 0, TIMER_DOW_ANY, false /* ! */, true, false, id);
                 timers.push_front(timer);
               } else {  // Invalid hour string values are accepted and treated as hour == 0
 
                 // New absolute timer
-                auto timer = new TimerAbsolute;
-                timer->setID(id);
-                timer->disarm();
+                auto timer = new TimerAbsolute(F("undefined"), 0, 0, 0, TIMER_DOW_ANY, false /* ! */, true, false, id);
                 timers.push_front(timer);
               }
             }
@@ -1018,9 +1016,7 @@ void System::serveTimersSave() {
           if (web_server.arg(i) == F("every")) {
 
             // New periodic timer
-            auto timer = new TimerCountdownAbs;
-            timer->setID(id);
-            timer->disarm();
+            auto timer = new TimerCountdownAbs(F("undefined"), 1, 0, TIMER_DOW_ANY, false /* ! */, true, false, id);
             timers.push_front(timer);
           }
         }
@@ -1087,9 +1083,8 @@ void System::serveTimersSave() {
 
           static_cast<TimerSolar *>(timer)->setOffset(arg_i); // Safe if bogus parameter
         } else
-        if (timer_type == TIMER_COUNTDOWN_ABS) {
+        if (timer_type == TIMER_COUNTDOWN_ABS)
           static_cast<TimerCountdownAbs *>(timer)->setOffset(arg_i); // Safe if bogus parameter
-        }
       }
     } else
 
