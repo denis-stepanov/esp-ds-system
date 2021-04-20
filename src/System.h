@@ -446,6 +446,11 @@ namespace ds {
       static uint16_t getSunset();                   // Return sunset time (in minutes from midnight)
 #endif // DS_CAP_TIMERS_SOLAR
 
+#ifdef DS_CAP_WEB_TIMERS
+    protected:
+      static void timersJS(String& /* str */);       // Generate timer configuration as JavaScript code
+#endif // DS_CAP_WEB_TIMERS
+
   };
 
 } // namespace ds

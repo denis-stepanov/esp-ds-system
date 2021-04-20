@@ -297,6 +297,8 @@ String System::getBootTimeStr() {
 
 fs::FS& System::fs = LittleFS;             // Use LittleFS as file system
 
+static const char *DS_SYS_FOLDER_NAME PROGMEM = "/ds"; // Folder where settings are stored
+
 #endif // DS_CAP_SYS_FS
 
 
@@ -861,6 +863,10 @@ void System::sendWebPage() {
  *************************************************************************/
 #ifdef DS_CAP_WEB_TIMERS
 
+#ifdef DS_CAP_SYS_FS
+static const char *TIMERS_CFG_NAME  PROGMEM = "timers.cfg";    // Configuration file name
+#endif // DS_CAP_SYS_FS
+
 // Scripting for timers web page. Do not edit compressed code; edit the master copy in src-js/ and regenerate
 static const char *timers_script PROGMEM = "<script>"
   "var DW={day:-1,Monday:1,Tuesday:2,Wednesday:3,Thursday:4,Friday:5,Saturday:6,Sunday:0},N=0;function pW(e,t=-1){var n=doc"
@@ -892,6 +898,42 @@ static const char *timers_script PROGMEM = "<script>"
   "ion dT(e){document.getElementById(\"timers\").removeChild(document.getElementById(\"timer\"+e))}"
   "</script>\n";
 
+// Generate timer configuration as JavaScript code
+void System::timersJS(String& str) {
+  for (auto timer : timers) {
+    auto timer_type = timer->getType();
+    str += F("    aT('");
+    str += timer->getLabel();
+    str += F("', ");
+    str += timer->isArmed();
+    str += F(", ");
+    str += timer->getDayOfWeek();
+    str += F(", ");
+    str += timer_type == TIMER_COUNTDOWN_ABS ? F("'every'") : F("'at'");
+    str += F(", ");
+    switch (timer_type) {
+      case TIMER_ABSOLUTE     : str += timer->getHour();                                                      break;
+      case TIMER_SUNRISE      : str += F("'sunrise'");                                                        break;
+      case TIMER_SUNSET       : str += F("'sunset'" );                                                        break;
+      case TIMER_COUNTDOWN_ABS: str += (unsigned int) static_cast<TimerCountdownAbs *>(timer)->getInterval(); break;
+      default                 : ; // Normally never happens
+    }
+    str += F(", ");
+    switch (timer_type) {
+      case TIMER_ABSOLUTE     : str += timer->getMinute();                                                    break;
+      case TIMER_SUNRISE      : str += abs(static_cast<TimerSolar *>(timer)->getOffset());                    break;
+      case TIMER_SUNSET       : str += abs(static_cast<TimerSolar *>(timer)->getOffset());                    break;
+      case TIMER_COUNTDOWN_ABS: str += static_cast<TimerCountdownAbs *>(timer)->getOffset();                  break;
+      default                 : ; // Normally never happens
+    }
+    if (timer_type == TIMER_SUNRISE || timer_type == TIMER_SUNSET) {
+      str += F(", ");
+      str += static_cast<TimerSolar *>(timer)->getOffset() < 0 ? F("'-'") : F("'+'");
+    }
+    str += F(");\n");
+  }
+}
+
 // Serve the "timers" page
 void System::serveTimers() {
   String header(timers_script);
@@ -902,38 +944,7 @@ void System::serveTimers() {
     header += F("', ");                 // JS is tolerant to a trailing comma
   }
   header += F("];\n  function addTimes() {\n");
-  for (auto timer : timers) {
-    auto timer_type = timer->getType();
-    header += F("    aT('");
-    header += timer->getLabel();
-    header += F("', ");
-    header += timer->isArmed();
-    header += F(", ");
-    header += timer->getDayOfWeek();
-    header += F(", ");
-    header += timer_type == TIMER_COUNTDOWN_ABS ? F("'every'") : F("'at'");
-    header += F(", ");
-    switch (timer_type) {
-      case TIMER_ABSOLUTE     : header += timer->getHour();                                                      break;
-      case TIMER_SUNRISE      : header += F("'sunrise'");                                                        break;
-      case TIMER_SUNSET       : header += F("'sunset'" );                                                        break;
-      case TIMER_COUNTDOWN_ABS: header += (unsigned int) static_cast<TimerCountdownAbs *>(timer)->getInterval(); break;
-      default                 : ; // Normally never happens
-    }
-    header += F(", ");
-    switch (timer_type) {
-      case TIMER_ABSOLUTE     : header += timer->getMinute();                                                    break;
-      case TIMER_SUNRISE      : header += abs(static_cast<TimerSolar *>(timer)->getOffset());                    break;
-      case TIMER_SUNSET       : header += abs(static_cast<TimerSolar *>(timer)->getOffset());                    break;
-      case TIMER_COUNTDOWN_ABS: header += static_cast<TimerCountdownAbs *>(timer)->getOffset();                  break;
-      default                 : ; // Normally never happens
-    }
-    if (timer_type == TIMER_SUNRISE || timer_type == TIMER_SUNSET) {
-      header += F(", ");
-      header += static_cast<TimerSolar *>(timer)->getOffset() < 0 ? F("'-'") : F("'+'");
-    }
-    header += F(");\n");
-  }
+  timersJS(header);
   header += F("  }\n");
   header += F("  window.onload = addTimes;\n");
   header += F("</script>\n");
@@ -982,7 +993,6 @@ void System::serveTimersSave() {
     }
   timers.clear();
   abs_timers_active = false;
-
 
   // First, create all the timers
   //// Create timers inactive by default, to match HTTP POST behavior, which will send checkboxes of active timers only
@@ -1096,10 +1106,34 @@ void System::serveTimersSave() {
     }
   }
 
+#ifdef DS_CAP_SYS_FS
+
+  // Save timer configuration on disk
+  String cfg_file_name = DS_SYS_FOLDER_NAME;
+  cfg_file_name += F("/");
+  cfg_file_name += TIMERS_CFG_NAME;
+  auto cfg_file = fs.open(cfg_file_name, "w");
+  bool cfg_file_ok = cfg_file;
+  if (cfg_file_ok) {
+
+    // First write the global flags...
+    cfg_file_ok = cfg_file.println(abs_timers_active);
+
+    if (cfg_file_ok) {
+      // ... and then the timers' configuration (reuse the format used for web page)
+      String cfg;
+      timersJS(cfg);
+      cfg_file_ok = cfg_file.print(cfg);
+    }
+    cfg_file.close();
+  }
+
+#endif // DS_CAP_SYS_FS
+
   // Serve the page
-  pushHTMLHeader(F("Timer Configuration Saved"), F(""), true);
+  pushHTMLHeader(F("Timer Configuration Updated"), F(""), true);
   web_page += F(
-    "<h3>Timer Configuration Saved</h3>\n"
+    "<h3>Timer Configuration Updated</h3>\n"
     "[ <a href=\"/\">home</a> ]<hr/>\n"
   );
   web_page += F("<p>");
@@ -1118,6 +1152,13 @@ void System::serveTimersSave() {
   } else
     web_page += F("Timers disabled");
   web_page += F("</p>");
+
+#ifdef DS_CAP_SYS_FS
+  web_page += F("<p>Save on flash ");
+  web_page += cfg_file_ok ? F("OK") : F("failed");
+  web_page += F("</p>");
+#endif // DS_CAP_SYS_FS
+
   pushHTMLFooter();
   sendWebPage();
 }
