@@ -864,7 +864,9 @@ void System::sendWebPage() {
 #ifdef DS_CAP_WEB_TIMERS
 
 #ifdef DS_CAP_SYS_FS
-static const char *TIMERS_CFG_NAME  PROGMEM = "timers.cfg";    // Configuration file name
+static const char   *TIMERS_CFG_NAME PROGMEM = "timers.cfg"; // Configuration file name
+static const uint8_t TIMERS_CFG_VERSION      = 1;            // File format version. Increment on incompatible changes
+String System::timers_cfg_name;                              // Full path to the timers configuration file
 #endif // DS_CAP_SYS_FS
 
 // Scripting for timers web page. Do not edit compressed code; edit the master copy in src-js/ and regenerate
@@ -1109,10 +1111,7 @@ void System::serveTimersSave() {
 #ifdef DS_CAP_SYS_FS
 
   // Save timer configuration on disk
-  String cfg_file_name = DS_SYS_FOLDER_NAME;
-  cfg_file_name += F("/");
-  cfg_file_name += TIMERS_CFG_NAME;
-  auto cfg_file = fs.open(cfg_file_name, "w");
+  auto cfg_file = fs.open(timers_cfg_name, "w");
   bool cfg_file_ok = cfg_file;
   if (cfg_file_ok) {
 
@@ -1127,7 +1126,6 @@ void System::serveTimersSave() {
     }
     cfg_file.close();
   }
-
 #endif // DS_CAP_SYS_FS
 
   // Serve the page
@@ -1758,6 +1756,93 @@ void System::begin() {
 #ifdef DS_CAP_SYS_LOG
   log->println(fs_ok ? F("OK") : F("FAILED"));
 #endif // DS_CAP_SYS_LOG
+
+#ifdef DS_CAP_WEB_TIMERS
+#ifdef DS_CAP_SYS_LOG
+  log->printf(TIMED("Loading timer configuration... "));
+#endif // DS_CAP_SYS_LOG
+
+  String timers_cfg_name = DS_SYS_FOLDER_NAME;
+  timers_cfg_name += F("/");
+  timers_cfg_name += TIMERS_CFG_NAME;
+  timers_cfg_name.replace(F("."), String(TIMERS_CFG_VERSION) + F("."));
+  auto cfg_file = fs.open(timers_cfg_name, "r");
+  if (cfg_file) {
+
+    // Read global flag
+    String line = cfg_file.readStringUntil('\n');
+    abs_timers_active = line.toInt();
+
+    // Parse timer configuration. Format:
+    // |     |   action   | active | day of week |  type  |  hours  | mins | diff (optional) |
+    //    aT('lamp on'    ,      1 ,           -1, 'at'   , 'sunset', 15   ,             '-' );
+    uint8_t tid = 0;
+    while (cfg_file.available()) {
+      line = cfg_file.readStringUntil('\n');
+      if (!line.startsWith(F("  aT")))
+        continue;
+
+      tid++;
+      line.remove(0, line.indexOf('\'') + 1);
+      const String action = line.substring(0, line.indexOf('\''));
+
+      line.remove(0, line.indexOf(',') + 1);
+      line.trim();
+      const bool active = line.toInt();
+
+      line.remove(0, line.indexOf(',') + 1);
+      line.trim();
+      const auto dow = (timer_dow_t)line.toInt();
+
+      line.remove(0, line.indexOf('\'') + 1);
+      const String at = line.substring(0, line.indexOf('\''));
+
+      line.remove(0, line.indexOf(',') + 1);
+      line.trim();
+      String solar_type;
+      uint16_t hour = 0;
+      if (line[0] == '\'') {
+        line.remove(0, 1);
+        solar_type = line.substring(0, line.indexOf('\''));
+      } else
+        hour = line.toInt();
+
+      line.remove(0, line.indexOf(',') + 1);
+      line.trim();
+      int16_t minute = line.toInt();
+
+      if (line.indexOf(',') != -1) {
+        line.remove(0, line.indexOf('\'') + 1);
+        if (line[0] == '-')
+          minute = -minute;
+      }
+
+      // Create timer
+      TimerAbsolute *timer = nullptr;
+      if (at == F("at")) {
+        if (solar_type.length())
+          timer = new TimerSolar(solar_type == F("sunrise") ? TIMER_SUNRISE : TIMER_SUNSET, action, minute, dow, active, true, false, tid);
+        else
+          timer = new TimerAbsolute(action, hour, minute, 0, dow, active, true, false, tid);
+      } else
+      if (at == F("every"))
+        timer = new TimerCountdownAbs(action, hour, minute, dow, active, true, false, tid);
+      if (timer)
+        timers.push_front(timer);
+    }
+    cfg_file.close();
+    timers.reverse();
+#ifdef DS_CAP_SYS_LOG
+  log->print(std::distance(timers.begin(), timers.end()));
+  log->println(F(" found"));
+#endif // DS_CAP_SYS_LOG
+  } else {
+#ifdef DS_CAP_SYS_LOG
+  log->println(F("none found"));
+#endif // DS_CAP_SYS_LOG
+  }
+#endif // DS_CAP_WEB_TIMERS
+
 #endif // DS_CAP_SYS_FS
 
 #ifdef DS_CAP_APP_LOG

@@ -448,6 +448,9 @@ namespace ds {
 
 #ifdef DS_CAP_WEB_TIMERS
     protected:
+#ifdef DS_CAP_SYS_FS
+      static String timers_cfg_name;                 // Full path to the timers configuration file
+#endif // DS_CAP_SYS_FS
       static void timersJS(String& /* str */);       // Generate timer configuration as JavaScript code
 #endif // DS_CAP_WEB_TIMERS
 
