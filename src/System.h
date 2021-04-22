@@ -241,8 +241,8 @@ namespace ds {
       TimerCountdown(const timer_type_t /* type */, const String label = "undefined", const float interval = 1,
         const bool armed = true, const bool recurrent = true, const bool transient = false, const int id = -1);  // Constructor
       virtual ~TimerCountdown() = 0;                  // Disallow creation of objects of this type
-      virtual float getInterval() const;              // Return timer interval
-      virtual void setInterval(const float /* interval */); // Set timer interval
+      virtual float getInterval() const;              // Return timer interval (s)
+      virtual void setInterval(const float /* interval */); // Set timer interval (s)
       bool operator==(const TimerCountdown& /* timer */) const; // Comparison operator
       bool operator!=(const TimerCountdown& /* timer */) const; // Comparison operator
   };
@@ -259,8 +259,8 @@ namespace ds {
       TimerCountdownAbs(const String label = "undefined", const float interval = 1, const uint32_t offset = 0, const timer_dow_t dow = TIMER_DOW_ANY,
         const bool armed = true, const bool recurrent = true, const bool transient = false, const int id = -1);  // Constructor
       ~TimerCountdownAbs() {}                         // Destructor
-      virtual float getInterval() const;              // Return timer interval
-      virtual void setInterval(const float /* interval */); // Set timer interval
+      virtual float getInterval() const;              // Return timer interval (s)
+      virtual void setInterval(const float /* interval */); // Set timer interval (s)
       virtual uint32_t getOffset() const;             // Return timer offset in seconds from midnight
       virtual void setOffset(const uint32_t /* offset */); // Set timer offset in seconds from midnight
       virtual void update(const time_t from_time = 0); // Prepare timer for firing. 0 means from current time

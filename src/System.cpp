@@ -914,18 +914,18 @@ void System::timersJS(String& str) {
     str += timer_type == TIMER_COUNTDOWN_ABS ? F("'every'") : F("'at'");
     str += F(", ");
     switch (timer_type) {
-      case TIMER_ABSOLUTE     : str += timer->getHour();                                                      break;
-      case TIMER_SUNRISE      : str += F("'sunrise'");                                                        break;
-      case TIMER_SUNSET       : str += F("'sunset'" );                                                        break;
-      case TIMER_COUNTDOWN_ABS: str += (unsigned int) static_cast<TimerCountdownAbs *>(timer)->getInterval(); break;
+      case TIMER_ABSOLUTE     : str += timer->getHour();                                                            break;
+      case TIMER_SUNRISE      : str += F("'sunrise'");                                                              break;
+      case TIMER_SUNSET       : str += F("'sunset'" );                                                              break;
+      case TIMER_COUNTDOWN_ABS: str += (unsigned int)(static_cast<TimerCountdownAbs *>(timer)->getInterval() / 60); break;
       default                 : ; // Normally never happens
     }
     str += F(", ");
     switch (timer_type) {
-      case TIMER_ABSOLUTE     : str += timer->getMinute();                                                    break;
-      case TIMER_SUNRISE      : str += abs(static_cast<TimerSolar *>(timer)->getOffset());                    break;
-      case TIMER_SUNSET       : str += abs(static_cast<TimerSolar *>(timer)->getOffset());                    break;
-      case TIMER_COUNTDOWN_ABS: str += static_cast<TimerCountdownAbs *>(timer)->getOffset();                  break;
+      case TIMER_ABSOLUTE     : str += timer->getMinute();                                                          break;
+      case TIMER_SUNRISE      : str += abs(static_cast<TimerSolar *>(timer)->getOffset());                          break;
+      case TIMER_SUNSET       : str += abs(static_cast<TimerSolar *>(timer)->getOffset());                          break;
+      case TIMER_COUNTDOWN_ABS: str += static_cast<TimerCountdownAbs *>(timer)->getOffset() / 60;                   break;
       default                 : ; // Normally never happens
     }
     if (timer_type == TIMER_SUNRISE || timer_type == TIMER_SUNSET) {
@@ -1028,7 +1028,7 @@ void System::serveTimersSave() {
           if (web_server.arg(i) == F("every")) {
 
             // New periodic timer
-            auto timer = new TimerCountdownAbs(F("undefined"), 1, 0, TIMER_DOW_ANY, false /* ! */, true, false, id);
+            auto timer = new TimerCountdownAbs(F("undefined"), 60, 0, TIMER_DOW_ANY, false /* ! */, true, false, id);
             timers.push_front(timer);
           }
         }
@@ -1069,7 +1069,7 @@ void System::serveTimersSave() {
           timer->setHour(arg_i);     // Safe if bogus hour
         } else
         if (timer_type == TIMER_COUNTDOWN_ABS) {
-          static_cast<TimerCountdownAbs *>(timer)->setInterval(arg_i); // Safe if bogus parameter
+          static_cast<TimerCountdownAbs *>(timer)->setInterval(arg_i * 60); // Safe if bogus parameter
         }
         // For solar timers, "h" is already handled at timer creation above
       }
@@ -1096,7 +1096,7 @@ void System::serveTimersSave() {
           static_cast<TimerSolar *>(timer)->setOffset(arg_i); // Safe if bogus parameter
         } else
         if (timer_type == TIMER_COUNTDOWN_ABS)
-          static_cast<TimerCountdownAbs *>(timer)->setOffset(arg_i); // Safe if bogus parameter
+          static_cast<TimerCountdownAbs *>(timer)->setOffset(arg_i * 60); // Safe if bogus parameter
       }
     } else
 
@@ -1122,7 +1122,8 @@ void System::serveTimersSave() {
       // ... and then the timers' configuration (reuse the format used for web page)
       String cfg;
       timersJS(cfg);
-      cfg_file_ok = cfg_file.print(cfg);
+      if (cfg.length())
+        cfg_file_ok = cfg_file.print(cfg);
     }
     cfg_file.close();
   }
@@ -1152,7 +1153,7 @@ void System::serveTimersSave() {
   web_page += F("</p>");
 
 #ifdef DS_CAP_SYS_FS
-  web_page += F("<p>Save on flash ");
+  web_page += F("<p>Save ");
   web_page += cfg_file_ok ? F("OK") : F("failed");
   web_page += F("</p>");
 #endif // DS_CAP_SYS_FS
@@ -1497,12 +1498,12 @@ TimerCountdown::TimerCountdown(const timer_type_t type, const String label, cons
 TimerCountdown::~TimerCountdown() {
 }
 
-// Return timer interval
+// Return timer interval (s)
 float TimerCountdown::getInterval() const {
   return interval;
 }
 
-// Set timer interval
+// Set timer interval (s)
 void TimerCountdown::setInterval(const float _interval) {
   if (_interval > 0)
     interval = _interval;
@@ -1549,12 +1550,12 @@ void TimerCountdownAbs::setNextTime(const time_t new_time) {
   time.tm_isdst = new_time;
 }
 
-// Return timer interval
+// Return timer interval (s)
 float TimerCountdownAbs::getInterval() const {
   return TimerCountdown::getInterval();
 }
 
-// Set timer interval
+// Set timer interval (s)
 void TimerCountdownAbs::setInterval(const float _interval) {
   if (_interval > 0 && _interval <= 24 * 60 * 60)
     TimerCountdown::setInterval(_interval);
@@ -1759,10 +1760,10 @@ void System::begin() {
 
 #ifdef DS_CAP_WEB_TIMERS
 #ifdef DS_CAP_SYS_LOG
-  log->printf(TIMED("Loading timer configuration... "));
+  log->printf(TIMED("Loading timers... "));
 #endif // DS_CAP_SYS_LOG
 
-  String timers_cfg_name = DS_SYS_FOLDER_NAME;
+  timers_cfg_name = DS_SYS_FOLDER_NAME;
   timers_cfg_name += F("/");
   timers_cfg_name += TIMERS_CFG_NAME;
   timers_cfg_name.replace(F("."), String(TIMERS_CFG_VERSION) + F("."));
@@ -1774,12 +1775,13 @@ void System::begin() {
     abs_timers_active = line.toInt();
 
     // Parse timer configuration. Format:
-    // |     |   action   | active | day of week |  type  |  hours  | mins | diff (optional) |
-    //    aT('lamp on'    ,      1 ,           -1, 'at'   , 'sunset', 15   ,             '-' );
+    // |       |   action   | active | day of week |  type  |  hours  | mins | diff (optional) |
+    //      aT('lamp on'    ,      1 ,           -1, 'at'   , 'sunset', 15   ,             '-' );
     uint8_t tid = 0;
     while (cfg_file.available()) {
       line = cfg_file.readStringUntil('\n');
-      if (!line.startsWith(F("  aT")))
+      line.trim();
+      if (!line.startsWith(F("aT(")))
         continue;
 
       tid++;
@@ -1826,7 +1828,9 @@ void System::begin() {
           timer = new TimerAbsolute(action, hour, minute, 0, dow, active, true, false, tid);
       } else
       if (at == F("every"))
-        timer = new TimerCountdownAbs(action, hour, minute, dow, active, true, false, tid);
+
+        // x60 because timer has seconds' resolution, but user specifies time in minutes
+        timer = new TimerCountdownAbs(action, hour * 60, minute * 60, dow, active, true, false, tid);
       if (timer)
         timers.push_front(timer);
     }
