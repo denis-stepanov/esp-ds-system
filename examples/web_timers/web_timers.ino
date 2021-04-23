@@ -27,7 +27,9 @@ void myTimerHandler(const TimerAbsolute* timer) {
     lamp_on = false;
     System::log->println("Lamp is OFF");
   } else
-  if (timer->getLabel() == "lamp toggle") {
+  // Example of using an icon in timer action
+  // Unicode 'ELECTRIC LIGHT BULB' (U+1f4a1) == UTF-8 'f0.9f.92.a1' == UTF-16 'd83d.dca1'
+  if (timer->getLabel() == "\xf0\x9f\x92\xa1 lamp toggle") {       // Here use UTF-8
 
     // Toggle the lamp here
     // ...
@@ -40,12 +42,11 @@ void (*System::timerHandler)(const TimerAbsolute*) = myTimerHandler;  // Install
 void setup() {
   System::begin();
 
-  // Define some timer actions
+  // Register some timer actions (used for action drop-down selector on the web)
   System::timer_actions.push_front("lamp off");
   System::timer_actions.push_front("lamp on");
-  System::timer_actions.push_front("lamp toggle");
-//  System::timer_actions.push_front("\\uD83D\\uDCA1 lamp toggle");  // Example of action including an icon (must be UTF-16 encoded for use with JS)
-  System::timer_actions.reverse();     // Optional; call this to keep the order as written
+  System::timer_actions.push_front("\\ud83d\\udca1 lamp toggle");  // Here use UTF-16 and escape it to pass as-is to JavaScript
+  System::timer_actions.reverse();     // Optional; call this to present the order as written
 
   System::log->printf("Open http://%s/timers in web browser and add some timers\n", System::getLocalIPAddress().c_str());
 }
