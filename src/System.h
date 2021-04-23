@@ -150,7 +150,7 @@ namespace ds {
     protected:
       int id;                                         // Timer identifier (optional)
       timer_type_t type;                              // Timer type
-      String label;                                   // Timer label (short description of what it is supposed to do)
+      String action;                                  // Timer action (short description of what it is supposed to do)
       bool armed;                                     // True if timer is armed (will fire); false if ignored with no action
       bool recurrent;                                 // True if timer should be auto-rearmed after firing; false otherwise
       bool transient;                                 // True if timer should be disposed of after firing
@@ -158,14 +158,14 @@ namespace ds {
       void setType(const timer_type_t /* type */);    // Set timer type
 
     public:
-      Timer(const timer_type_t /* type */, const String label = "undefined",
+      Timer(const timer_type_t /* type */, const String action = "undefined",
         const bool armed = true, const bool recurrent = true, const bool transient = false, const int id = -1);  // Constructor
       virtual ~Timer() = 0;                           // Disallow creation of objects of this type
       virtual int getID() const;                      // Return timer identifier
       virtual void setID(const int /* new_id */);     // Set timer identifier
       virtual timer_type_t getType() const;           // Get timer type
-      virtual const String& getLabel() const;         // Return timer label
-      virtual void setLabel(const String& /* new_label */); // Set timer label
+      virtual const String& getAction() const;        // Return timer action
+      virtual void setAction(const String& /* new_action */); // Set timer action
       virtual bool isArmed() const;                   // Return true if timer is armed
       virtual void arm();                             // Arm the timer (default)
       virtual void disarm();                          // Disarm the timer
@@ -199,7 +199,7 @@ namespace ds {
       struct tm time;                                 // Timer firing details
 
     public:
-      TimerAbsolute(const String label = "undefined", const uint8_t hour = 0, const uint8_t minute = 0, const uint8_t second = 0,
+      TimerAbsolute(const String action = "undefined", const uint8_t hour = 0, const uint8_t minute = 0, const uint8_t second = 0,
         const timer_dow_t dow = TIMER_DOW_ANY, const bool armed = true, const bool recurrent = true, const bool transient = false,
         const int id = -1);  // Constructor
       virtual ~TimerAbsolute() {}                     // Destructor
@@ -222,7 +222,7 @@ namespace ds {
   class TimerSolar : public TimerAbsolute {   // Solar event-based timer
 
     public:
-      TimerSolar(const timer_type_t /* type */, const String label = "undefined", const int8_t offset = 0, const timer_dow_t dow = TIMER_DOW_ANY,
+      TimerSolar(const timer_type_t /* type */, const String action = "undefined", const int8_t offset = 0, const timer_dow_t dow = TIMER_DOW_ANY,
         const bool armed = true, const bool recurrent = true, const bool transient = false, const int id = -1);  // Constructor
       virtual int8_t getOffset() const;               // Return offset in minutes from event
       virtual void setOffset(const int8_t /* offset */); // Set offset in minutes from event
@@ -238,7 +238,7 @@ namespace ds {
       float interval;                                 // Countdown duration (s)
 
     public:
-      TimerCountdown(const timer_type_t /* type */, const String label = "undefined", const float interval = 1,
+      TimerCountdown(const timer_type_t /* type */, const String action = "undefined", const float interval = 1,
         const bool armed = true, const bool recurrent = true, const bool transient = false, const int id = -1);  // Constructor
       virtual ~TimerCountdown() = 0;                  // Disallow creation of objects of this type
       virtual float getInterval() const;              // Return timer interval (s)
@@ -256,7 +256,7 @@ namespace ds {
       void setNextTime(const time_t /* new_time */);  // Set next firing time
 
     public:
-      TimerCountdownAbs(const String label = "undefined", const float interval = 1, const uint32_t offset = 0, const timer_dow_t dow = TIMER_DOW_ANY,
+      TimerCountdownAbs(const String action = "undefined", const float interval = 1, const uint32_t offset = 0, const timer_dow_t dow = TIMER_DOW_ANY,
         const bool armed = true, const bool recurrent = true, const bool transient = false, const int id = -1);  // Constructor
       ~TimerCountdownAbs() {}                         // Destructor
       virtual float getInterval() const;              // Return timer interval (s)
@@ -277,7 +277,7 @@ namespace ds {
       Ticker::callback_function_t callback;           // Ticker callback
 
     public:
-      TimerCountdownTick(const String label = "undefined", const float interval = 1, Ticker::callback_function_t callback = nullptr,
+      TimerCountdownTick(const String action = "undefined", const float interval = 1, Ticker::callback_function_t callback = nullptr,
         const bool armed = true, const bool recurrent = true, const bool transient = false, const int id = -1);  // Constructor
       ~TimerCountdownTick() {}                        // Destructor
       virtual void arm();                             // Arm the timer (default)

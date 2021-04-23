@@ -11,13 +11,13 @@ using namespace ds;
 
 // Timer handler
 void myTimerHandler(const TimerAbsolute* timer) {
-  if (timer->getLabel() == "lamp on") {
+  if (timer->getAction() == "lamp on") {
 
     // Turn the lamp on here
     // ...
     System::log->println("Lamp is ON");
   } else
-  if (timer->getLabel() == "lamp off") {
+  if (timer->getAction() == "lamp off") {
 
     // Turn the lamp off here
     // ...
@@ -49,7 +49,7 @@ void setup() {
   static TimerCountdownAbs my_timer("lamp off", 10);
   System::timers.push_front(&my_timer);
   System::log->printf("Timer \"%s\" set to fire every %.0f s with offset of %u s from midnight\n",
-    my_timer.getLabel().c_str(), my_timer.getInterval(), my_timer.getOffset());
+    my_timer.getAction().c_str(), my_timer.getInterval(), my_timer.getOffset());
 
   // Set up another countdown timer with 10 seconds period and 5 seconds offset
   // Illustrates dynamic allocation
@@ -57,7 +57,7 @@ void setup() {
   if (my_timer2) {
     System::timers.push_front(my_timer2);
     System::log->printf("Timer \"%s\" set to fire every %.0f s with offset of %u s from midnight\n",
-      my_timer2->getLabel().c_str(), my_timer2->getInterval(), my_timer2->getOffset());
+      my_timer2->getAction().c_str(), my_timer2->getInterval(), my_timer2->getOffset());
   }
 }
 

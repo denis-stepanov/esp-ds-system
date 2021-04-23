@@ -11,13 +11,13 @@ using namespace ds;
 
 // Timer handler
 void myTimerHandler(const TimerAbsolute* timer) {
-  if (timer->getLabel() == "lamp on") {
+  if (timer->getAction() == "lamp on") {
 
     // Turn the lamp on here
     // ...
     System::log->println("Lamp is ON");
   } else
-  if (timer->getLabel() == "lamp off") {
+  if (timer->getAction() == "lamp off") {
 
     // Turn the lamp off here
     // ...
@@ -52,7 +52,7 @@ void setup() {
     if (my_timer) {
       System::timers.push_front(my_timer);
       System::log->printf("Timer %hhu \"%s\" set to fire every day at %02hhuh%02hhum\n",
-        n, my_timer->getLabel().c_str(), my_timer->getHour(), my_timer->getMinute());
+        n, my_timer->getAction().c_str(), my_timer->getHour(), my_timer->getMinute());
     }
   }
 }

@@ -905,7 +905,7 @@ void System::timersJS(String& str) {
   for (auto timer : timers) {
     auto timer_type = timer->getType();
     str += F("    aT('");
-    str += timer->getLabel();
+    str += timer->getAction();
     str += F("', ");
     str += timer->isArmed();
     str += F(", ");
@@ -1104,7 +1104,7 @@ void System::serveTimersSave() {
       const auto id = arg_name.substring(6).toInt();
       auto timer = getTimerAbsByID(id);
       if (timer)
-        timer->setLabel(web_server.arg(i));
+        timer->setAction(web_server.arg(i));
     }
   }
 
@@ -1207,10 +1207,10 @@ void System::buttonEventHandler(AceButton* button, uint8_t event_type, uint8_t b
 #ifdef DS_CAP_TIMERS
 
 // Timer constructor
-Timer::Timer(const timer_type_t _type, const String _label,
+Timer::Timer(const timer_type_t _type, const String _action,
   const bool _armed, const bool _recurrent, const bool _transient, const int _id) :
   id(_id >= -1 ? _id : -1), type(_type >= 0 && _type <= TIMER_INVALID ? _type : TIMER_INVALID),
-  label(_label), armed(_armed), recurrent(_recurrent), transient(_transient) {}
+  action(_action), armed(_armed), recurrent(_recurrent), transient(_transient) {}
 
 // Define pure virtual destructor (required by C++)
 Timer::~Timer() {
@@ -1237,14 +1237,14 @@ void Timer::setType(const timer_type_t _type) {
   type = _type >= 0 && _type <= TIMER_INVALID ? _type : TIMER_INVALID;
 }
 
-// Return timer label
-inline const String& Timer::getLabel() const {
-  return label;
+// Return timer action
+inline const String& Timer::getAction() const {
+  return action;
 }
 
-// Set timer label
-inline void Timer::setLabel(const String& new_label) {
-  label = new_label;
+// Set timer action
+inline void Timer::setAction(const String& new_action) {
+  action = new_action;
 }
 
 // Return true if timer is armed
@@ -1294,7 +1294,7 @@ inline void Timer::forget() {
 
 // Abstract timer comparison operator
 bool Timer::operator==(const Timer& timer) const {
-  return type == timer.getType() && id == timer.getID() && label == timer.getLabel();
+  return type == timer.getType() && id == timer.getID() && action == timer.getAction();
 }
 
 // Abstract timer comparison operator
@@ -1328,9 +1328,9 @@ void (*System::timerHandler)(const TimerAbsolute* /* timer */) __attribute__ ((w
 //   int tm_isdst;  - countdown timer: next firing time (time_t)
 
 // Absolute timer constructor
-TimerAbsolute::TimerAbsolute(const String label, const uint8_t hour, const uint8_t minute, const uint8_t second,
+TimerAbsolute::TimerAbsolute(const String action, const uint8_t hour, const uint8_t minute, const uint8_t second,
   const timer_dow_t dow, const bool armed, const bool recurrent, const bool transient, const int id) :
-  Timer(TIMER_ABSOLUTE, label, armed, recurrent, transient, id),
+  Timer(TIMER_ABSOLUTE, action, armed, recurrent, transient, id),
   time({second <= 59 ? second : 0, minute <= 59 ? minute : 0, hour <= 23 ? hour : 0,
     0, 0, 0, dow >= TIMER_DOW_ANY && dow <= TIMER_DOW_INVALID ? dow : TIMER_DOW_INVALID, 0, 0}) {}
 
@@ -1419,10 +1419,10 @@ bool TimerAbsolute::operator!=(const struct tm& _tm) const {
 #include <Dusk2Dawn.h>              // Sunrise/sunset calculation, https://github.com/dmkishi/Dusk2Dawn  (! get the latest master via ZIP, not v1.0.1 from Arduino IDE !)
 
 // Solar timer constructor
-TimerSolar::TimerSolar(const timer_type_t _type, const String label, const int8_t offset,
+TimerSolar::TimerSolar(const timer_type_t _type, const String action, const int8_t offset,
   const timer_dow_t dow, const bool armed, const bool recurrent, const bool transient, const int id) :
-  Timer(_type == TIMER_SUNRISE || _type == TIMER_SUNSET ? _type : TIMER_INVALID, label, armed, recurrent, transient, id),
-  TimerAbsolute(label, 0, 0, 0, dow) {
+  Timer(_type == TIMER_SUNRISE || _type == TIMER_SUNSET ? _type : TIMER_INVALID, action, armed, recurrent, transient, id),
+  TimerAbsolute(action, 0, 0, 0, dow) {
   setOffset(offset >= -59 && offset <= 59 ? offset : 0);
 }
 
@@ -1488,9 +1488,9 @@ uint16_t System::getSunset() {
 #if defined(DS_CAP_TIMERS_COUNT_ABS) || defined(DS_CAP_TIMERS_COUNT_TICK)
 
 // Countdown timer constructor
-TimerCountdown::TimerCountdown(const timer_type_t type, const String label, const float _interval,
+TimerCountdown::TimerCountdown(const timer_type_t type, const String action, const float _interval,
   const bool armed, const bool recurrent, const bool transient, const int id) :
-  Timer(type, label, armed, recurrent, transient, id) {
+  Timer(type, action, armed, recurrent, transient, id) {
     setInterval(_interval > 0 ? _interval : 1);
 }
 
@@ -1530,11 +1530,11 @@ bool TimerCountdown::operator!=(const TimerCountdown& timer) const {
  #ifdef DS_CAP_TIMERS_COUNT_ABS
 
 // Countdown timer constructor
-TimerCountdownAbs::TimerCountdownAbs(const String label, const float _interval, const uint32_t offset,
+TimerCountdownAbs::TimerCountdownAbs(const String action, const float _interval, const uint32_t offset,
   const timer_dow_t dow, const bool armed, const bool recurrent, const bool transient, const int id) :
-  Timer(TIMER_COUNTDOWN_ABS, label, armed, recurrent, transient, id),
+  Timer(TIMER_COUNTDOWN_ABS, action, armed, recurrent, transient, id),
   TimerCountdown(TIMER_COUNTDOWN_ABS),
-  TimerAbsolute(label, 0, 0, 0, dow) {
+  TimerAbsolute(action, 0, 0, 0, dow) {
     setInterval(_interval <= 24 * 60 * 60 ? (_interval > 0 ? _interval : 1) : 24 * 60 * 60);
     setOffset(offset < getInterval() ? offset : 0);
     setNextTime(0);  // Next firing time. Setting it to 0 will force recalculation
@@ -1632,10 +1632,10 @@ bool TimerCountdownAbs::operator!=(const TimerCountdownAbs& timer) const {
  #ifdef DS_CAP_TIMERS_COUNT_TICK
 
 // Countdown timer constructor
-TimerCountdownTick::TimerCountdownTick(const String label, const float _interval, Ticker::callback_function_t _callback,
+TimerCountdownTick::TimerCountdownTick(const String action, const float _interval, Ticker::callback_function_t _callback,
   const bool armed, const bool recurrent, const bool transient, const int id) :
-  Timer(TIMER_COUNTDOWN_TICK, label, armed, recurrent, transient, id),
-  TimerCountdown(TIMER_COUNTDOWN_TICK, label, _interval), callback(_callback) {
+  Timer(TIMER_COUNTDOWN_TICK, action, armed, recurrent, transient, id),
+  TimerCountdown(TIMER_COUNTDOWN_TICK, action, _interval), callback(_callback) {
     arm();
 }
 
@@ -2033,7 +2033,7 @@ void System::update() {
     if (abs_timers_active)
       for (auto& timer : timers) {
         if (timer->getType() != TIMER_INVALID && timer->isArmed() && *timer == tm_local) {
-          log->printf(TIMED("Timer \"%s\" fired\n"), timer->getLabel().c_str());
+          log->printf(TIMED("Timer \"%s\" fired\n"), timer->getAction().c_str());
           if (timerHandler)
             timerHandler(timer);
           if (timer->getType() == TIMER_INVALID || timer->isTransient()) {

@@ -11,13 +11,13 @@ using namespace ds;
 
 // Timer handler
 void myTimerHandler(const TimerAbsolute* timer) {
-  if (timer->getLabel() == "lamp on") {
+  if (timer->getAction() == "lamp on") {
 
     // Turn the lamp on here
     // ...
     System::log->println("Lamp is ON");
   } else
-  if (timer->getLabel() == "lamp off") {
+  if (timer->getAction() == "lamp off") {
 
     // Turn the lamp off here
     // ...

@@ -32,7 +32,7 @@ TimerCountdownTick my_timer2("metronome", 1, [](){ System::log->printf(TIMED("\n
 
 void setup() {
   System::begin();
-  System::log->printf("Timer \"%s\" set to fire every %.0f s\n", my_timer.getLabel().c_str(), my_timer.getInterval());
+  System::log->printf("Timer \"%s\" set to fire every %.0f s\n", my_timer.getAction().c_str(), my_timer.getInterval());
 }
 
 void loop() {
