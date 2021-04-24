@@ -24,15 +24,15 @@ void myTimerHandler_lamp_toggle() {
   lamp_on = !lamp_on;
 }
 
-// Set up a countdown timer with 5 seconds period
-TimerCountdownTick my_timer("lamp toggle", 5, myTimerHandler_lamp_toggle);
+// Service timer to print a time beat
+TimerCountdownTick my_timer_print_time("metronome", 1, [](){ System::log->printf(TIMED("\n") / 1000); });
 
-// Another timer is just to print a time beat
-TimerCountdownTick my_timer2("metronome", 1, [](){ System::log->printf(TIMED("\n") / 1000); });
+// Countdown timer to flip a lamp with 5 seconds period
+TimerCountdownTick my_timer_lamp_toggle("lamp toggle", 5, myTimerHandler_lamp_toggle);
 
 void setup() {
   System::begin();
-  System::log->printf("Timer \"%s\" set to fire every %.0f s\n", my_timer.getAction().c_str(), my_timer.getInterval());
+  System::log->printf("Timer \"%s\" set to fire every %.0f s\n", my_timer_lamp_toggle.getAction().c_str(), my_timer_lamp_toggle.getInterval());
 }
 
 void loop() {
