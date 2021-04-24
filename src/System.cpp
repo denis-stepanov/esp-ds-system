@@ -1437,6 +1437,16 @@ void TimerSolar::setOffset(const int8_t offset) {
     time.tm_mday = offset;
 }
 
+// Recalculate alignment to solar times
+void TimerSolar::adjust() {
+  const auto sun_time = type == TIMER_SUNRISE ? System::getSunrise() : System::getSunset();
+
+  // This might not work properly with solar events happening shortly past midnight, but these are unlikely
+  setHour((sun_time + getOffset()) / 60);
+  setMinute((sun_time + getOffset()) % 60);
+  setSecond(0);  // Calculation has minute precision
+}
+
 // Solar timer comparison operator
 bool TimerSolar::operator==(const TimerSolar& timer) const {
   return Timer::operator==(timer) && getDayOfWeek() == timer.getDayOfWeek() && getOffset() == timer.getOffset();
@@ -2013,19 +2023,9 @@ void System::update() {
     if ((tm_local.tm_hour == 3 && tm_local.tm_min == 30 && tm_local.tm_sec == 0) || new_time - time_solar_sync > 24 * 60 * 60) {
       time_solar_sync = new_time;
       log->printf(TIMED("Recalculating solar events...\n"));
-      const auto sunrise = getSunrise();
-      const auto sunset  = getSunset();
-      for (auto& timer : timers) {
-        const auto timer_type = timer->getType();
-        if (timer_type == TIMER_SUNRISE || timer_type == TIMER_SUNSET) {
-          auto st = static_cast<TimerSolar *>(timer);
-
-           // This might not work properly with solar events happening shortly past midnight, but these are unlikely
-          st->setHour(((timer_type == TIMER_SUNRISE ? sunrise : sunset) + st->getOffset()) / 60);
-          st->setMinute(((timer_type == TIMER_SUNRISE ? sunrise : sunset) + st->getOffset()) % 60);
-          st->setSecond(0);  // Calculation has minute precision
-        }
-      }
+      for (auto& timer : timers)
+        if (timer->getType() == TIMER_SUNRISE || timer->getType() == TIMER_SUNSET)
+          static_cast<TimerSolar *>(timer)->adjust();
     }
 #endif // DS_CAP_TIMERS_SOLAR
 

@@ -226,6 +226,7 @@ namespace ds {
         const bool armed = true, const bool recurrent = true, const bool transient = false, const int id = -1);  // Constructor
       virtual int8_t getOffset() const;               // Return offset in minutes from event
       virtual void setOffset(const int8_t /* offset */); // Set offset in minutes from event
+      virtual void adjust();                          // Recalculate alignment to solar times
       bool operator==(const TimerSolar& /* timer */) const; // Comparison operator
       bool operator!=(const TimerSolar& /* timer */) const; // Comparison operator
   };
