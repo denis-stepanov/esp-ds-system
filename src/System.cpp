@@ -1013,8 +1013,8 @@ void System::serveTimersSave() {
               if (web_server.arg(j) == F("sunrise") || web_server.arg(j) == F("sunset")) {
 
                 // New solar timer
-                auto timer = new TimerSolar(web_server.arg(j) == F("sunrise") ? TIMER_SUNRISE : TIMER_SUNSET,
-                  F("undefined"), 0, TIMER_DOW_ANY, false /* ! */, true, false, id);
+                auto timer = new TimerSolar(F("undefined"), web_server.arg(j) == F("sunrise") ? TIMER_SUNRISE : TIMER_SUNSET,
+                  0, TIMER_DOW_ANY, false /* ! */, true, false, id);
                 timers.push_front(timer);
               } else {  // Invalid hour string values are accepted and treated as hour == 0
 
@@ -1419,7 +1419,7 @@ bool TimerAbsolute::operator!=(const struct tm& _tm) const {
 #include <Dusk2Dawn.h>              // Sunrise/sunset calculation, https://github.com/dmkishi/Dusk2Dawn  (! get the latest master via ZIP, not v1.0.1 from Arduino IDE !)
 
 // Solar timer constructor
-TimerSolar::TimerSolar(const timer_type_t _type, const String action, const int8_t offset,
+TimerSolar::TimerSolar(const String action, const timer_type_t _type, const int8_t offset,
   const timer_dow_t dow, const bool armed, const bool recurrent, const bool transient, const int id) :
   Timer(_type == TIMER_SUNRISE || _type == TIMER_SUNSET ? _type : TIMER_INVALID, action, armed, recurrent, transient, id),
   TimerAbsolute(action, 0, 0, 0, dow) {
@@ -1823,7 +1823,7 @@ void System::begin() {
       TimerAbsolute *timer = nullptr;
       if (at == F("at")) {
         if (solar_type.length())
-          timer = new TimerSolar(solar_type == F("sunrise") ? TIMER_SUNRISE : TIMER_SUNSET, action, minute, dow, active, true, false, tid);
+          timer = new TimerSolar(action, solar_type == F("sunrise") ? TIMER_SUNRISE : TIMER_SUNSET, minute, dow, active, true, false, tid);
         else
           timer = new TimerAbsolute(action, hour, minute, 0, dow, active, true, false, tid);
       } else
