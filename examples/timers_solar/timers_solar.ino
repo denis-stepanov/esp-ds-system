@@ -65,7 +65,6 @@ void setup() {
   }
 }
 
-
 void loop() {
 
   // Just display current time periodically to see when the timer fires
