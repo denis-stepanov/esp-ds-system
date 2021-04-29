@@ -539,9 +539,9 @@ static const char *FAV_ICON_PATH PROGMEM = "/favicon.png"; // Favicon on disk
 #endif // DS_CAP_SYS_FS
 static const size_t MAX_WEB_PAGE_SIZE = 2048;    // Preallocated web page buffer size (B)
 
-#ifdef DS_CAP_TIMERS_ABS
+#ifdef DS_CAP_WEB_TIMERS
 std::forward_list<String> System::timer_actions; // List of timer actions
-#endif // DS_CAP_TIMERS_ABS
+#endif // DS_CAP_WEB_TIMERS
 
 // Add standard header to the web page
 void System::pushHTMLHeader(const String& title, const String& head_user, bool redirect) {
@@ -1926,10 +1926,10 @@ void System::begin() {
 #ifdef DS_CAP_APP_LOG
   web_server.on("/log", serveAppLog);
 #endif // DS_CAP_APP_LOG
-#ifdef DS_CAP_TIMERS_ABS
+#ifdef DS_CAP_WEB_TIMERS
   web_server.on("/timers", serveTimers);
   web_server.on("/timers-save", serveTimersSave);
-#endif // DS_CAP_TIMERS_ABS
+#endif // DS_CAP_WEB_TIMERS
 #ifdef DS_CAP_SYS_FS
   if (fs.exists(FAV_ICON_PATH))
     web_server.serveStatic(FAV_ICON_PATH, fs, FAV_ICON_PATH);

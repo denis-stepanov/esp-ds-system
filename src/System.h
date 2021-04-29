@@ -117,9 +117,9 @@
 #include <AceButton.h>              // Button, https://github.com/bxparks/AceButton
 #endif // DS_CAP_BUTTON
 
-#ifdef DS_CAP_TIMERS_ABS
-#include <forward_list>             // Action list
-#endif // DS_CAP_TIMERS_ABS
+#if defined(DS_CAP_TIMERS_ABS) || defined(DS_CAP_WEB_TIMERS)
+#include <forward_list>             // Timer or action list
+#endif // DS_CAP_TIMERS_ABS || DS_CAP_WEB_TIMERS
 
 #ifdef DS_CAP_TIMERS_COUNT_TICK
 #include <Ticker.h>                 // Periodic events
@@ -403,10 +403,10 @@ namespace ds {
 #ifdef DS_CAP_APP_LOG
       static void serveAppLog();                      // Serve the "log" page
 #endif // DS_CAP_APP_LOG
-#ifdef DS_CAP_TIMERS_ABS
+#ifdef DS_CAP_WEB_TIMERS
       static void serveTimers();                      // Serve the "timers" page
       static void serveTimersSave();                  // Serve the "timers save" page
-#endif // DS_CAP_TIMERS_ABS
+#endif // DS_CAP_WEB_TIMERS
 
     public:
       static ESP8266WebServer web_server;             // Web server
@@ -415,9 +415,9 @@ namespace ds {
       static void pushHTMLFooter();                   // Add standard footer to the web page
       static void (*registerWebPages)();              // Hook for registering user-supplied pages
       static void sendWebPage();                      // Send a web page
-#ifdef DS_CAP_TIMERS_ABS
+#ifdef DS_CAP_WEB_TIMERS
       static std::forward_list<String> timer_actions; // List of timer actions
-#endif // DS_CAP_TIMERS_ABS
+#endif // DS_CAP_WEB_TIMERS
 #endif // DS_CAP_WEBSERVER
 
 #ifdef DS_CAP_BUTTON
