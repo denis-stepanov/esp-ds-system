@@ -2023,7 +2023,9 @@ void System::update() {
     // Recalculate solar times every morning at 3:30 am, or at least every 24 hours
     if ((tm_local.tm_hour == 3 && tm_local.tm_min == 30 && tm_local.tm_sec == 0) || new_time - time_solar_sync > 24 * 60 * 60) {
       time_solar_sync = new_time;
+#ifdef DS_CAP_SYS_LOG
       log->printf(TIMED("Recalculating solar events...\n"));
+#endif // DS_CAP_SYS_LOG
       for (auto& timer : timers)
         if (timer->getType() == TIMER_SUNRISE || timer->getType() == TIMER_SUNSET)
           static_cast<TimerSolar *>(timer)->adjust();
@@ -2034,7 +2036,9 @@ void System::update() {
     if (abs_timers_active)
       for (auto& timer : timers) {
         if (timer->getType() != TIMER_INVALID && timer->isArmed() && *timer == tm_local) {
+#ifdef DS_CAP_SYS_LOG
           log->printf(TIMED("Timer \"%s\" fired\n"), timer->getAction().c_str());
+#endif // DS_CAP_SYS_LOG
           if (timerHandler)
             timerHandler(timer);
           if (timer->getType() == TIMER_INVALID || timer->isTransient()) {
