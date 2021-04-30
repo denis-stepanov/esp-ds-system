@@ -2156,5 +2156,5 @@ String System::getCapabilities() {
 // Get system version
 // Format is x.xx.xx (major.minor.maintenance). E.g., 20001 means 2.0.1
 uint32_t System::getVersion() {
-  return 10000;
+  return 10100;
 }
