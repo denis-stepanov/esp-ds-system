@@ -903,6 +903,7 @@ static const char *timers_script PROGMEM = "<script>"
 // Generate timer configuration as JavaScript code
 void System::timersJS(String& str) {
   for (auto timer : timers) {
+    if (!timer) continue;
     auto timer_type = timer->getType();
     str += F("    aT('");
     str += timer->getAction();
@@ -985,7 +986,8 @@ void System::serveTimers() {
 void System::serveTimersSave() {
 
   // Clear the current list
-  for (auto& timer : timers)
+  for (auto timer : timers) {
+    if (!timer) continue;
     switch (timer->getType()) {
       case TIMER_ABSOLUTE:      delete timer;                                   break;
       case TIMER_SUNRISE :
@@ -993,6 +995,7 @@ void System::serveTimersSave() {
       case TIMER_COUNTDOWN_ABS: delete static_cast<TimerCountdownAbs *>(timer); break;
       default: ;  // Not happening
     }
+  }
   timers.clear();
   abs_timers_active = false;
 
@@ -1143,8 +1146,8 @@ void System::serveTimersSave() {
     web_page += n_timers % 10 == 1 && n_timers != 11 ? F("") : F("s");
     web_page += F(" configured, ");
     unsigned int active = 0;
-    for (auto& timer : timers)
-      if (timer->isArmed())
+    for (auto timer : timers)
+      if (timer && timer->isArmed())
         active++;
     web_page += active;
     web_page += F(" active");
@@ -1380,7 +1383,7 @@ void TimerAbsolute::setDayOfWeek(const int8_t new_dow) {
 
 // Return absolute timer with a matching ID
 TimerAbsolute* System::getTimerAbsByID(const int id) {
-  auto it = std::find_if(timers.begin(), timers.end(), [=](const Timer *timer) { return timer->getID() == id; } );
+  auto it = std::find_if(timers.begin(), timers.end(), [=](const Timer *timer) { return timer && timer->getID() == id; } );
   return it == timers.end() ? nullptr : *it;
 }
 
@@ -2026,16 +2029,16 @@ void System::update() {
 #ifdef DS_CAP_SYS_LOG
       log->printf(TIMED("Recalculating solar events...\n"));
 #endif // DS_CAP_SYS_LOG
-      for (auto& timer : timers)
-        if (timer->getType() == TIMER_SUNRISE || timer->getType() == TIMER_SUNSET)
+      for (auto timer : timers)
+        if (timer && (timer->getType() == TIMER_SUNRISE || timer->getType() == TIMER_SUNSET))
           static_cast<TimerSolar *>(timer)->adjust();
     }
 #endif // DS_CAP_TIMERS_SOLAR
 
     // Process timers
     if (abs_timers_active)
-      for (auto& timer : timers) {
-        if (timer->getType() != TIMER_INVALID && timer->isArmed() && *timer == tm_local) {
+      for (auto timer : timers) {
+        if (timer && timer->getType() != TIMER_INVALID && timer->isArmed() && *timer == tm_local) {
 #ifdef DS_CAP_SYS_LOG
           log->printf(TIMED("Timer \"%s\" fired\n"), timer->getAction().c_str());
 #endif // DS_CAP_SYS_LOG
