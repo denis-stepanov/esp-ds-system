@@ -181,17 +181,17 @@ namespace ds {
 #endif // DS_CAP_TIMERS
 
 #ifdef DS_CAP_TIMERS_ABS
-  typedef enum {
-    TIMER_DOW_ANY = -1,                               // Special "day of week" indicating any (or every) day (must be the first)
-    TIMER_DOW_SUNDAY,                                 // Sunday
-    TIMER_DOW_MONDAY,                                 // Monday
-    TIMER_DOW_TUESDAY,                                // Tuesday
-    TIMER_DOW_WEDNESDAY,                              // Wednesday
-    TIMER_DOW_THURSDAY,                               // Thursday
-    TIMER_DOW_FRIDAY,                                 // Friday
-    TIMER_DOW_SATURDAY,                               // Saturday
-    TIMER_DOW_INVALID                                 // Invalid day of week (must be the last)
-  } timer_dow_t;
+
+#define TIMER_DOW_SUNDAY                            1
+#define TIMER_DOW_MONDAY    (TIMER_DOW_SUNDAY    << 1)
+#define TIMER_DOW_TUESDAY   (TIMER_DOW_MONDAY    << 1)
+#define TIMER_DOW_WEDNESDAY (TIMER_DOW_TUESDAY   << 1)
+#define TIMER_DOW_THURSDAY  (TIMER_DOW_WEDNESDAY << 1)
+#define TIMER_DOW_FRIDAY    (TIMER_DOW_THURSDAY  << 1)
+#define TIMER_DOW_SATURDAY  (TIMER_DOW_FRIDAY    << 1)
+#define TIMER_DOW_INVALID   (TIMER_DOW_SATURDAY  << 1)
+#define TIMER_DOW_ANY       (TIMER_DOW_SUNDAY | TIMER_DOW_MONDAY   | TIMER_DOW_TUESDAY | TIMER_DOW_WEDNESDAY \
+                                              | TIMER_DOW_THURSDAY | TIMER_DOW_FRIDAY  | TIMER_DOW_SATURDAY)
 
   class TimerAbsolute : public virtual Timer {        // Absolute time timer
 
@@ -200,7 +200,7 @@ namespace ds {
 
     public:
       TimerAbsolute(const String action = "undefined", const uint8_t hour = 0, const uint8_t minute = 0, const uint8_t second = 0,
-        const timer_dow_t dow = TIMER_DOW_ANY, const bool armed = true, const bool recurrent = true, const bool transient = false,
+        const uint8_t dow = TIMER_DOW_ANY, const bool armed = true, const bool recurrent = true, const bool transient = false,
         const int id = -1);  // Constructor
       virtual ~TimerAbsolute() {}                     // Destructor
       virtual uint8_t getHour() const;                // Return hour setting
@@ -210,7 +210,7 @@ namespace ds {
       virtual uint8_t getSecond() const;              // Return second setting
       virtual void setSecond(const uint8_t /* new_second */); // Set second setting
       virtual int8_t getDayOfWeek() const;            // Get day of week setting
-      virtual void setDayOfWeek(const int8_t /* new_dow */); // Set day of week setting
+      virtual void setDayOfWeek(const uint8_t /* new_dow */); // Set day of week setting
       bool operator==(const TimerAbsolute& /* timer */) const; // Comparison operator
       bool operator!=(const TimerAbsolute& /* timer */) const; // Comparison operator
       bool operator==(const struct tm& /* _tm */) const; // Time comparison operator
@@ -222,7 +222,7 @@ namespace ds {
   class TimerSolar : public TimerAbsolute {   // Solar event-based timer
 
     public:
-      TimerSolar(const String action = "undefined", const timer_type_t type = TIMER_SUNRISE, const int8_t offset = 0, const timer_dow_t dow = TIMER_DOW_ANY,
+      TimerSolar(const String action = "undefined", const timer_type_t type = TIMER_SUNRISE, const int8_t offset = 0, const uint8_t dow = TIMER_DOW_ANY,
         const bool armed = true, const bool recurrent = true, const bool transient = false, const int id = -1);  // Constructor
       virtual int8_t getOffset() const;               // Return offset in minutes from event
       virtual void setOffset(const int8_t /* offset */); // Set offset in minutes from event
@@ -257,7 +257,7 @@ namespace ds {
       void setNextTime(const time_t /* new_time */);  // Set next firing time
 
     public:
-      TimerCountdownAbs(const String action = "undefined", const float interval = 1, const uint32_t offset = 0, const timer_dow_t dow = TIMER_DOW_ANY,
+      TimerCountdownAbs(const String action = "undefined", const float interval = 1, const uint32_t offset = 0, const uint8_t dow = TIMER_DOW_ANY,
         const bool armed = true, const bool recurrent = true, const bool transient = false, const int id = -1);  // Constructor
       ~TimerCountdownAbs() {}                         // Destructor
       virtual float getInterval() const;              // Return timer interval (s)

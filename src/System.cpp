@@ -1057,9 +1057,10 @@ void System::serveTimersSave() {
 
     if (arg_name.startsWith(F("dow"))) {
       const auto id = arg_name.substring(3).toInt();
+      const auto dow_web = web_server.arg(i).toInt() & 7;  // TODO: multiple selection
       auto timer = getTimerAbsByID(id);
       if (timer)
-        timer->setDayOfWeek(web_server.arg(i).toInt());  // Safe if bogus DoW
+        timer->setDayOfWeek(1 << dow_web);
     } else
 
     if (arg_name.startsWith(F("h"))) {
@@ -1326,16 +1327,16 @@ void (*System::timerHandler)(const TimerAbsolute* /* timer */) __attribute__ ((w
 //       >>         - countdown timer: timer offset (0..86399 s < interval)
 //   int tm_mon;    - (not used)
 //   int tm_year;   - (not used)
-//   int tm_wday;   - timer firing day of the week (-1..6, Sunday=0, -1=every day)
+//   int tm_wday;   - timer firing day of the week (bitmask starting from Sunday, 0x7f == any day)
 //   int tm_yday;   - (not used)
 //   int tm_isdst;  - countdown timer: next firing time (time_t)
 
 // Absolute timer constructor
 TimerAbsolute::TimerAbsolute(const String action, const uint8_t hour, const uint8_t minute, const uint8_t second,
-  const timer_dow_t dow, const bool armed, const bool recurrent, const bool transient, const int id) :
+  const uint8_t dow, const bool armed, const bool recurrent, const bool transient, const int id) :
   Timer(TIMER_ABSOLUTE, action, armed, recurrent, transient, id),
   time({second <= 59 ? second : 0, minute <= 59 ? minute : 0, hour <= 23 ? hour : 0,
-    0, 0, 0, dow >= TIMER_DOW_ANY && dow <= TIMER_DOW_INVALID ? dow : TIMER_DOW_INVALID, 0, 0}) {}
+    0, 0, 0, dow < TIMER_DOW_INVALID ? dow : TIMER_DOW_INVALID, 0, 0}) {}
 
 // Return hour setting
 uint8_t TimerAbsolute::getHour() const {
@@ -1376,9 +1377,8 @@ int8_t TimerAbsolute::getDayOfWeek() const {
 }
 
 // Set day of week setting
-void TimerAbsolute::setDayOfWeek(const int8_t new_dow) {
-  if (new_dow >= TIMER_DOW_ANY && new_dow <= TIMER_DOW_INVALID)
-    time.tm_wday = new_dow;
+void TimerAbsolute::setDayOfWeek(const uint8_t new_dow) {
+  time.tm_wday = new_dow < TIMER_DOW_INVALID ? new_dow : TIMER_DOW_INVALID;
 }
 
 // Return absolute timer with a matching ID
@@ -1400,8 +1400,7 @@ bool TimerAbsolute::operator!=(const TimerAbsolute& timer) const {
 
 // Time comparison operator
 bool TimerAbsolute::operator==(const struct tm& _tm) const {
-  return getHour() == _tm.tm_hour && getMinute() == _tm.tm_min && getSecond() == _tm.tm_sec &&
-    (getDayOfWeek() == _tm.tm_wday || getDayOfWeek() == TIMER_DOW_ANY);
+  return getHour() == _tm.tm_hour && getMinute() == _tm.tm_min && getSecond() == _tm.tm_sec && 1 << _tm.tm_wday & getDayOfWeek();
 }
 
 // Time comparison operator
@@ -1423,7 +1422,7 @@ bool TimerAbsolute::operator!=(const struct tm& _tm) const {
 
 // Solar timer constructor
 TimerSolar::TimerSolar(const String action, const timer_type_t _type, const int8_t offset,
-  const timer_dow_t dow, const bool armed, const bool recurrent, const bool transient, const int id) :
+  const uint8_t dow, const bool armed, const bool recurrent, const bool transient, const int id) :
   Timer(_type == TIMER_SUNRISE || _type == TIMER_SUNSET ? _type : TIMER_INVALID, action, armed, recurrent, transient, id),
   TimerAbsolute(action, 0, 0, 0, dow) {
   setOffset(offset >= -59 && offset <= 59 ? offset : 0);
@@ -1545,7 +1544,7 @@ bool TimerCountdown::operator!=(const TimerCountdown& timer) const {
 
 // Countdown timer constructor
 TimerCountdownAbs::TimerCountdownAbs(const String action, const float _interval, const uint32_t offset,
-  const timer_dow_t dow, const bool armed, const bool recurrent, const bool transient, const int id) :
+  const uint8_t dow, const bool armed, const bool recurrent, const bool transient, const int id) :
   Timer(TIMER_COUNTDOWN_ABS, action, armed, recurrent, transient, id),
   TimerCountdown(TIMER_COUNTDOWN_ABS),
   TimerAbsolute(action, 0, 0, 0, dow) {
@@ -1808,7 +1807,7 @@ void System::begin() {
 
       line.remove(0, line.indexOf(',') + 1);
       line.trim();
-      const auto dow = (timer_dow_t)line.toInt();
+      const auto dow = (uint8_t)line.toInt();
 
       line.remove(0, line.indexOf('\'') + 1);
       const String at = line.substring(0, line.indexOf('\''));
