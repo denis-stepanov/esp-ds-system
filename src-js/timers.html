@@ -9,7 +9,7 @@
     <script>
 // ====== START JAVASCRIPT ======
 // Short global identifiers are used to decrease the code size
-var DW = { 'day': -1, 'Monday': 1, 'Tuesday': 2, 'Wednesday': 3, 'Thursday': 4, 'Friday': 5, 'Saturday': 6, 'Sunday': 0 };
+var DW = { 'Monday': 1, 'Tuesday': 2, 'Wednesday': 3, 'Thursday': 4, 'Friday': 5, 'Saturday': 6, 'Sunday': 0 };
 var N = 0;
 
 // pW == populate day of week
@@ -19,7 +19,7 @@ function pW(what, dow = -1) {
     var opt = document.createElement('option');
     opt.value = DW[d];
     opt.text = '\uD83D\uDDD3 ' + d;   // UTF 'SPIRAL CALENDAR PAD' (U+1F5D3)
-    if (DW[d] == dow)
+    if (DW[d] == dow || -1 == dow)
       opt.setAttribute('selected', 'selected');
     select.appendChild(opt);
   }
@@ -113,7 +113,7 @@ function aT(action, active = 1, dow = -1, at = 'at', hrs = 0, min = 0, sign = '+
     ' style="vertical-align: middle;" title="deactivate timer"/>&nbsp;\n' +
     '<a style="text-decoration: none; color: black;" href="javascript:dT(' + N + ')" ' +
     'title="delete timer">&#x2326;</a>&nbsp;&nbsp;\n' +  // UTF 'ERASE TO THE RIGHT' (U+2326)
-    'every <select id="dow' + N + '" name="dow' + N + '"></select>&nbsp;&nbsp;&nbsp;\n' +
+    'every <select id="dow' + N + '" name="dow' + N + '" multiple size="7"></select>&nbsp;&nbsp;&nbsp;\n' +
     '<select id="at' + N + '" name="at' + N + '" onchange="cA(' + N + ', this.value)">' +
     '<option value="at">&#x23f0; at</option>' + // UTF 'ALARM CLOCK' (U+23F0)
     '<option value="every">&#x1f503; every</option></select>&nbsp;' + // UTF 'CLOCKWISE DWNWARDS AND UPWARDS OPEN CIRCLE ARROWS' (U+1F503)
