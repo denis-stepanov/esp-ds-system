@@ -871,33 +871,34 @@ String System::timers_cfg_name;                              // Full path to the
 
 // Scripting for timers web page. Do not edit compressed code; edit the master copy in src-js/ and regenerate
 static const char *timers_script PROGMEM = "<script>"
-  "var DW={day:-1,Monday:1,Tuesday:2,Wednesday:3,Thursday:4,Friday:5,Saturday:6,Sunday:0},N=0;function pW(e,t=-1){var n=doc"
-  "ument.getElementById(e);for(var a in DW){var d=document.createElement(\"option\");d.value=DW[a],d.text=\"🗓 \"+a,DW[a]==t"
-  "&&d.setAttribute(\"selected\",\"selected\"),n.appendChild(d)}}function pT(e,t,n=0,a=1,d=0,l=0,i=0){for(var c=document.ge"
-  "tElementById(e);c.firstChild;)c.removeChild(c.firstChild);for(var o=t<10?1:t<100?2:t<1e3?3:4,s=d;s<t;s++){var r;(r=docum"
+  "var DW={Monday:1,Tuesday:2,Wednesday:3,Thursday:4,Friday:5,Saturday:6,Sunday:0},N=0;function pW(e,t=-1){var n=document.g"
+  "etElementById(e);for(var a in DW){var l=document.createElement(\"option\");l.value=DW[a],l.text=\"🗓 \"+a,DW[a]!=t&&-1!=t"
+  "||l.setAttribute(\"selected\",\"selected\"),n.appendChild(l)}}function pT(e,t,n=0,a=1,l=0,d=0,i=0){for(var c=document.ge"
+  "tElementById(e);c.firstChild;)c.removeChild(c.firstChild);for(var o=t<10?1:t<100?2:t<1e3?3:4,s=l;s<t;s++){var r;(r=docum"
   "ent.createElement(\"option\")).value=s,s==i&&r.setAttribute(\"selected\",\"selected\");var m=\"\";if(1==a)for(var p=s<10"
-  "?1:s<100?2:s<1e3?3:4,u=0;u<o-p;u++)m+=\"0\";r.text=(l?String.fromCharCode(55357,56655+(s%12?s%12:12))+\" \":\"\")+m+s,c."
+  "?1:s<100?2:s<1e3?3:4,u=0;u<o-p;u++)m+=\"0\";r.text=(d?String.fromCharCode(55357,56655+(s%12?s%12:12))+\" \":\"\")+m+s,c."
   "appendChild(r)}n&&((r=document.createElement(\"option\")).value=\"sunrise\",r.text=\"🌅 \"+r.value,r.value==i&&r.setAttri"
   "bute(\"selected\",\"selected\"),c.appendChild(r),(r=document.createElement(\"option\")).value=\"sunset\",r.text=\"🌇 \"+r"
   ".value,r.value==i&&r.setAttribute(\"selected\",\"selected\"),c.appendChild(r))}function pA(e,t){for(var n=document.getEl"
-  "ementById(e),a=0;a<A.length;a++){var d=document.createElement(\"option\");d.value=A[a],d.text=d.value,d.value==t&&d.setA"
-  "ttribute(\"selected\",\"selected\"),n.appendChild(d)}}function cS(e,t,n=0,a=\"+\"){var d=document.getElementById(\"sep\""
-  "+e);\"at\"==document.getElementById(\"at\"+e).value?isNaN(t)?d.innerHTML='<select name=\"sign'+N+'\"><option value=\"+\""
+  "ementById(e),a=0;a<A.length;a++){var l=document.createElement(\"option\");l.value=A[a],l.text=l.value,l.value==t&&l.setA"
+  "ttribute(\"selected\",\"selected\"),n.appendChild(l)}}function cS(e,t,n=0,a=\"+\"){var l=document.getElementById(\"sep\""
+  "+e);\"at\"==document.getElementById(\"at\"+e).value?isNaN(t)?l.innerHTML='<select name=\"sign'+N+'\"><option value=\"+\""
   "'+(\"+\"==a?' selected=\"selected\"':\"\")+'>+</option><option value=\"-\"'+(\"-\"==a?' selected=\"selected\"':\"\")+\">"
-  "&#x2212;</option></select>\":d.innerHTML=\"h&nbsp;\":(d.innerHTML=\"min offset from midnight by\",pT(\"m\"+e,parseInt(t)"
-  ",0,0,0,0,n))}function cA(e,t,n=0,a=0,d=\"+\"){\"at\"==t?(pT(\"h\"+e,24,1,1,0,1,n),pT(\"m\"+e,60,0,1,0,0,a)):pT(\"h\"+e,1"
-  "441,0,0,1,0,n=n||1),cS(e,n,a,d)}function aT(e,t=1,n=-1,a=\"at\",d=0,l=0,i=\"+\"){var c=document.createElement(\"p\");c.i"
+  "&#x2212;</option></select>\":l.innerHTML=\"h&nbsp;\":(l.innerHTML=\"min offset from midnight by\",pT(\"m\"+e,parseInt(t)"
+  ",0,0,0,0,n))}function cA(e,t,n=0,a=0,l=\"+\"){\"at\"==t?(pT(\"h\"+e,24,1,1,0,1,n),pT(\"m\"+e,60,0,1,0,0,a)):pT(\"h\"+e,1"
+  "441,0,0,1,0,n=n||1),cS(e,n,a,l)}function aT(e,t=1,n=-1,a=\"at\",l=0,d=0,i=\"+\"){var c=document.createElement(\"p\");c.i"
   "d=\"timer\"+ ++N,c.style=\"background: WhiteSmoke;\",c.innerHTML='\\n&nbsp;&nbsp;&nbsp;<input name=\"active'+N+'\" type="
   "\"checkbox\"'+(t?' checked=\"checked\"':\"\")+' style=\"vertical-align: middle;\" title=\"deactivate timer\"/>&nbsp;\\n<"
   "a style=\"text-decoration: none; color: black;\" href=\"javascript:dT('+N+')\" title=\"delete timer\">&#x2326;</a>&nbsp;"
-  "&nbsp;\\nevery <select id=\"dow'+N+'\" name=\"dow'+N+'\"></select>&nbsp;&nbsp;&nbsp;\\n<select id=\"at'+N+'\" name=\"at'"
-  "+N+'\" onchange=\"cA('+N+', this.value)\"><option value=\"at\">&#x23f0; at</option><option value=\"every\">&#x1f503; eve"
-  "ry</option></select>&nbsp;<select id=\"h'+N+'\" name=\"h'+N+'\" onchange=\"cS('+N+', this.value)\" style=\"text-align-la"
-  "st: right;\"></select>\\n<span id=\"sep'+N+'\">h&nbsp;</span>\\n<select id=\"m'+N+'\" name=\"m'+N+'\" style=\"text-align"
-  "-last: right;\"></select> min&nbsp;&nbsp;&nbsp;\\nexecute <select id=\"action'+N+'\" name=\"action'+N+'\"></select>\\n';"
-  "var o=document.createTextNode(\"\\n\\n\");document.getElementById(\"timers\").appendChild(o),document.getElementById(\"t"
-  "imers\").appendChild(c),pW(\"dow\"+N,n),pA(\"action\"+N,e),document.getElementById(\"at\"+N).value=a,cA(N,a,d,l,i)}funct"
-  "ion dT(e){document.getElementById(\"timers\").removeChild(document.getElementById(\"timer\"+e))}"
+  "&nbsp;\\nevery <select id=\"dow'+N+'\" name=\"dow'+N+'\" multiple=\"multiple\" size=\"7\"></select>&nbsp;&nbsp;&nbsp;\\n"
+  "<select id=\"at'+N+'\" name=\"at'+N+'\" onchange=\"cA('+N+', this.value)\"><option value=\"at\">&#x23f0; at</option><opt"
+  "ion value=\"every\">&#x1f503; every</option></select>&nbsp;<select id=\"h'+N+'\" name=\"h'+N+'\" onchange=\"cS('+N+', th"
+  "is.value)\" style=\"text-align-last: right;\"></select>\\n<span id=\"sep'+N+'\">h&nbsp;</span>\\n<select id=\"m'+N+'\" n"
+  "ame=\"m'+N+'\" style=\"text-align-last: right;\"></select> min&nbsp;&nbsp;&nbsp;\\nexecute <select id=\"action'+N+'\" na"
+  "me=\"action'+N+'\"></select>\\n';var o=document.createTextNode(\"\\n\\n\");document.getElementById(\"timers\").appendChi"
+  "ld(o),document.getElementById(\"timers\").appendChild(c),pW(\"dow\"+N,n),pA(\"action\"+N,e),document.getElementById(\"at"
+  "\"+N).value=a,cA(N,a,l,d,i)}function dT(e){document.getElementById(\"timers\").removeChild(document.getElementById(\"tim"
+  "er\"+e))}"
   "</script>\n";
 
 // Generate timer configuration as JavaScript code
@@ -951,6 +952,9 @@ void System::serveTimers() {
   header += F("  }\n");
   header += F("  window.onload = addTimes;\n");
   header += F("</script>\n");
+  header += F("<style>\n");
+  header += F("  select {vertical-align: middle;}\n");  // Make page look a bit nicer on desktop
+  header += F("</style>\n");
   pushHTMLHeader(F("Timer Configuration"), header);
 
   web_page += F(
