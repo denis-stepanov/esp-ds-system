@@ -113,7 +113,7 @@ function aT(action, active = 1, dow = -1, at = 'at', hrs = 0, min = 0, sign = '+
     ' style="vertical-align: middle;" title="deactivate timer"/>&nbsp;\n' +
     '<a style="text-decoration: none; color: black;" href="javascript:dT(' + N + ')" ' +
     'title="delete timer">&#x2326;</a>&nbsp;&nbsp;\n' +  // UTF 'ERASE TO THE RIGHT' (U+2326)
-    'every <select id="dow' + N + '" name="dow' + N + '" multiple size="7"></select>&nbsp;&nbsp;&nbsp;\n' +
+    'every <select id="dow' + N + '" name="dow' + N + '" multiple="multiple" size="7"></select>&nbsp;&nbsp;&nbsp;\n' +
     '<select id="at' + N + '" name="at' + N + '" onchange="cA(' + N + ', this.value)">' +
     '<option value="at">&#x23f0; at</option>' + // UTF 'ALARM CLOCK' (U+23F0)
     '<option value="every">&#x1f503; every</option></select>&nbsp;' + // UTF 'CLOCKWISE DWNWARDS AND UPWARDS OPEN CIRCLE ARROWS' (U+1F503)
@@ -153,6 +153,9 @@ window.onload = addTimes;
 
 // ====== END USER SECTION ======
     </script>
+    <style>
+      select {vertical-align: middle;}        <!-- Make page look a bit nicer on desktop -->
+    </style>
   </head>
   <body>
     <form action="">
