@@ -182,6 +182,7 @@ namespace ds {
 
 #ifdef DS_CAP_TIMERS_ABS
 
+#define TIMER_DOW_NONE                              0
 #define TIMER_DOW_SUNDAY                            1
 #define TIMER_DOW_MONDAY    (TIMER_DOW_SUNDAY    << 1)
 #define TIMER_DOW_TUESDAY   (TIMER_DOW_MONDAY    << 1)
@@ -211,6 +212,8 @@ namespace ds {
       virtual void setSecond(const uint8_t /* new_second */); // Set second setting
       virtual int8_t getDayOfWeek() const;            // Get day of week setting
       virtual void setDayOfWeek(const uint8_t /* new_dow */); // Set day of week setting
+      virtual void enableDayOfWeek(const uint8_t /* new_dow */); // Enable some day(s) of week
+      virtual void disableDayOfWeek(const uint8_t /* new_dow */); // Disable some day(s) of week
       bool operator==(const TimerAbsolute& /* timer */) const; // Comparison operator
       bool operator!=(const TimerAbsolute& /* timer */) const; // Comparison operator
       bool operator==(const struct tm& /* _tm */) const; // Time comparison operator

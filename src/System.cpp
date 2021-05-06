@@ -871,34 +871,34 @@ String System::timers_cfg_name;                              // Full path to the
 
 // Scripting for timers web page. Do not edit compressed code; edit the master copy in src-js/ and regenerate
 static const char *timers_script PROGMEM = "<script>"
-  "var DW={Monday:1,Tuesday:2,Wednesday:3,Thursday:4,Friday:5,Saturday:6,Sunday:0},N=0;function pW(e,t=-1){var n=document.g"
-  "etElementById(e);for(var a in DW){var l=document.createElement(\"option\");l.value=DW[a],l.text=\"🗓 \"+a,DW[a]!=t&&-1!=t"
-  "||l.setAttribute(\"selected\",\"selected\"),n.appendChild(l)}}function pT(e,t,n=0,a=1,l=0,d=0,i=0){for(var c=document.ge"
-  "tElementById(e);c.firstChild;)c.removeChild(c.firstChild);for(var o=t<10?1:t<100?2:t<1e3?3:4,s=l;s<t;s++){var r;(r=docum"
-  "ent.createElement(\"option\")).value=s,s==i&&r.setAttribute(\"selected\",\"selected\");var m=\"\";if(1==a)for(var p=s<10"
-  "?1:s<100?2:s<1e3?3:4,u=0;u<o-p;u++)m+=\"0\";r.text=(d?String.fromCharCode(55357,56655+(s%12?s%12:12))+\" \":\"\")+m+s,c."
-  "appendChild(r)}n&&((r=document.createElement(\"option\")).value=\"sunrise\",r.text=\"🌅 \"+r.value,r.value==i&&r.setAttri"
-  "bute(\"selected\",\"selected\"),c.appendChild(r),(r=document.createElement(\"option\")).value=\"sunset\",r.text=\"🌇 \"+r"
-  ".value,r.value==i&&r.setAttribute(\"selected\",\"selected\"),c.appendChild(r))}function pA(e,t){for(var n=document.getEl"
-  "ementById(e),a=0;a<A.length;a++){var l=document.createElement(\"option\");l.value=A[a],l.text=l.value,l.value==t&&l.setA"
-  "ttribute(\"selected\",\"selected\"),n.appendChild(l)}}function cS(e,t,n=0,a=\"+\"){var l=document.getElementById(\"sep\""
-  "+e);\"at\"==document.getElementById(\"at\"+e).value?isNaN(t)?l.innerHTML='<select name=\"sign'+N+'\"><option value=\"+\""
-  "'+(\"+\"==a?' selected=\"selected\"':\"\")+'>+</option><option value=\"-\"'+(\"-\"==a?' selected=\"selected\"':\"\")+\">"
-  "&#x2212;</option></select>\":l.innerHTML=\"h&nbsp;\":(l.innerHTML=\"min offset from midnight by\",pT(\"m\"+e,parseInt(t)"
-  ",0,0,0,0,n))}function cA(e,t,n=0,a=0,l=\"+\"){\"at\"==t?(pT(\"h\"+e,24,1,1,0,1,n),pT(\"m\"+e,60,0,1,0,0,a)):pT(\"h\"+e,1"
-  "441,0,0,1,0,n=n||1),cS(e,n,a,l)}function aT(e,t=1,n=-1,a=\"at\",l=0,d=0,i=\"+\"){var c=document.createElement(\"p\");c.i"
-  "d=\"timer\"+ ++N,c.style=\"background: WhiteSmoke;\",c.innerHTML='\\n&nbsp;&nbsp;&nbsp;<input name=\"active'+N+'\" type="
-  "\"checkbox\"'+(t?' checked=\"checked\"':\"\")+' style=\"vertical-align: middle;\" title=\"deactivate timer\"/>&nbsp;\\n<"
-  "a style=\"text-decoration: none; color: black;\" href=\"javascript:dT('+N+')\" title=\"delete timer\">&#x2326;</a>&nbsp;"
-  "&nbsp;\\nevery <select id=\"dow'+N+'\" name=\"dow'+N+'\" multiple=\"multiple\" size=\"7\"></select>&nbsp;&nbsp;&nbsp;\\n"
-  "<select id=\"at'+N+'\" name=\"at'+N+'\" onchange=\"cA('+N+', this.value)\"><option value=\"at\">&#x23f0; at</option><opt"
-  "ion value=\"every\">&#x1f503; every</option></select>&nbsp;<select id=\"h'+N+'\" name=\"h'+N+'\" onchange=\"cS('+N+', th"
-  "is.value)\" style=\"text-align-last: right;\"></select>\\n<span id=\"sep'+N+'\">h&nbsp;</span>\\n<select id=\"m'+N+'\" n"
-  "ame=\"m'+N+'\" style=\"text-align-last: right;\"></select> min&nbsp;&nbsp;&nbsp;\\nexecute <select id=\"action'+N+'\" na"
-  "me=\"action'+N+'\"></select>\\n';var o=document.createTextNode(\"\\n\\n\");document.getElementById(\"timers\").appendChi"
-  "ld(o),document.getElementById(\"timers\").appendChild(c),pW(\"dow\"+N,n),pA(\"action\"+N,e),document.getElementById(\"at"
-  "\"+N).value=a,cA(N,a,l,d,i)}function dT(e){document.getElementById(\"timers\").removeChild(document.getElementById(\"tim"
-  "er\"+e))}"
+  "var DW={Monday:2,Tuesday:4,Wednesday:8,Thursday:16,Friday:32,Saturday:64,Sunday:1},N=0;function pW(e,t=127){var n=docume"
+  "nt.getElementById(e);for(var a in DW){var l=document.createElement(\"option\");l.value=DW[a],l.text=\"🗓 \"+a,DW[a]&t&&l."
+  "setAttribute(\"selected\",\"selected\"),n.appendChild(l)}}function pT(e,t,n=0,a=1,l=0,d=0,i=0){for(var c=document.getEle"
+  "mentById(e);c.firstChild;)c.removeChild(c.firstChild);for(var o=t<10?1:t<100?2:t<1e3?3:4,s=l;s<t;s++){var r;(r=document."
+  "createElement(\"option\")).value=s,s==i&&r.setAttribute(\"selected\",\"selected\");var m=\"\";if(1==a)for(var p=s<10?1:s"
+  "<100?2:s<1e3?3:4,u=0;u<o-p;u++)m+=\"0\";r.text=(d?String.fromCharCode(55357,56655+(s%12?s%12:12))+\" \":\"\")+m+s,c.appe"
+  "ndChild(r)}n&&((r=document.createElement(\"option\")).value=\"sunrise\",r.text=\"🌅 \"+r.value,r.value==i&&r.setAttribute"
+  "(\"selected\",\"selected\"),c.appendChild(r),(r=document.createElement(\"option\")).value=\"sunset\",r.text=\"🌇 \"+r.val"
+  "ue,r.value==i&&r.setAttribute(\"selected\",\"selected\"),c.appendChild(r))}function pA(e,t){for(var n=document.getElemen"
+  "tById(e),a=0;a<A.length;a++){var l=document.createElement(\"option\");l.value=A[a],l.text=l.value,l.value==t&&l.setAttri"
+  "bute(\"selected\",\"selected\"),n.appendChild(l)}}function cS(e,t,n=0,a=\"+\"){var l=document.getElementById(\"sep\"+e);"
+  "\"at\"==document.getElementById(\"at\"+e).value?isNaN(t)?l.innerHTML='<select name=\"sign'+N+'\"><option value=\"+\"'+(\""
+  "+\"==a?' selected=\"selected\"':\"\")+'>+</option><option value=\"-\"'+(\"-\"==a?' selected=\"selected\"':\"\")+\">&#x22"
+  "12;</option></select>\":l.innerHTML=\"h&nbsp;\":(l.innerHTML=\"min offset from midnight by\",pT(\"m\"+e,parseInt(t),0,0,"
+  "0,0,n))}function cA(e,t,n=0,a=0,l=\"+\"){\"at\"==t?(pT(\"h\"+e,24,1,1,0,1,n),pT(\"m\"+e,60,0,1,0,0,a)):pT(\"h\"+e,1441,0"
+  ",0,1,0,n=n||1),cS(e,n,a,l)}function aT(e,t=1,n=127,a=\"at\",l=0,d=0,i=\"+\"){var c=document.createElement(\"p\");c.id=\""
+  "timer\"+ ++N,c.style=\"background: WhiteSmoke;\",c.innerHTML='\\n&nbsp;&nbsp;&nbsp;<input name=\"active'+N+'\" type=\"ch"
+  "eckbox\"'+(t?' checked=\"checked\"':\"\")+' style=\"vertical-align: middle;\" title=\"deactivate timer\"/>&nbsp;\\n<a st"
+  "yle=\"text-decoration: none; color: black;\" href=\"javascript:dT('+N+')\" title=\"delete timer\">&#x2326;</a>&nbsp;&nbs"
+  "p;\\nevery <select id=\"dow'+N+'\" name=\"dow'+N+'\" multiple=\"multiple\" size=\"7\"></select>&nbsp;&nbsp;&nbsp;\\n<sel"
+  "ect id=\"at'+N+'\" name=\"at'+N+'\" onchange=\"cA('+N+', this.value)\"><option value=\"at\">&#x23f0; at</option><option "
+  "value=\"every\">&#x1f503; every</option></select>&nbsp;<select id=\"h'+N+'\" name=\"h'+N+'\" onchange=\"cS('+N+', this.v"
+  "alue)\" style=\"text-align-last: right;\"></select>\\n<span id=\"sep'+N+'\">h&nbsp;</span>\\n<select id=\"m'+N+'\" name="
+  "\"m'+N+'\" style=\"text-align-last: right;\"></select> min&nbsp;&nbsp;&nbsp;\\nexecute <select id=\"action'+N+'\" name=\""
+  "action'+N+'\"></select>\\n';var o=document.createTextNode(\"\\n\\n\");document.getElementById(\"timers\").appendChild(o)"
+  ",document.getElementById(\"timers\").appendChild(c),pW(\"dow\"+N,n),pA(\"action\"+N,e),document.getElementById(\"at\"+N)"
+  ".value=a,cA(N,a,l,d,i)}function dT(e){document.getElementById(\"timers\").removeChild(document.getElementById(\"timer\"+"
+  "e))}"
   "</script>\n";
 
 // Generate timer configuration as JavaScript code
@@ -989,7 +989,7 @@ void System::serveTimers() {
 // Serve the "timers save" page
 void System::serveTimersSave() {
 
-  // Clear the current list
+  // Clear the current list. Updating existing timers is too painful, as user can change timer types
   for (auto timer : timers) {
     if (!timer) continue;
     switch (timer->getType()) {
@@ -1005,6 +1005,7 @@ void System::serveTimersSave() {
 
   // First, create all the timers
   //// Create timers inactive by default, to match HTTP POST behavior, which will send checkboxes of active timers only
+  //// Similarly, day of week is set to 'none'; active days are passed via POST
   for (unsigned int i = 0; i < (unsigned int)web_server.args(); i++) {
     const String arg_name = web_server.argName(i);
     if (arg_name.startsWith(F("at"))) {
@@ -1021,12 +1022,12 @@ void System::serveTimersSave() {
 
                 // New solar timer
                 auto timer = new TimerSolar(F("undefined"), web_server.arg(j) == F("sunrise") ? TIMER_SUNRISE : TIMER_SUNSET,
-                  0, TIMER_DOW_ANY, false /* ! */, true, false, id);
+                  0, TIMER_DOW_NONE /* ! */, false /* ! */, true, false, id);
                 timers.push_front(timer);
               } else {  // Invalid hour string values are accepted and treated as hour == 0
 
                 // New absolute timer
-                auto timer = new TimerAbsolute(F("undefined"), 0, 0, 0, TIMER_DOW_ANY, false /* ! */, true, false, id);
+                auto timer = new TimerAbsolute(F("undefined"), 0, 0, 0, TIMER_DOW_NONE /* ! */, false /* ! */, true, false, id);
                 timers.push_front(timer);
               }
             }
@@ -1035,7 +1036,7 @@ void System::serveTimersSave() {
           if (web_server.arg(i) == F("every")) {
 
             // New periodic timer
-            auto timer = new TimerCountdownAbs(F("undefined"), 60, 0, TIMER_DOW_ANY, false /* ! */, true, false, id);
+            auto timer = new TimerCountdownAbs(F("undefined"), 60, 0, TIMER_DOW_NONE /* ! */, false /* ! */, true, false, id);
             timers.push_front(timer);
           }
         }
@@ -1061,10 +1062,16 @@ void System::serveTimersSave() {
 
     if (arg_name.startsWith(F("dow"))) {
       const auto id = arg_name.substring(3).toInt();
-      const auto dow_web = web_server.arg(i).toInt() & 7;  // TODO: multiple selection
+      auto dow_web = web_server.arg(i).toInt();
+      if (dow_web < TIMER_DOW_NONE || dow_web > TIMER_DOW_INVALID)
+        dow_web = TIMER_DOW_INVALID;
       auto timer = getTimerAbsByID(id);
-      if (timer)
-        timer->setDayOfWeek(1 << dow_web);
+      if (timer) {
+        if (dow_web == TIMER_DOW_INVALID)
+          timer->setDayOfWeek(TIMER_DOW_INVALID);
+        else
+          timer->enableDayOfWeek(dow_web);  // Use "enable" instead of "set", because HTTP will send bits separately
+      }
     } else
 
     if (arg_name.startsWith(F("h"))) {
@@ -1383,6 +1390,16 @@ int8_t TimerAbsolute::getDayOfWeek() const {
 // Set day of week setting
 void TimerAbsolute::setDayOfWeek(const uint8_t new_dow) {
   time.tm_wday = new_dow < TIMER_DOW_INVALID ? new_dow : TIMER_DOW_INVALID;
+}
+
+// Enable some day(s) of week
+void TimerAbsolute::enableDayOfWeek(const uint8_t new_dow) {
+  time.tm_wday |= new_dow < TIMER_DOW_INVALID ? new_dow : TIMER_DOW_NONE;
+}
+
+// Disable some day(s) of week
+void TimerAbsolute::disableDayOfWeek(const uint8_t new_dow) {
+  time.tm_wday &= new_dow < TIMER_DOW_INVALID ? ~new_dow : ~TIMER_DOW_NONE;
 }
 
 // Return absolute timer with a matching ID
@@ -1793,7 +1810,7 @@ void System::begin() {
 
     // Parse timer configuration. Format:
     // |       |   action   | active | day of week |  type  |  hours  | mins | diff (optional) |
-    //      aT('lamp on'    ,      1 ,           -1, 'at'   , 'sunset', 15   ,             '-' );
+    //      aT('lamp on'    ,      1 ,          127, 'at'   , 'sunset', 15   ,             '-' );
     uint8_t tid = 0;
     while (cfg_file.available()) {
       line = cfg_file.readStringUntil('\n');
