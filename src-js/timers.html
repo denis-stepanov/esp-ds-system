@@ -9,17 +9,17 @@
     <script>
 // ====== START JAVASCRIPT ======
 // Short global identifiers are used to decrease the code size
-var DW = { 'Monday': 1, 'Tuesday': 2, 'Wednesday': 3, 'Thursday': 4, 'Friday': 5, 'Saturday': 6, 'Sunday': 0 };
+var DW = { 'Monday': 2, 'Tuesday': 4, 'Wednesday': 8, 'Thursday': 16, 'Friday': 32, 'Saturday': 64, 'Sunday': 1 };
 var N = 0;
 
 // pW == populate day of week
-function pW(what, dow = -1) {
+function pW(what, dow = 127) {
   var select = document.getElementById(what);
   for (var d in DW) {
     var opt = document.createElement('option');
     opt.value = DW[d];
     opt.text = '\uD83D\uDDD3 ' + d;   // UTF 'SPIRAL CALENDAR PAD' (U+1F5D3)
-    if (DW[d] == dow || -1 == dow)
+    if (DW[d] & dow)
       opt.setAttribute('selected', 'selected');
     select.appendChild(opt);
   }
@@ -104,7 +104,7 @@ function cA(n, at, hrs = 0, min = 0, sign = '+') {
 }
 
 // aT == add time
-function aT(action, active = 1, dow = -1, at = 'at', hrs = 0, min = 0, sign = '+') {
+function aT(action, active = 1, dow = 127, at = 'at', hrs = 0, min = 0, sign = '+') {
   var container = document.createElement('p');
   container.id = 'timer' + ++N;
   container.style = 'background: WhiteSmoke;';
@@ -116,7 +116,7 @@ function aT(action, active = 1, dow = -1, at = 'at', hrs = 0, min = 0, sign = '+
     'every <select id="dow' + N + '" name="dow' + N + '" multiple="multiple" size="7"></select>&nbsp;&nbsp;&nbsp;\n' +
     '<select id="at' + N + '" name="at' + N + '" onchange="cA(' + N + ', this.value)">' +
     '<option value="at">&#x23f0; at</option>' + // UTF 'ALARM CLOCK' (U+23F0)
-    '<option value="every">&#x1f503; every</option></select>&nbsp;' + // UTF 'CLOCKWISE DWNWARDS AND UPWARDS OPEN CIRCLE ARROWS' (U+1F503)
+    '<option value="every">&#x1f503; every</option></select>&nbsp;' + // UTF 'CLOCKWISE DOWNWARDS AND UPWARDS OPEN CIRCLE ARROWS' (U+1F503)
     '<select id="h' + N + '" name="h' + N + '" onchange="cS(' + N + ', this.value)" style="text-align-last: right;"></select>\n' +
     '<span id="sep' + N + '">h&nbsp;</span>\n' +
     '<select id="m' + N + '" name="m' + N + '" style="text-align-last: right;"></select> min&nbsp;&nbsp;&nbsp;\n' +
@@ -145,9 +145,9 @@ var A = ['\uD83D\uDCA1 lamp off', '\uD83D\uDCA1 lamp on', '\uD83D\uDCA1 lamp tog
 //// Pre-configured timers
 function addTimes() {
   // |         action          | active | day of week |  type  |  hours  | mins | diff |
-  aT('\uD83D\uDCA1 lamp off'   ,      1 ,            0, 'at'   ,        7, 50          );
-  aT('\uD83D\uDCA1 lamp on'    ,      1 ,           -1, 'at'   , 'sunset', 15   , '-'  );
-  aT('\uD83D\uDCA1 lamp toggle',      0 ,           -1, 'every',       60, 30          );
+  aT('\uD83D\uDCA1 lamp off'   ,      1 ,            1, 'at'   ,        7, 50          );
+  aT('\uD83D\uDCA1 lamp on'    ,      1 ,          127, 'at'   , 'sunset', 15   , '-'  );
+  aT('\uD83D\uDCA1 lamp toggle',      0 ,          127, 'every',       60, 30          );
 }
 window.onload = addTimes;
 
