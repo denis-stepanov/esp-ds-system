@@ -210,7 +210,7 @@ namespace ds {
       virtual void setMinute(const uint8_t /* new_minute */); // Set minute setting
       virtual uint8_t getSecond() const;              // Return second setting
       virtual void setSecond(const uint8_t /* new_second */); // Set second setting
-      virtual int8_t getDayOfWeek() const;            // Get day of week setting
+      virtual uint8_t getDayOfWeek() const;           // Get day of week setting
       virtual void setDayOfWeek(const uint8_t /* new_dow */); // Set day of week setting
       virtual void enableDayOfWeek(const uint8_t /* new_dow */); // Enable some day(s) of week
       virtual void disableDayOfWeek(const uint8_t /* new_dow */); // Disable some day(s) of week

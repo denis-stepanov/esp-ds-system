@@ -1383,7 +1383,7 @@ void TimerAbsolute::setSecond(const uint8_t new_second) {
 }
 
 // Get day of week setting
-int8_t TimerAbsolute::getDayOfWeek() const {
+uint8_t TimerAbsolute::getDayOfWeek() const {
   return time.tm_wday;
 }
 
