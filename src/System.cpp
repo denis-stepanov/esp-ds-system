@@ -1144,6 +1144,27 @@ void System::serveTimersSave() {
   }
 #endif // DS_CAP_SYS_FS
 
+  // Report result
+  String result;
+  if (abs_timers_active) {
+    const auto n_timers = std::distance(timers.begin(), timers.end());
+    result += n_timers;
+    result += F(" timer");
+    result += n_timers % 10 == 1 && n_timers != 11 ? F("") : F("s");
+    result += F(" configured, ");
+    unsigned int active = 0;
+    for (auto timer : timers)
+      if (timer && timer->isArmed())
+        active++;
+    result += active;
+    result += F(" active");
+  } else
+    result += F("Timers disabled");
+#ifdef DS_CAP_SYS_LOG
+  log->printf(TIMED(""));
+  log->println(result);
+#endif // DS_CAP_SYS_LOG
+
   // Serve the page
   pushHTMLHeader(F("Timer Configuration Updated"), F(""), true);
   web_page += F(
@@ -1151,20 +1172,7 @@ void System::serveTimersSave() {
     "[ <a href=\"/\">home</a> ]<hr/>\n"
   );
   web_page += F("<p>");
-  if (abs_timers_active) {
-    const auto n_timers = std::distance(timers.begin(), timers.end());
-    web_page += n_timers;
-    web_page += F(" timer");
-    web_page += n_timers % 10 == 1 && n_timers != 11 ? F("") : F("s");
-    web_page += F(" configured, ");
-    unsigned int active = 0;
-    for (auto timer : timers)
-      if (timer && timer->isArmed())
-        active++;
-    web_page += active;
-    web_page += F(" active");
-  } else
-    web_page += F("Timers disabled");
+  web_page += result;
   web_page += F("</p>");
 
 #ifdef DS_CAP_SYS_FS
@@ -1175,6 +1183,12 @@ void System::serveTimersSave() {
 
   pushHTMLFooter();
   sendWebPage();
+
+#ifdef DS_CAP_APP_LOG
+  result += F(" from ");
+  result += web_server.client().remoteIP().toString();
+  appLogWriteLn(result);
+#endif // DS_CAP_APP_LOG
 }
 #endif // DS_CAP_WEB_TIMERS
 
