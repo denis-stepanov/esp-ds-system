@@ -17,13 +17,13 @@ using namespace ds;
 #endif // DS_CAP_SYS_TIME && !DS_TIMEZONE
 
 #if defined(DS_CAP_TIMERS_SOLAR) && !defined(DS_LATITUDE)
-#warning "Latitude will be set to Paris. Define DS_LATITUDE to suppress this warning"
-#define DS_LATITUDE 48.85863
+#warning "Latitude will be set to Greenwich. Define DS_LATITUDE to suppress this warning"
+#define DS_LATITUDE 51.483611
 #endif
 
 #if defined(DS_CAP_TIMERS_SOLAR) && !defined(DS_LONGITUDE)
-#warning "Longitude will be set to Paris. Define DS_LONGITUDE to suppress this warning"
-#define DS_LONGITUDE 2.29443
+#warning "Longitude will be set to Greenwich. Define DS_LONGITUDE to suppress this warning"
+#define DS_LONGITUDE -0.005833
 #endif
 
 
