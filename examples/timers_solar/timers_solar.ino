@@ -52,17 +52,11 @@ void setup() {
     sunrise / 60, sunrise % 60, sunset / 60, sunset % 60);
 
   // Set up two timers: one to turn on the lamp on sunset and another to turn off the lamp 5 mins after sunrise
-  auto timer_sunset = new TimerSolar("lamp on", TIMER_SUNSET);
-  if (timer_sunset) {
-    System::timers.push_front(timer_sunset);
-    System::log->println("Timer 1 set at sunset");
-  }
+  System::timers.push_front(new TimerSolar("lamp on", TIMER_SUNSET));
+  System::log->println("Timer 1 set at sunset");
   
-  auto timer_sunrise = new TimerSolar("lamp off", TIMER_SUNRISE, 5);
-  if (timer_sunrise) {
-    System::timers.push_front(timer_sunrise);
-    System::log->println("Timer 2 set at sunrise + 5 mins");
-  }
+  System::timers.push_front(new TimerSolar("lamp off", TIMER_SUNRISE, 5));
+  System::log->println("Timer 2 set at sunrise + 5 mins");
 }
 
 void loop() {
