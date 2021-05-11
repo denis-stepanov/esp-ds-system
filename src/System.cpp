@@ -1677,7 +1677,7 @@ bool TimerCountdownAbs::operator!=(const TimerCountdownAbs& timer) const {
 /*************************************************************************
  * Capability: countdown timers, counting via ticker
  *************************************************************************/
- #ifdef DS_CAP_TIMERS_COUNT_TICK
+#ifdef DS_CAP_TIMERS_COUNT_TICK
 
 // Countdown timer constructor
 TimerCountdownTick::TimerCountdownTick(const String action, const float _interval, Ticker::callback_function_t _callback,
