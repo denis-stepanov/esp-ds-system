@@ -7,7 +7,7 @@
 using namespace ds;
 
 // Timer handler for lamp toggle
-void myTimerHandler_lamp_toggle() {
+void handle_lamp_toggle() {
   static auto lamp_on = false;
   if (lamp_on) {
 
@@ -25,14 +25,14 @@ void myTimerHandler_lamp_toggle() {
 }
 
 // Service timer to print a time beat
-TimerCountdownTick my_timer_print_time("metronome", 1, [](){ System::log->printf(TIMED("\n") / 1000); });
+TimerCountdownTick timer_print_time("metronome", 1, [](){ System::log->printf(TIMED("\n") / 1000); });
 
 // Countdown timer to flip a lamp with 5 seconds period
-TimerCountdownTick my_timer_lamp_toggle("lamp toggle", 5, myTimerHandler_lamp_toggle);
+TimerCountdownTick timer_lamp_toggle("lamp toggle", 5, handle_lamp_toggle);
 
 void setup() {
   System::begin();
-  System::log->printf("Timer \"%s\" set to fire every %.0f s\n", my_timer_lamp_toggle.getAction().c_str(), my_timer_lamp_toggle.getInterval());
+  System::log->printf("Timer \"%s\" set to fire every %.0f s\n", timer_lamp_toggle.getAction().c_str(), timer_lamp_toggle.getInterval());
 }
 
 void loop() {
