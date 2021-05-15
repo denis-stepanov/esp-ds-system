@@ -1,6 +1,6 @@
 Library of reusable functions for rapid development of ESP8266 sketches. Helps avoiding copy-pasting supporting code from one sketch to another and focus straight away on sketch business.
 
-Supported features (aka "system capabilities"):
+Supported features (aka "system capabilities")
 -----------------------------------------------
 * [Application identification](https://github.com/denis-stepanov/esp-ds-system/wiki/DS_CAP_APP_ID)
 * [Application log with log browser and automatic log rotation](https://github.com/denis-stepanov/esp-ds-system/wiki/DS_CAP_APP_LOG)
@@ -16,16 +16,27 @@ Supported features (aka "system capabilities"):
 * [Wi-Fi manager (configuration of Wi-Fi at runtime)](https://github.com/denis-stepanov/esp-ds-system/wiki/DS_CAP_WIFIMANAGER) (supported by [WiFiManager](https://github.com/tzapu/WiFiManager))
 * [mDNS](https://github.com/denis-stepanov/esp-ds-system/wiki/DS_CAP_MDNS)
 * [Web server with pages template, system info page and favicon support](https://github.com/denis-stepanov/esp-ds-system/wiki/DS_CAP_WEBSERVER)
+* [Rich set of timers: absolute, solar, countdown](https://github.com/denis-stepanov/esp-ds-system/wiki/DS_CAP_TIMERS), including run-time reconfiguration (supported by [Dusk2Dawn](https://github.com/dmkishi/Dusk2Dawn))
 * ... add your own ...
 
-Capabilities may have synergy; e.g., if you activate both 'time' and 'network', time will be automatically sync from NTP. And if you add a 'led' on top, Wi-Fi connection process will be signalled with LED.
+The strong part of the library is that capabilities know about each other and often have synergy. E.g., if you activate both 'time' and 'network', time will be automatically sync from NTP; and if you add a 'led' on top, Wi-Fi connection process will be signalled with LED.
 
 Most features rely on [ESP8266 Arduino Core](https://github.com/esp8266/Arduino) or several other excellent libraries from GitHub, and make just a thin interface on top. Library objects are deliberately declared `public`, so you have full access to the native interface, should you need it. Few things I haven't found a good support for and implemented myself:
-* application identification;
-* application logger with log rotation and decent web browsing;
-* "about" web page listing many ESP8266 runtime details (memory, file system, time status, ...).
 
-Usage:
+* application identification;
+* application logger with log rotation and decent web browsing:
+
+![App Log](/doc/images/web-log.jpg)
+
+* "about" web page listing many ESP8266 runtime details:
+
+![About](/doc/images/web-about.jpg)
+
+* user-configured timers, including solar events support:
+
+![Web Timers](/doc/images/web-timers.jpg)
+
+Usage
 ------
 1. Download the latest release locally (installation via Arduino Library Manager is not supported - [see why](https://github.com/denis-stepanov/esp-ds-system/wiki/Design#use-of-c-preprocessor));
 2. Copy files `System.h`, `System.cpp` and `MySystem.h` from `src/` into your sketch folder. Reopen sketch in Arduino if you had it opened.
