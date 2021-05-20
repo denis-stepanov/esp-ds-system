@@ -296,6 +296,10 @@ namespace ds {
   // System class is just a collection of system-wide routines, so all of them are made static on purpose
   class System {
 
+    protected:
+
+      static void addCapability(String& /* capabilities */, PGM_P /* capability */); // Append capability to the list
+
     public:
 
       // Shared methods that are always defined

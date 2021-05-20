@@ -2095,94 +2095,99 @@ void System::update() {
 #endif // DS_CAP_TIMERS_ABS
 }
 
-// Return list of configured capabilities
-#define __DS_DECAP(capability) (String(F(capability)).substring(strlen_P(PSTR("DS_CAP_"))) + F(" "))
+// Append capability to the list
+void System::addCapability(String& capabilities, PGM_P capability) {
+  capabilities += String(capability).substring(strlen_P(PSTR("DS_CAP_"))) + F(" ");
+}
 
+// Return list of configured capabilities
 String System::getCapabilities() {
   String capabilities;
 
+#define ADD_DS_CAP(cap) addCapability(capabilities, PSTR(cap));
+
 #ifdef DS_CAP_APP_ID
-  capabilities += __DS_DECAP(__STRING(DS_CAP_APP_ID));
+  ADD_DS_CAP(__STRING(DS_CAP_APP_ID))
 #endif // DS_CAP_APP_ID
 
 #ifdef DS_CAP_APP_LOG
-  capabilities += __DS_DECAP(__STRING(DS_CAP_APP_LOG));
+  ADD_DS_CAP(__STRING(DS_CAP_APP_LOG))
 #endif // DS_CAP_APP_LOG
 
 #ifdef DS_CAP_SYS_LED
-  capabilities += __DS_DECAP(__STRING(DS_CAP_SYS_LED));
+  ADD_DS_CAP(__STRING(DS_CAP_SYS_LED))
 #endif // DS_CAP_SYS_LED
 
 #ifdef DS_CAP_SYS_LOG
 #ifdef DS_CAP_SYS_LOG_HW
-  capabilities += __DS_DECAP(__STRING(DS_CAP_SYS_LOG_HW));
+  ADD_DS_CAP(__STRING(DS_CAP_SYS_LOG_HW))
 #else
-  capabilities += __DS_DECAP(__STRING(DS_CAP_SYS_LOG));
+  ADD_DS_CAP(__STRING(DS_CAP_SYS_LOG))
 #endif // DS_CAP_SYS_LOG_HW
 #endif // DS_CAP_SYS_LOG
 
 #ifdef DS_CAP_SYS_RESET
-  capabilities += __DS_DECAP(__STRING(DS_CAP_SYS_RESET));
+  ADD_DS_CAP(__STRING(DS_CAP_SYS_RESET))
 #endif // DS_CAP_SYS_RESET
 
 #ifdef DS_CAP_SYS_RTCMEM
-  capabilities += __DS_DECAP(__STRING(DS_CAP_SYS_RTCMEM));
+  ADD_DS_CAP(__STRING(DS_CAP_SYS_RTCMEM))
 #endif // DS_CAP_SYS_RTCMEM
 
 #ifdef DS_CAP_SYS_TIME
-  capabilities += __DS_DECAP(__STRING(DS_CAP_SYS_TIME));
+  ADD_DS_CAP(__STRING(DS_CAP_SYS_TIME))
 #endif // DS_CAP_SYS_TIME
 
 #ifdef DS_CAP_SYS_UPTIME
-  capabilities += __DS_DECAP(__STRING(DS_CAP_SYS_UPTIME));
+  ADD_DS_CAP(__STRING(DS_CAP_SYS_UPTIME))
 #endif // DS_CAP_SYS_TIME
 
 #ifdef DS_CAP_SYS_FS
-  capabilities += __DS_DECAP(__STRING(DS_CAP_SYS_FS));
+  ADD_DS_CAP(__STRING(DS_CAP_SYS_FS))
 #endif // DS_CAP_SYS_FS
 
 #ifdef DS_CAP_SYS_NETWORK
-  capabilities += __DS_DECAP(__STRING(DS_CAP_SYS_NETWORK));
+  ADD_DS_CAP(__STRING(DS_CAP_SYS_NETWORK))
 #endif // DS_CAP_SYS_NETWORK
 
 #ifdef DS_CAP_WIFIMANAGER
-  capabilities += __DS_DECAP(__STRING(DS_CAP_WIFIMANAGER));
+  ADD_DS_CAP(__STRING(DS_CAP_WIFIMANAGER))
 #endif // DS_CAP_WIFIMANAGER
 
 #ifdef DS_CAP_MDNS
-  capabilities += __DS_DECAP(__STRING(DS_CAP_MDNS));
+  ADD_DS_CAP(__STRING(DS_CAP_MDNS))
 #endif // DS_CAP_MDNS
 
 #ifdef DS_CAP_WEBSERVER
-  capabilities += __DS_DECAP(__STRING(DS_CAP_WEBSERVER));
+  ADD_DS_CAP(__STRING(DS_CAP_WEBSERVER))
 #endif // DS_CAP_WEBSERVER
 
 #ifdef DS_CAP_BUTTON
-  capabilities += __DS_DECAP(__STRING(DS_CAP_BUTTON));
+  ADD_DS_CAP(__STRING(DS_CAP_BUTTON))
 #endif // DS_CAP_BUTTON
 
 #ifdef DS_CAP_TIMERS
-  capabilities += __DS_DECAP(__STRING(DS_CAP_TIMERS));
+  ADD_DS_CAP(__STRING(DS_CAP_TIMERS))
 #endif // DS_CAP_TIMERS
 
 #ifdef DS_CAP_TIMERS_ABS
-  capabilities += __DS_DECAP(__STRING(DS_CAP_TIMERS_ABS));
+  ADD_DS_CAP(__STRING(DS_CAP_TIMERS_ABS))
 #endif // DS_CAP_TIMERS_ABS
 
 #ifdef DS_CAP_TIMERS_SOLAR
-  capabilities += __DS_DECAP(__STRING(DS_CAP_TIMERS_SOLAR));
+  ADD_DS_CAP(__STRING(DS_CAP_TIMERS_SOLAR))
 #endif // DS_CAP_TIMERS_SOLAR
 
 #ifdef DS_CAP_TIMERS_COUNT_ABS
-  capabilities += __DS_DECAP(__STRING(DS_CAP_TIMERS_COUNT_ABS));
+  ADD_DS_CAP(__STRING(DS_CAP_TIMERS_COUNT_ABS))
 #endif // DS_CAP_TIMERS_COUNT_ABS
 
 #ifdef DS_CAP_TIMERS_COUNT_TICK
-  capabilities += __DS_DECAP(__STRING(DS_CAP_TIMERS_COUNT_TICK));
+  ADD_DS_CAP(__STRING(DS_CAP_TIMERS_COUNT_TICK))
 #endif // DS_CAP_TIMERS_COUNT_TICK
 
 #ifdef DS_CAP_WEB_TIMERS
-  capabilities += __DS_DECAP(__STRING(DS_CAP_WEB_TIMERS));
+  ADD_DS_CAP(__STRING(DS_CAP_WEB_TIMERS))
 #endif // DS_CAP_WEB_TIMERS
 
   capabilities.trim();
