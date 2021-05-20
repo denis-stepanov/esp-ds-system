@@ -297,7 +297,9 @@ String System::getBootTimeStr() {
 
 fs::FS& System::fs = LittleFS;             // Use LittleFS as file system
 
+#ifdef DS_CAP_WEB_TIMERS
 static const char *DS_SYS_FOLDER_NAME PROGMEM = "/ds"; // Folder where settings are stored
+#endif // DS_CAP_WEB_TIMERS
 
 #endif // DS_CAP_SYS_FS
 
