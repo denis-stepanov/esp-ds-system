@@ -649,12 +649,7 @@ void System::serveAbout() {
   FSInfo fsi;
   fs.info(fsi);
   web_page += TR_BEGIN("File System");
-  if (&fs == &LittleFS)
-    web_page += F("LittleFS");
-  else if (&fs == &SPIFFS)
-    web_page += F("SPIFFS");
-  else
-    web_page += F("Unknown");
+  web_page += PSTR(__XSTRING(DS_FS_TYPE));
   web_page += F(", ");
   web_page += fsi.totalBytes / 1024;
   web_page += F(" kB (");
