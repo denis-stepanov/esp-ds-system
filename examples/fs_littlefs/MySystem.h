@@ -1,6 +1,6 @@
 #ifndef _DS_SYSTEM_H_
 
-#define DS_CAP_SYS_FS       // Enable file system
+#define DS_CAP_SYS_FS       // Enable file system (which is LittleFS by default)
 #define DS_CAP_SYS_LOG_HW   // Enable syslog on hardware serial line
 
 #include "System.h"         // System global definitions

@@ -26,6 +26,10 @@ using namespace ds;
 #define DS_LONGITUDE -0.005833
 #endif
 
+#if defined(DS_CAP_SYS_FS) && !defined(DS_FS_TYPE)
+#define DS_FS_TYPE LittleFS
+#endif // DS_CAP_SYS_FS && !DS_FS_TYPE
+
 
 
 
@@ -293,9 +297,15 @@ String System::getBootTimeStr() {
  *************************************************************************/
 #ifdef DS_CAP_SYS_FS
 
+#if DS_FS_TYPE == LittleFS
 #include <LittleFS.h>                      // LittleFS support
+#endif // DS_FS_TYPE == LittleFS
 
-fs::FS& System::fs = LittleFS;             // Use LittleFS as file system
+#if DS_FS_TYPE == SPIFFS
+#include <FS.h>                            // SPIFFS support
+#endif // DS_FS_TYPE == SPIFFS
+
+fs::FS& System::fs = DS_FS_TYPE;
 
 #ifdef DS_CAP_WEB_TIMERS
 static const char *DS_SYS_FOLDER_NAME PROGMEM = "/ds"; // Folder where settings are stored
