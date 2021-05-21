@@ -7,7 +7,8 @@
 using namespace ds;
 
 // Consistency checks (those that can be deferred from the header)
-#if defined(DS_CAP_SYS_LED) && defined(DS_CAP_SYS_LOG_HW) && !defined(DS_LED_VS_SERIAL_CHECKED_OK)
+#if defined(DS_CAP_SYS_LED) && defined(DS_CAP_SYS_LOG_HW) && !defined(DS_LED_VS_SERIAL_CHECKED_OK) \
+  && (defined(ARDUINO_ESP8266_GENERIC) && LED_BUILTIN == 1)
 #warning "In ESP8266, capabilities DS_CAP_SYS_LED and DS_CAP_SYS_LOG_HW may conflict on a pin. Define DS_LED_VS_SERIAL_CHECKED_OK to suppress this warning"
 #endif // DS_CAP_SYS_LED && DS_CAP_SYS_LOG_HW
 
