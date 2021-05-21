@@ -8,6 +8,8 @@ using namespace ds;
 
 void setup() {
   System::begin();
+  System::getVersion();
+  System::getCapabilities();
 }
 
 void loop() {
