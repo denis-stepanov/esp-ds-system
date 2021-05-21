@@ -29,6 +29,9 @@
 // DS_CAP_TIMERS_COUNT_TICK - enable countdown timers via ticker
 // DS_CAP_WEB_TIMERS        - enable timer configuration via web
 
+// System version
+// Format is x.xx.xx (major.minor.maintenance). E.g., 20001 means 2.0.1
+#define DS_SYSTEM_VERSION 10100U   // 1.1.0
 
 // Consistency checks. Policy: whenever one capability requires another, issue a warning and enable. Whenever one capability extends another, enable without a warning
 #if defined(DS_CAP_SYS_LOG_HW) && !defined(DS_CAP_SYS_LOG)
