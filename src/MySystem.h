@@ -32,6 +32,7 @@
 // #define DS_LONGITUDE -0.005833            // Longitude if solar events are used
 // #define DS_FS_TYPE LittleFS               // "LittleFS" or "SPIFFS" (without quotes)
 // #define DS_LED_VS_SERIAL_CHECKED_OK       // Define if both LED and Serial are used in your sketch in non-conflicting way
+// #define DS_UNSTABLE_SERIAL                // Define to skip small delay after syslog initialization, used to get reliable printout after program upload
 // #define BUTTON_BUILTIN 0                  // Define if your button is connected to GPIO other than 0
 
 #include "System.h"         // DS-System global definitions

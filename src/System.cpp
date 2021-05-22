@@ -1764,6 +1764,9 @@ void System::begin() {
 #ifdef DS_CAP_SYS_LOG_HW
   // This could be better done with dynamic_cast instead of #define, but default compiler options do not allow RTTI
   static_cast<HardwareSerial *>(log)->begin(LOG_SPEED);
+#ifndef DS_UNSTABLE_SERIAL
+  delay(150);          // See https://github.com/denis-stepanov/esp-ds-system/issues/5
+#endif // !DS_UNSTABLE_SERIAL
 #endif // DS_CAP_SYS_LOG_HW
 #ifdef DS_CAP_APP_ID
   log->printf("\n\n" TIMED("Started %s v%s, build %s\n"), app_name, app_version, app_build);
