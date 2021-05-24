@@ -761,9 +761,14 @@ void System::serveAbout() {
 
 #ifdef DS_CAP_APP_LOG
 // Serve the "log" page
-const size_t APP_LOG_PAGE_SIZE = 1024;     // Max amount of information to display from the log file (B)
+static const size_t APP_LOG_PAGE_SIZE = 1024; // Max amount of information to display from the log file (B)
+static const char *APP_LOG_STYLE PROGMEM =
+  "<style>\n"
+  "  h4 { text-align: center; border-bottom: 1px solid #000; line-height: 0.1em; margin: 15px 0 -15px; }\n"
+  "  h4 span { background: #fff; padding: 0 10px; }\n"
+  "</style>\n";
 void System::serveAppLog() {
-  pushHTMLHeader(F("Application Log"));
+  pushHTMLHeader(F("Application Log"), APP_LOG_STYLE);
   web_page += F(
     "<h3>Application Log</h3>\n"
     "[ <a href=\"/\">home</a> ]<hr/>\n"
@@ -830,10 +835,31 @@ void System::serveAppLog() {
         log_file.seek(fsize - (log_page + 1) * APP_LOG_PAGE_SIZE);
         log_file.readStringUntil('\n');
       }
-      String line;
+      String line, old_date(F(""));
       while (log_file.available() && log_file.position() <= fsize - log_page * APP_LOG_PAGE_SIZE) {
         line = log_file.readStringUntil('\n');
-        web_page += F("<br>");
+        String new_date = line.substring(0, 10);
+        line.remove(0, 11);
+        if (old_date != new_date) {
+
+          // Reconstruct date information from condensed log string
+          struct tm new_tm;
+          memset(&new_tm, 0, sizeof(new_tm));
+          new_tm.tm_year = new_date.substring(0, 4).toInt() - 1900;
+          new_tm.tm_mon = new_date.substring(5, 7).toInt() - 1;
+          new_tm.tm_mday = new_date.substring(8, 10).toInt();
+          new_tm.tm_isdst = -1;
+          mktime(&new_tm);
+
+          char time_str[32] = {0, };
+          strftime(time_str, sizeof(time_str), "%A, %e %B %Y", &new_tm);
+
+          web_page += F("<h4><span>");
+          web_page += time_str;
+          web_page += F("</span></h4>\n");
+          old_date = new_date;
+        }
+        web_page += F("<br/>");
         web_page += line;   // already contains '\n'
       }
       log_file.close();
