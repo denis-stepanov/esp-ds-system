@@ -409,6 +409,7 @@ namespace ds {
 
 #ifdef DS_CAP_WEBSERVER
     protected:
+      static void serveFront();                       // Serve the front page
       static void serveAbout();                       // Serve the "about" page
 #ifdef DS_CAP_APP_LOG
       static void serveAppLog();                      // Serve the "log" page

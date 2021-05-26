@@ -586,6 +586,46 @@ void System::pushHTMLFooter() {
   web_page += F("<hr/></body></html>");
 }
 
+// Serve the front page
+void System::serveFront() {
+  pushHTMLHeader(F("DS System Default Front Page"));
+  web_page += F("<h3>");
+  web_page +=
+#ifdef DS_CAP_APP_ID
+    app_name
+#else
+    F("DS System")
+#endif // DS_CAP_APP_ID
+  ;
+  web_page += F("</h3>");
+
+  // Navigation
+  web_page += F(
+    "<table cellpadding=\"0\" cellspacing=\"0\" width=\"100%\"><tr><td>"
+    "[ <a href=\"/\">home</a> ]&nbsp;&nbsp;&nbsp;"
+#ifdef DS_CAP_WEB_TIMERS
+    "[ <a href=\"/timers\">timers</a> ]&nbsp;&nbsp;&nbsp;"
+#endif // DS_CAP_WEB_TIMERS
+#ifdef DS_CAP_APP_LOG
+    "[ <a href=\"/log\">log</a> ]&nbsp;&nbsp;&nbsp;"
+#endif // DS_CAP_APP_LOG
+    "[ <a href=\"/about\">about</a> ]&nbsp;&nbsp;&nbsp;"
+    "</td><td align=\"right\">"
+  );
+#ifdef DS_CAP_SYS_TIME
+  if (getTimeSyncStatus() != TIME_SYNC_NONE)
+    web_page += getTimeStr();
+#endif // DS_CAP_SYS_TIME
+  web_page += F(
+    "</td></tr></table>"
+    "<hr/>\n"
+  );
+  web_page += F("<p>DS System Default Front Page</p>");
+
+  pushHTMLFooter();
+  sendWebPage();
+}
+
 // Serve the "about" page
 #define TR_BEGIN(LABEL) F("<tr><td>" LABEL "</td><td>")
 #define TR_END F("</td></tr>\n")
@@ -1996,6 +2036,12 @@ void System::begin() {
   log->printf(TIMED("Starting web server... "));
 #endif // DS_CAP_SYS_LOG
   web_page.reserve(MAX_WEB_PAGE_SIZE);
+
+  // Quite counter-intuitively, web server calls the first suitable handler in order of registration, not the last one registered.
+  // So register user handlers first, so that they override system handlers
+  if (registerWebPages)
+    registerWebPages();
+  web_server.on("/", serveFront);
   web_server.on("/about", serveAbout);
 #ifdef DS_CAP_APP_LOG
   web_server.on("/log", serveAppLog);
@@ -2008,8 +2054,6 @@ void System::begin() {
   if (fs.exists(FAV_ICON_PATH))
     web_server.serveStatic(FAV_ICON_PATH, fs, FAV_ICON_PATH);
 #endif // DS_CAP_SYS_FS
-  if (registerWebPages)
-    registerWebPages();
   web_server.begin();
 #ifdef DS_CAP_SYS_LOG
   log->println(F("OK"));
