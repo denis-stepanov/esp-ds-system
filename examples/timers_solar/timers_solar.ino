@@ -4,8 +4,6 @@
 
 #include "MySystem.h"
 
-#include <sys/time.h>    // This header is needed to simulate a time sync. Not needed for time actions
-
 using namespace ds;
 
 // Timer handler
@@ -31,8 +29,7 @@ int counter = 0;
 void set_clock(const time_t _new_time) {
   new_time = _new_time;
   old_time = new_time;
-  struct timeval tv_new_time = {new_time, 0};
-  settimeofday(&tv_new_time, NULL);
+  System::setTime(new_time);
   delay(100);                                         // Allow new time to propagate  
 }
 

@@ -5,8 +5,6 @@
 
 #include "MySystem.h"
 
-#include <sys/time.h>    //  This header is needed to simulate a time sync. Not needed if time is only read
-
 using namespace ds;
 
 void printTime() {
@@ -40,8 +38,7 @@ void setup() {
   const time_t new_time = 1000000000;                 // Some date around 2001
   System::log->print("Time will be set to: ");
   System::log->println(System::getTimeStr(new_time)); // Illustrates getTimeStr() with a parameter
-  struct timeval tv_new_time = {new_time, 0};
-  settimeofday(&tv_new_time, NULL);
+  System::setTime(new_time);
   delay(100);                                         // Allow new time to propagate
   printTime();
 }
