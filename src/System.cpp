@@ -12,7 +12,7 @@ using namespace ds;
 #warning "In ESP8266, capabilities DS_CAP_SYS_LED and DS_CAP_SYS_LOG_HW may conflict on a pin. Define DS_LED_VS_SERIAL_CHECKED_OK to suppress this warning"
 #endif // DS_CAP_SYS_LED && DS_CAP_SYS_LOG_HW
 
-#if defined(DS_CAP_SYS_TIME) && defined(DS_CAP_SYS_NETWORK) && !defined(DS_TIMEZONE)
+#if defined(DS_CAP_SYS_TIME) && !defined(DS_TIMEZONE)
 #warning "Timezone will be set to UTC. Define DS_TIMEZONE to suppress this warning"
 #define DS_TIMEZONE TZ_Etc_UTC
 #endif // DS_CAP_SYS_TIME && !DS_TIMEZONE
@@ -167,6 +167,10 @@ bool System::setRTCMem(const uint32_t* source, const uint8_t idx, const uint8_t 
  *************************************************************************/
 #ifdef DS_CAP_SYS_TIME
 
+#ifdef DS_CAP_WEBSERVER
+static const char *DS_TIMEZONE_STRING PROGMEM = __XSTRING(DS_TIMEZONE);  // Important that this is initialized before TZ.h is included
+#endif // DS_CAP_WEBSERVER
+#include <TZ.h>              // Timezones
 #include <coredecls.h>       // settimeofday_cb()
 #ifdef DS_CAP_SYS_NETWORK
 #include <sntp.h>            // SNTP_UPDATE_DELAY
@@ -327,10 +331,6 @@ const char *System::hostname PROGMEM __attribute__ ((weak)) = "espDS";
 static const unsigned long NETWORK_CONNECT_TIMEOUT = 20000; // (ms)
 
 #ifdef DS_CAP_SYS_TIME
-#ifdef DS_CAP_WEBSERVER
-static const char *DS_TIMEZONE_STRING PROGMEM = __XSTRING(DS_TIMEZONE);  // Important that this is initialized before TZ.h is included
-#endif // DS_CAP_WEBSERVER
-#include <TZ.h>              // Timezones
 #include <sntp.h>            // SNTP server
 
 const char *System::time_server PROGMEM __attribute__ ((weak)) = "pool.ntp.org";
@@ -1882,6 +1882,8 @@ void System::begin() {
 #endif // DS_CAP_BUTTON
 
 #ifdef DS_CAP_SYS_TIME
+  setTZ(DS_TIMEZONE);
+
   // Install time sync handler
   settimeofday_cb(timeSyncHandler);
 #endif // DS_CAP_SYS_TIME

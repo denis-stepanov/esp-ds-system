@@ -7,7 +7,7 @@
 #define DS_CAP_WEBSERVER    // Enable web server (to have a log browser)
 #define DS_CAP_SYS_LOG_HW   // Enable syslog on hardware serial line
 
-#define DS_TIMEZONE TZ_Etc_UTC  // Timezone
+#define DS_TIMEZONE TZ_Europe_Paris  // Timezone. Pick yours from TZ.h coming with ESP Core
 
 #include "System.h"         // System global definitions
 
