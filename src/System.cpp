@@ -2152,14 +2152,12 @@ void System::update() {
 #endif // DS_CAP_WEBSERVER
 
 #ifdef DS_CAP_SYS_TIME
-  const uint32_t update_period =           // Time sync period (s)
 #ifdef DS_CAP_SYS_NETWORK
-    SNTP_UPDATE_DELAY / 1000
+#define DS_TIME_UPDATE_PERIOD (SNTP_UPDATE_DELAY / 1000)
 #else
-    3600
+#define DS_TIME_UPDATE_PERIOD 3600U
 #endif // DS_CAP_SYS_NETWORK
-  ;
-  setTimeSyncStatus(time_sync_time ? ((unsigned int)(getTime() - time_sync_time) < 2 * update_period ? TIME_SYNC_OK : TIME_SYNC_DEGRADED) : TIME_SYNC_NONE);
+  setTimeSyncStatus(time_sync_time ? ((unsigned int)(getTime() - time_sync_time) < 2 * DS_TIME_UPDATE_PERIOD ? TIME_SYNC_OK : TIME_SYNC_DEGRADED) : TIME_SYNC_NONE);
 #endif // DS_CAP_SYS_TIME
 
 #ifdef DS_CAP_TIMERS_ABS
