@@ -176,6 +176,7 @@ static const char *DS_TIMEZONE_STRING PROGMEM = __XSTRING(DS_TIMEZONE);  // Impo
 #include <sntp.h>            // SNTP_UPDATE_DELAY
 #endif // DS_CAP_SYS_NETWORK
 
+time_sync_t System::time_sync_status = TIME_SYNC_NONE;
 time_t System::time_sync_time = 0;
 void (*System::onTimeSync)() __attribute__ ((weak)) = nullptr;
 
@@ -212,14 +213,12 @@ time_t System::getTimeSyncTime() {
 
 // Return time sync status
 time_sync_t System::getTimeSyncStatus() {
-  const uint32_t update_period =           // Time sync period (s)
-#ifdef DS_CAP_SYS_NETWORK
-    SNTP_UPDATE_DELAY / 1000
-#else
-    3600
-#endif // DS_CAP_SYS_NETWORK
-  ;
-  return time_sync_time ? ((unsigned int)(getTime() - time_sync_time) < 2 * update_period ? TIME_SYNC_OK : TIME_SYNC_DEGRADED) : TIME_SYNC_NONE;
+  return time_sync_status;
+}
+
+// Set time sync status
+void System::setTimeSyncStatus(time_sync_t new_status) {
+  time_sync_status = new_status;
 }
 
 // Return current time
@@ -2151,6 +2150,17 @@ void System::update() {
 #ifdef DS_CAP_WEBSERVER
   web_server.handleClient();
 #endif // DS_CAP_WEBSERVER
+
+#ifdef DS_CAP_SYS_TIME
+  const uint32_t update_period =           // Time sync period (s)
+#ifdef DS_CAP_SYS_NETWORK
+    SNTP_UPDATE_DELAY / 1000
+#else
+    3600
+#endif // DS_CAP_SYS_NETWORK
+  ;
+  setTimeSyncStatus(time_sync_time ? ((unsigned int)(getTime() - time_sync_time) < 2 * update_period ? TIME_SYNC_OK : TIME_SYNC_DEGRADED) : TIME_SYNC_NONE);
+#endif // DS_CAP_SYS_TIME
 
 #ifdef DS_CAP_TIMERS_ABS
   static time_t old_time = 0;                  // Last second value
