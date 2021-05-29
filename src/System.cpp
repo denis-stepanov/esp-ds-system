@@ -171,6 +171,7 @@ bool System::setRTCMem(const uint32_t* source, const uint8_t idx, const uint8_t 
 static const char *DS_TIMEZONE_STRING PROGMEM = __XSTRING(DS_TIMEZONE);  // Important that this is initialized before TZ.h is included
 #endif // DS_CAP_WEBSERVER
 #include <TZ.h>              // Timezones
+#include <sys/time.h>        // settimeofday()
 #include <coredecls.h>       // settimeofday_cb()
 #ifdef DS_CAP_SYS_NETWORK
 #include <sntp.h>            // SNTP_UPDATE_DELAY
@@ -224,6 +225,12 @@ void System::setTimeSyncStatus(time_sync_t new_status) {
 // Return current time
 time_t System::getTime() {
   return time(nullptr);
+}
+
+// Set current time
+void System::setTime(time_t new_time) {
+  const struct timeval tv_new_time = {new_time, 0};
+  settimeofday(&tv_new_time, NULL);
 }
 
 // Return current time string

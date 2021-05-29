@@ -359,6 +359,7 @@ namespace ds {
       static time_sync_t getTimeSyncStatus();         // Return time sync status
       static void setTimeSyncStatus(time_sync_t /* new_status */); // Set time sync status
       static time_t getTime();                        // Return current time
+      static void setTime(time_t /* new_time */);     // Set current time
       static String getTimeStr();                     // Return current time string
       static String getTimeStr(const time_t /* t */); // Return time string for a given time
       static void (*onTimeSync)();                    // Hook to be called when time gets synchronized
