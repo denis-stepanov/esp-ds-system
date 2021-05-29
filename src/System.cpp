@@ -212,13 +212,19 @@ time_t System::getTimeSyncTime() {
   return time_sync_time;
 }
 
+// Set last time sync time
+void System::setTimeSyncTime(const time_t new_time) {
+  time_sync_time = new_time;
+}
+
+
 // Return time sync status
 time_sync_t System::getTimeSyncStatus() {
   return time_sync_status;
 }
 
 // Set time sync status
-void System::setTimeSyncStatus(time_sync_t new_status) {
+void System::setTimeSyncStatus(const time_sync_t new_status) {
   time_sync_status = new_status;
 }
 
@@ -228,9 +234,12 @@ time_t System::getTime() {
 }
 
 // Set current time
-void System::setTime(time_t new_time) {
+void System::setTime(const time_t new_time) {
   const struct timeval tv_new_time = {new_time, 0};
-  settimeofday(&tv_new_time, NULL);
+  if (!settimeofday(&tv_new_time, NULL)) {
+    setTimeSyncTime(new_time);
+    setTimeSyncStatus(TIME_SYNC_OK);
+  }
 }
 
 // Return current time string
