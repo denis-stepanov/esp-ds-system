@@ -183,15 +183,14 @@ void System::timeSyncHandler() {
 #ifdef DS_CAP_APP_LOG
   if (!time_sync_time) {
 
-    // This is not exactly precise, but usually time sync happens shortly after the start; good enough for the app log
-    String lmsg = F("Started ");
-#ifdef DS_CAP_APP_ID
-    lmsg += app_name;
-    lmsg += F(" v");
-    lmsg += app_version;
-    lmsg += F(", build ");
-    lmsg += app_build;
-#endif // DS_CAP_APP_ID
+    // The code below assumes that the first time sync occurs before millis() wrap, which is normally the case
+    const auto sec_since_boot = (millis() + 500) / 1000;
+    const auto boot_time = getTime() - sec_since_boot;
+    String lmsg = F("Time synchronized; boot was at ");
+    lmsg += getTimeStr(boot_time > 0 ? boot_time : 0);
+    lmsg += F(" (");
+    lmsg += sec_since_boot;
+    lmsg += F(" s ago)");
     appLogWriteLn(lmsg);
   }
 #endif // DS_CAP_APP_LOG
@@ -879,27 +878,40 @@ void System::serveAppLog() {
       while (log_file.available() && log_file.position() <= fsize - log_page * APP_LOG_PAGE_SIZE) {
         line = log_file.readStringUntil('\n');
         String new_date = line.substring(0, 10);
-        line.remove(0, 11);
-        if (old_date != new_date) {
+        if (new_date[4] == '/' && new_date[7] == '/' && new_date[0] != '/') {
+          line.remove(0, 11);
+          if (old_date != new_date) {
+            char time_str[32] = {0, };
 
-          // Reconstruct date information from condensed log string
-          struct tm new_tm;
-          memset(&new_tm, 0, sizeof(new_tm));
-          new_tm.tm_year = new_date.substring(0, 4).toInt() - 1900;
-          new_tm.tm_mon = new_date.substring(5, 7).toInt() - 1;
-          new_tm.tm_mday = new_date.substring(8, 10).toInt();
-          new_tm.tm_isdst = -1;
-          mktime(&new_tm);
+            // Reconstruct date information from condensed log string
+            if (new_date.startsWith(F("--")))
+              strncpy_P(time_str, PSTR("(no date)"), sizeof(time_str) - 1);
+            else {
+              struct tm new_tm;
+              memset(&new_tm, 0, sizeof(new_tm));
+              new_tm.tm_year = new_date.substring(0, 4).toInt() - 1900;
+              new_tm.tm_mon = new_date.substring(5, 7).toInt() - 1;
+              new_tm.tm_mday = new_date.substring(8, 10).toInt();
+              new_tm.tm_isdst = -1;
+              mktime(&new_tm);
+              strftime(time_str, sizeof(time_str) - 1, "%A, %e %B %Y", &new_tm);
+            }
 
-          char time_str[32] = {0, };
-          strftime(time_str, sizeof(time_str), "%A, %e %B %Y", &new_tm);
-
-          web_page += F("<h4><span>");
-          web_page += time_str;
-          web_page += F("</span></h4>\n");
-          old_date = new_date;
+            web_page += F("<h4><span>");
+            web_page += time_str;
+            web_page += F("</span></h4>\n");
+            old_date = new_date;
+          }
+        } else {
+          new_date = F("-");
+          if (old_date != new_date) {
+            web_page += F("<h4><span>(time disabled)</span></h4>\n");
+            old_date = new_date;
+          }
         }
         web_page += F("<br/>");
+        if (line.startsWith(F("--:--:--: ")))
+          line.remove(0, 10);
         web_page += line;   // already contains '\n'
       }
       log_file.close();
@@ -2007,7 +2019,18 @@ void System::begin() {
 #ifdef DS_CAP_SYS_LOG
   log->println(app_log_ok ? (app_log_size_max ? F("OK") : F("DISABLED")): F("FAILED"));
 #endif // DS_CAP_SYS_LOG
-  if (!app_log_ok)
+  if (app_log_ok) {
+
+    String lmsg = F("Started ");
+#ifdef DS_CAP_APP_ID
+    lmsg += app_name;
+    lmsg += F(" v");
+    lmsg += app_version;
+    lmsg += F(", build ");
+    lmsg += app_build;
+#endif // DS_CAP_APP_ID
+    appLogWriteLn(lmsg);
+  } else
     app_log_size_max = 0;
 #endif // DS_CAP_APP_LOG
 
