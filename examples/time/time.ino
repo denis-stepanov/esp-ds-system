@@ -44,4 +44,5 @@ void setup() {
 }
 
 void loop() {
+  System::update();
 }

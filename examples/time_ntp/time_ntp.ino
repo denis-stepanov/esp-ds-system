@@ -41,6 +41,5 @@ void setup() {
 void loop() {
   printTime();
   delay(1000);
-
-  // There is no strict need to call System::update() in this case
+  System::update();
 }

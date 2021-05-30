@@ -22,6 +22,5 @@ void loop() {
     System::log->print(", boot time (UTC): ");
     System::log->println(System::getBootTimeStr());
   }
-
-  // There is no strict need to call System::update() in this case
+  System::update();
 }
