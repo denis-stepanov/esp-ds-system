@@ -2200,7 +2200,7 @@ void System::update() {
 #endif // DS_CAP_TIMERS_SOLAR
 
     // Process timers
-    if (abs_timers_active)
+    if (abs_timers_active && time_sync_status != TIME_SYNC_NONE)
       for (auto timer : timers) {
         if (timer && timer->getType() != TIMER_INVALID && timer->isArmed() && *timer == tm_local) {
 #ifdef DS_CAP_SYS_LOG
