@@ -179,6 +179,10 @@ static const char *DS_TIMEZONE_STRING PROGMEM = __XSTRING(DS_TIMEZONE);  // Impo
 
 time_sync_t System::time_sync_status = TIME_SYNC_NONE;
 time_t System::time_sync_time = 0;
+time_t System::time = 0;
+struct tm System::tm_time;   // Initialized in begin()
+uint8_t System::time_change_flags = TIME_CHANGE_NONE;
+
 void (*System::onTimeSync)() __attribute__ ((weak)) = nullptr;
 
 // Time sync event handler
@@ -200,7 +204,7 @@ void System::timeSyncHandler() {
     appLogWriteLn(lmsg);
   }
 #endif // DS_CAP_APP_LOG
-  time(&time_sync_time);
+  ::time(&time_sync_time);
 
   // Call the user hook
   if (onTimeSync)
@@ -230,7 +234,7 @@ void System::setTimeSyncStatus(const time_sync_t new_status) {
 
 // Return current time
 time_t System::getTime() {
-  return time(nullptr);
+  return ::time(nullptr);
 }
 
 // Set current time
@@ -253,6 +257,41 @@ String System::getTimeStr(const time_t t) {
   char time_str[20];
   strftime(time_str, sizeof(time_str), "%Y/%m/%d %H:%M:%S", localtime(&t));
   return time_str;
+}
+
+// Return true if new second has arrived
+bool System::newSecond() {
+  return time_change_flags & TIME_CHANGE_SECOND;
+}
+
+// Return true if new minute has arrived
+bool System::newMinute() {
+  return time_change_flags & TIME_CHANGE_MINUTE;
+}
+
+// Return true if new hour has arrived
+bool System::newHour() {
+  return time_change_flags & TIME_CHANGE_HOUR;
+}
+
+// Return true if new day has arrived
+bool System::newDay() {
+  return time_change_flags & TIME_CHANGE_DAY;
+}
+
+// Return true if new week has arrived
+bool System::newWeek() {
+  return time_change_flags & TIME_CHANGE_WEEK;
+}
+
+// Return true if new month has arrived
+bool System::newMonth() {
+  return time_change_flags & TIME_CHANGE_MONTH;
+}
+
+// Return true if new year has arrived
+bool System::newYear() {
+  return time_change_flags & TIME_CHANGE_YEAR;
 }
 
 #endif // DS_CAP_SYS_TIME
@@ -1898,6 +1937,7 @@ void System::begin() {
 
 #ifdef DS_CAP_SYS_TIME
   setTZ(DS_TIMEZONE);
+  localtime_r(&time, &tm_time);
 
   // Install time sync handler
   settimeofday_cb(timeSyncHandler);
@@ -2174,6 +2214,35 @@ void System::update() {
 #define DS_TIME_UPDATE_PERIOD 3600U
 #endif // DS_CAP_SYS_NETWORK
   setTimeSyncStatus(time_sync_time ? ((unsigned int)(getTime() - time_sync_time) < 2 * DS_TIME_UPDATE_PERIOD ? TIME_SYNC_OK : TIME_SYNC_DEGRADED) : TIME_SYNC_NONE);
+
+  time_change_flags = TIME_CHANGE_NONE;
+  const auto time_new = getTime();
+  if (time != time_new) {
+    time = time_new;
+    struct tm tm_time_new;
+    localtime_r(&time_new, &tm_time_new);
+
+    if (tm_time.tm_sec != tm_time_new.tm_sec) {   // Normally always true in this context
+      time_change_flags |= TIME_CHANGE_SECOND;
+      if (tm_time.tm_min != tm_time_new.tm_min) {
+        time_change_flags |= TIME_CHANGE_MINUTE;
+        if (tm_time.tm_hour != tm_time_new.tm_hour) {
+          time_change_flags |= TIME_CHANGE_HOUR;
+          if (tm_time.tm_mday != tm_time_new.tm_mday) {
+            time_change_flags |= TIME_CHANGE_DAY;
+            if (tm_time.tm_wday != tm_time_new.tm_wday && tm_time_new.tm_wday == 1)  // Week starts on Monday
+              time_change_flags |= TIME_CHANGE_WEEK;
+            if (tm_time.tm_mon != tm_time_new.tm_mon) {
+              time_change_flags |= TIME_CHANGE_MONTH;
+              if (tm_time.tm_year != tm_time_new.tm_year)
+                time_change_flags |= TIME_CHANGE_YEAR;
+            }
+          }
+        }
+      }
+    }
+    tm_time = tm_time_new;
+  }
 #endif // DS_CAP_SYS_TIME
 
 #ifdef DS_CAP_TIMERS_ABS
