@@ -14,19 +14,22 @@ void setup() {
 
 void loop() {
   if(System::newSecond())
-    System::log->printf("%s > New second has arrived: %d\n",     System::getTimeStr().c_str(), System::tm_time.tm_sec);
-  if(System::newMinute())
-    System::log->printf("%s >> New minute has arrived: %d\n",    System::getTimeStr().c_str(), System::tm_time.tm_min);
-  if(System::newHour())
-    System::log->printf("%s >>> New hour has arrived: %d\n",     System::getTimeStr().c_str(), System::tm_time.tm_hour);
-  if(System::newDay())
-    System::log->printf("%s >>>> New day has arrived: %d\n",     System::getTimeStr().c_str(), System::tm_time.tm_mday);
-  if(System::newWeek())
-    System::log->printf("%s >>>>> New week has arrived: %d\n",   System::getTimeStr().c_str(), System::tm_time.tm_yday / 7 + 1);
-  if(System::newMonth())
-    System::log->printf("%s >>>>>> New month has arrived: %d\n", System::getTimeStr().c_str(), System::tm_time.tm_mon + 1);
+    System::log->println(System::getTimeStr());
+
   if(System::newSecond())
-    System::log->printf("%s >>>>>>> Happy New Year %d!\n",       System::getTimeStr().c_str(), System::tm_time.tm_year + 1900);
+    System::log->printf("New second has arrived: %02d\n", System::tm_time.tm_sec);
+  if(System::newMinute())
+    System::log->printf("New minute has arrived: %02d\n", System::tm_time.tm_min);
+  if(System::newHour())
+    System::log->printf("New hour has arrived: %02d\n",   System::tm_time.tm_hour);
+  if(System::newDay())
+    System::log->printf("New day has arrived: %02d\n",    System::tm_time.tm_mday);
+  if(System::newWeek())
+    System::log->printf("New week has arrived: %02d\n",   System::tm_time.tm_yday / 7 + 1);
+  if(System::newMonth())
+    System::log->printf("New month has arrived: %02d\n",  System::tm_time.tm_mon + 1);
+  if(System::newYear())
+    System::log->printf("Happy New Year %d!\n",           System::tm_time.tm_year + 1900);
 
   System::update();
 }
