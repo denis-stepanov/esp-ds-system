@@ -39,7 +39,7 @@ void setup() {
 }
 
 void loop() {
-  printTime();
-  delay(1000);
+  if (System::newSecond())
+    printTime();
   System::update();
 }
