@@ -2031,12 +2031,12 @@ void System::begin() {
     cfg_file.close();
     timers.reverse();
 #ifdef DS_CAP_SYS_LOG
-  log->print(std::distance(timers.begin(), timers.end()));
-  log->println(F(" found"));
+    log->print(std::distance(timers.begin(), timers.end()));
+    log->println(F(" found"));
 #endif // DS_CAP_SYS_LOG
   } else {
 #ifdef DS_CAP_SYS_LOG
-  log->println(F("none found"));
+    log->println(F("none found"));
 #endif // DS_CAP_SYS_LOG
   }
 #endif // DS_CAP_WEB_TIMERS
@@ -2246,19 +2246,13 @@ void System::update() {
 #endif // DS_CAP_SYS_TIME
 
 #ifdef DS_CAP_TIMERS_ABS
-  static time_t old_time = 0;                  // Last second value
-  const auto new_time = getTime();
-  if (new_time != old_time) {   // Happens once a second
-    old_time = new_time;
-    struct tm tm_local;
-    localtime_r(&new_time, &tm_local);
-
+  if (newSecond()) {
 #ifdef DS_CAP_TIMERS_SOLAR
     static time_t time_solar_sync = 0;           // Last time the solar events have been calculated
 
     // Recalculate solar times every morning at 3:30 am, or at least every 24 hours
-    if ((tm_local.tm_hour == 3 && tm_local.tm_min == 30 && tm_local.tm_sec == 0) || new_time - time_solar_sync > 24 * 60 * 60) {
-      time_solar_sync = new_time;
+    if ((tm_time.tm_hour == 3 && tm_time.tm_min == 30 && tm_time.tm_sec == 0) || time - time_solar_sync > 24 * 60 * 60) {
+      time_solar_sync = time;
 #ifdef DS_CAP_SYS_LOG
       log->printf(TIMED("Recalculating solar events...\n"));
 #endif // DS_CAP_SYS_LOG
@@ -2271,7 +2265,7 @@ void System::update() {
     // Process timers
     if (abs_timers_active && time_sync_status != TIME_SYNC_NONE)
       for (auto timer : timers) {
-        if (timer && timer->getType() != TIMER_INVALID && timer->isArmed() && *timer == tm_local) {
+        if (timer && timer->getType() != TIMER_INVALID && timer->isArmed() && *timer == tm_time) {
 #ifdef DS_CAP_SYS_LOG
           log->printf(TIMED("Timer \"%s\" fired\n"), timer->getAction().c_str());
 #endif // DS_CAP_SYS_LOG
@@ -2286,7 +2280,7 @@ void System::update() {
         }
 #ifdef DS_CAP_TIMERS_COUNT_ABS
         if (timer->getType() == TIMER_COUNTDOWN_ABS) {
-          static_cast<TimerCountdownAbs *>(timer)->update(old_time);
+          static_cast<TimerCountdownAbs *>(timer)->update(time);
         }
 #endif // DS_CAP_TIMERS_COUNT_ABS
       }
