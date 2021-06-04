@@ -195,7 +195,7 @@ void System::timeSyncHandler() {
 
     // The code below assumes that the first time sync occurs before millis() wrap, which is normally the case
     const auto sec_since_boot = (millis() + 500) / 1000;
-    const auto boot_time = getTime() - sec_since_boot;
+    const auto boot_time = time - sec_since_boot;
     String lmsg = F("Time synchronized; boot was at ");
     lmsg += getTimeStr(boot_time > 0 ? boot_time : 0);
     lmsg += F(" (");
@@ -234,7 +234,7 @@ void System::setTimeSyncStatus(const time_sync_t new_status) {
 
 // Return current time
 time_t System::getTime() {
-  return ::time(nullptr);
+  return time;
 }
 
 // Set current time
@@ -250,8 +250,7 @@ void System::setTime(const time_t new_time) {
 
 // Return current time string
 String System::getTimeStr() {
-  auto t = getTime();
-  return t ? getTimeStr(t) : F("----/--/-- --:--:--");
+  return time ? getTimeStr(time) : F("----/--/-- --:--:--");
 }
 
 // Return time string for a given time
@@ -342,8 +341,7 @@ String System::getUptimeStr() {
 // Return boot time string
 String System::getBootTimeStr() {
   uptime::calculateUptime();
-  auto t = getTime();
-  return t ? getTimeStr(t - (((uptime::getDays() * 24 + uptime::getHours()) * 60 + uptime::getMinutes()) * 60 + uptime::getSeconds())) : F("----/--/-- --:--:--");
+  return time ? getTimeStr(time - (((uptime::getDays() * 24 + uptime::getHours()) * 60 + uptime::getMinutes()) * 60 + uptime::getSeconds())) : F("----/--/-- --:--:--");
 }
 #endif // DS_CAP_SYS_TIME
 
@@ -1638,19 +1636,17 @@ bool TimerSolar::operator!=(const TimerSolar& timer) const {
 }
 
 uint16_t System::getSolarEvent(const timer_type_t ev_type) {
-  struct tm tm_local, tm_gmt;
+  struct tm tm_gmt;
 
-  const auto cur_time = getTime();
-  localtime_r(&cur_time, &tm_local);
-  gmtime_r(&cur_time, &tm_gmt);
-  Dusk2Dawn local(DS_LATITUDE, DS_LONGITUDE, (mktime(&tm_local) - mktime(&tm_gmt)) / 60.0 / 60);
+  gmtime_r(&time, &tm_gmt);
+  Dusk2Dawn local(DS_LATITUDE, DS_LONGITUDE, (mktime(&tm_time) - mktime(&tm_gmt)) / 60.0 / 60);
   switch (ev_type) {
 
     case TIMER_SUNRISE:
-      return local.sunrise(tm_local.tm_year + 1900, tm_local.tm_mon + 1, tm_local.tm_mday, tm_local.tm_isdst);
+      return local.sunrise(tm_time.tm_year + 1900, tm_time.tm_mon + 1, tm_time.tm_mday, tm_time.tm_isdst);
 
     case TIMER_SUNSET:
-      return local.sunset (tm_local.tm_year + 1900, tm_local.tm_mon + 1, tm_local.tm_mday, tm_local.tm_isdst);
+      return local.sunset (tm_time.tm_year + 1900, tm_time.tm_mon + 1, tm_time.tm_mday, tm_time.tm_isdst);
 
     default:
       return 0;
@@ -1768,7 +1764,7 @@ void TimerCountdownAbs::setOffset(const uint32_t offset) {
 void TimerCountdownAbs::update(const time_t from_time) {
   const uint32_t interval = getInterval();
   auto next_time = getNextTime();
-  const auto cur_time = from_time ? from_time : System::getTime();
+  const auto cur_time = from_time ? from_time : System::time;
   if (next_time > cur_time && next_time - cur_time < (int) interval)
     return;     // Countdown goes as planned
 
@@ -2215,10 +2211,10 @@ void System::update() {
 #else
 #define DS_TIME_UPDATE_PERIOD 3600U
 #endif // DS_CAP_SYS_NETWORK
-  setTimeSyncStatus(time_sync_time ? ((unsigned int)(getTime() - time_sync_time) < 2 * DS_TIME_UPDATE_PERIOD ? TIME_SYNC_OK : TIME_SYNC_DEGRADED) : TIME_SYNC_NONE);
+  setTimeSyncStatus(time_sync_time ? ((unsigned int)(time - time_sync_time) < 2 * DS_TIME_UPDATE_PERIOD ? TIME_SYNC_OK : TIME_SYNC_DEGRADED) : TIME_SYNC_NONE);
 
   time_change_flags = TIME_CHANGE_NONE;
-  const auto time_new = getTime();
+  const auto time_new = ::time(nullptr);
   if (time != time_new) {
     time = time_new;
     struct tm tm_time_new;
