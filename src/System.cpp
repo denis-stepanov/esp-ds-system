@@ -210,6 +210,7 @@ void System::timeSyncHandler() {
   }
 #endif // DS_CAP_APP_LOG
   time_sync_time = time;
+  time_sync_status = TIME_SYNC_OK;
 
   // Call the user hook
   if (onTimeSync)
