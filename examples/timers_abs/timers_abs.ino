@@ -23,22 +23,15 @@ void myTimerHandler(const TimerAbsolute* timer) {
 }
 void (*System::timerHandler)(const TimerAbsolute*) = myTimerHandler;  // Install the handler
 
-time_t old_time, new_time;
-
-void set_clock(const time_t _new_time) {
-  new_time = _new_time;
-  old_time = new_time;
-  System::setTime(new_time);
-  delay(100);                                         // Allow new time to propagate
-}
-
 void setup() {
   System::begin();
 
   // Set system time to some date around 2001
-  set_clock(1000000000);
+  System::setTime(1000000000);
+  delay(100);                                         // Allow new time to propagate
 
   // Set up two timers one minute apart
+  auto new_time = System::time;
   for (uint8_t n = 1; n <= 2; n++) {
     new_time += 60;
     struct tm *tinfo = localtime(&new_time);
@@ -54,11 +47,8 @@ void setup() {
 void loop() {
 
   // Just display current time periodically to see when the timer fires
-  new_time = System::getTime();
-  if (new_time != old_time) {
-    old_time = new_time;
+  if (System::newSecond())
     System::log->println(System::getTimeStr());
-  }
 
   System::update();
 }
