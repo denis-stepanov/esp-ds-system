@@ -204,7 +204,11 @@ void System::timeSyncHandler() {
     appLogWriteLn(lmsg);
   }
 #endif // DS_CAP_APP_LOG
-  ::time(&time_sync_time);
+
+  // Update cached values
+  ::time(&time);
+  localtime_r(&time, &tm_time);
+  time_sync_time = time;
 
   // Call the user hook
   if (onTimeSync)
