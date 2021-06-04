@@ -187,6 +187,11 @@ void (*System::onTimeSync)() __attribute__ ((weak)) = nullptr;
 
 // Time sync event handler
 void System::timeSyncHandler() {
+
+  // Update cached values
+  ::time(&time);
+  localtime_r(&time, &tm_time);
+
 #ifdef DS_CAP_SYS_LOG
   log->printf(TIMED("System clock %s: %s\n"), time_sync_time ? "updated" : "set", getTimeStr().c_str());
 #endif // DS_CAP_SYS_LOG
@@ -204,10 +209,6 @@ void System::timeSyncHandler() {
     appLogWriteLn(lmsg);
   }
 #endif // DS_CAP_APP_LOG
-
-  // Update cached values
-  ::time(&time);
-  localtime_r(&time, &tm_time);
   time_sync_time = time;
 
   // Call the user hook
