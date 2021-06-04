@@ -2205,44 +2205,6 @@ void System::update() {
   web_server.handleClient();
 #endif // DS_CAP_WEBSERVER
 
-#ifdef DS_CAP_SYS_TIME
-#ifdef DS_CAP_SYS_NETWORK
-#define DS_TIME_UPDATE_PERIOD (SNTP_UPDATE_DELAY / 1000)
-#else
-#define DS_TIME_UPDATE_PERIOD 3600U
-#endif // DS_CAP_SYS_NETWORK
-  setTimeSyncStatus(time_sync_time ? ((unsigned int)(time - time_sync_time) < 2 * DS_TIME_UPDATE_PERIOD ? TIME_SYNC_OK : TIME_SYNC_DEGRADED) : TIME_SYNC_NONE);
-
-  time_change_flags = TIME_CHANGE_NONE;
-  const auto time_new = ::time(nullptr);
-  if (time != time_new) {
-    time = time_new;
-    struct tm tm_time_new;
-    localtime_r(&time_new, &tm_time_new);
-
-    if (tm_time.tm_sec != tm_time_new.tm_sec) {   // Normally always true in this context
-      time_change_flags |= TIME_CHANGE_SECOND;
-      if (tm_time.tm_min != tm_time_new.tm_min) {
-        time_change_flags |= TIME_CHANGE_MINUTE;
-        if (tm_time.tm_hour != tm_time_new.tm_hour) {
-          time_change_flags |= TIME_CHANGE_HOUR;
-          if (tm_time.tm_mday != tm_time_new.tm_mday) {
-            time_change_flags |= TIME_CHANGE_DAY;
-            if (tm_time.tm_wday != tm_time_new.tm_wday && tm_time_new.tm_wday == 1)  // Week starts on Monday
-              time_change_flags |= TIME_CHANGE_WEEK;
-            if (tm_time.tm_mon != tm_time_new.tm_mon) {
-              time_change_flags |= TIME_CHANGE_MONTH;
-              if (tm_time.tm_year != tm_time_new.tm_year)
-                time_change_flags |= TIME_CHANGE_YEAR;
-            }
-          }
-        }
-      }
-    }
-    tm_time = tm_time_new;
-  }
-#endif // DS_CAP_SYS_TIME
-
 #ifdef DS_CAP_TIMERS_ABS
   if (newSecond()) {
 #ifdef DS_CAP_TIMERS_SOLAR
@@ -2284,6 +2246,45 @@ void System::update() {
       }
   }
 #endif // DS_CAP_TIMERS_ABS
+
+// Time update happening after timer processing, not before, is intentional, as it allows user code to kick in between the seconds' change and timer firing
+#ifdef DS_CAP_SYS_TIME
+#ifdef DS_CAP_SYS_NETWORK
+#define DS_TIME_UPDATE_PERIOD (SNTP_UPDATE_DELAY / 1000)
+#else
+#define DS_TIME_UPDATE_PERIOD 3600U
+#endif // DS_CAP_SYS_NETWORK
+  setTimeSyncStatus(time_sync_time ? ((unsigned int)(time - time_sync_time) < 2 * DS_TIME_UPDATE_PERIOD ? TIME_SYNC_OK : TIME_SYNC_DEGRADED) : TIME_SYNC_NONE);
+
+  time_change_flags = TIME_CHANGE_NONE;
+  const auto time_new = ::time(nullptr);
+  if (time != time_new) {
+    time = time_new;
+    struct tm tm_time_new;
+    localtime_r(&time_new, &tm_time_new);
+
+    if (tm_time.tm_sec != tm_time_new.tm_sec) {   // Normally always true in this context
+      time_change_flags |= TIME_CHANGE_SECOND;
+      if (tm_time.tm_min != tm_time_new.tm_min) {
+        time_change_flags |= TIME_CHANGE_MINUTE;
+        if (tm_time.tm_hour != tm_time_new.tm_hour) {
+          time_change_flags |= TIME_CHANGE_HOUR;
+          if (tm_time.tm_mday != tm_time_new.tm_mday) {
+            time_change_flags |= TIME_CHANGE_DAY;
+            if (tm_time.tm_wday != tm_time_new.tm_wday && tm_time_new.tm_wday == 1)  // Week starts on Monday
+              time_change_flags |= TIME_CHANGE_WEEK;
+            if (tm_time.tm_mon != tm_time_new.tm_mon) {
+              time_change_flags |= TIME_CHANGE_MONTH;
+              if (tm_time.tm_year != tm_time_new.tm_year)
+                time_change_flags |= TIME_CHANGE_YEAR;
+            }
+          }
+        }
+      }
+    }
+    tm_time = tm_time_new;
+  }
+#endif // DS_CAP_SYS_TIME
 }
 
 // Append capability to the list
