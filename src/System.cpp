@@ -241,7 +241,9 @@ time_t System::getTime() {
 void System::setTime(const time_t new_time) {
   const struct timeval tv_new_time = {new_time, 0};
   if (!settimeofday(&tv_new_time, NULL)) {
-    setTimeSyncTime(new_time);
+    time = new_time;
+    localtime_r(&time, &tm_time);
+    setTimeSyncTime(time);
     setTimeSyncStatus(TIME_SYNC_OK);
   }
 }
