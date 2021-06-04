@@ -136,6 +136,15 @@ namespace ds {
     TIME_SYNC_OK,                                     // Time is synchronized
     TIME_SYNC_DEGRADED                                // Time was synchronized but not anymore
   } time_sync_t;
+
+#define TIME_CHANGE_SECOND                        1
+#define TIME_CHANGE_MINUTE (TIME_CHANGE_SECOND << 1)
+#define TIME_CHANGE_HOUR   (TIME_CHANGE_MINUTE << 1)
+#define TIME_CHANGE_DAY    (TIME_CHANGE_HOUR   << 1)
+#define TIME_CHANGE_WEEK   (TIME_CHANGE_DAY    << 1)
+#define TIME_CHANGE_MONTH  (TIME_CHANGE_WEEK   << 1)
+#define TIME_CHANGE_YEAR   (TIME_CHANGE_MONTH  << 1)
+#define TIME_CHANGE_NONE   (TIME_CHANGE_SECOND >> 1)
 #endif // DS_CAP_SYS_TIME
 
 #ifdef DS_CAP_TIMERS
@@ -352,9 +361,13 @@ namespace ds {
     protected:
       static time_sync_t time_sync_status;            // Time synchronization status
       static time_t time_sync_time;                   // Last time the time was synchronized
+      static uint8_t time_change_flags;               // Time change flags
       static void timeSyncHandler();                  // Time sync event handler
 
     public:
+      static time_t time;                             // Current time (Unix)
+      static struct tm tm_time;                       // Current time as structure
+
       static time_t getTimeSyncTime();                // Return last time sync time
       static void setTimeSyncTime(const time_t /* new_time */); // Set last time sync time
       static time_sync_t getTimeSyncStatus();         // Return time sync status
@@ -364,6 +377,13 @@ namespace ds {
       static String getTimeStr();                     // Return current time string
       static String getTimeStr(const time_t /* t */); // Return time string for a given time
       static void (*onTimeSync)();                    // Hook to be called when time gets synchronized
+      static bool newSecond();                        // Return true if new second has arrived
+      static bool newMinute();                        // Return true if new minute has arrived
+      static bool newHour();                          // Return true if new hour has arrived
+      static bool newDay();                           // Return true if new day has arrived
+      static bool newWeek();                          // Return true if new week has arrived
+      static bool newMonth();                         // Return true if new month has arrived
+      static bool newYear();                          // Return true if new year has arrived
 #endif // DS_CAP_SYS_TIME
 
 #ifdef DS_CAP_SYS_UPTIME
