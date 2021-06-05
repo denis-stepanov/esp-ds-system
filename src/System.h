@@ -43,11 +43,6 @@
 #define DS_CAP_SYS_FS
 #endif // DS_CAP_APP_LOG && !DS_CAP_SYS_FS
 
-#if defined(DS_CAP_WIFIMANAGER) && !defined(DS_CAP_WEBSERVER)
-#warning "Capability DS_CAP_WIFIMANAGER requires DS_CAP_WEBSERVER; enabling"
-#define DS_CAP_WEBSERVER
-#endif // DS_CAP_WIFIMANAGER && !DS_CAP_WEBSERVER
-
 #if defined(DS_CAP_WEB_TIMERS) && !defined(DS_CAP_WEBSERVER)
 #warning "Capability DS_CAP_WEB_TIMERS requires DS_CAP_WEBSERVER; enabling"
 #define DS_CAP_WEBSERVER
