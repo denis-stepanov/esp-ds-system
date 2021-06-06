@@ -53,7 +53,7 @@ void loop() {
     System::log->println(System::getTimeStr());
 
     if (counter++ == 15) {             // After 15 sec, adjust clock to sunrise
-      System::setTime(1000059410);     // Some date around 2001
+      System::setTime(1000099430);     // Some date around 2001
       delay(100);                      // Allow new time to propagate
     }
   }
