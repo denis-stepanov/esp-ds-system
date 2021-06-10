@@ -8,7 +8,8 @@
 using namespace ds;
 
 void printTime() {
-  System::log->printf("Current time (seconds since epoch): %lu\n", System::time);
+  System::log->print("Current time (seconds since epoch): ");
+  System::log->println(System::time);
   System::log->print("Current time (string): ");
   System::log->println(System::getTimeStr());
   System::log->print("Time sync status: ");
