@@ -17,9 +17,9 @@ void setup() {
 void loop() {
   delay(1000);
   if (System::getTimeSyncStatus() == TIME_SYNC_OK) {
-    System::log->printf(TIMED("Current time (UTC): "));
+    System::log->printf(TIMED("Current time: "));
     System::log->print(System::getTimeStr());
-    System::log->print(", boot time (UTC): ");
+    System::log->print(", boot time: ");
     System::log->println(System::getBootTimeStr());
   }
   System::update();
