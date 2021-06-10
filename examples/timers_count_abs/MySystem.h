@@ -4,7 +4,7 @@
 #define DS_CAP_SYS_TIME          // Enable system time
 #define DS_CAP_TIMERS_COUNT_ABS  // Enable countdown timers via absolute time
 
-#define DS_TIMEZONE TZ_Europe_Paris       // My timezone
+#define DS_TIMEZONE TZ_Europe_Paris  // Timezone. Pick yours from TZ.h coming with ESP Core
 
 #include "System.h"         // System global definitions
 
