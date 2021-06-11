@@ -85,6 +85,7 @@ Example: NTP support
 	}
 
 	void loop() {
+	  ds::System::update();
 	}
 
 Output when run:
@@ -92,7 +93,7 @@ Output when run:
 	0000000066: Started
 	0000000067: Connecting to network 'mySSID'... connected. IP address: 192.168.1.2
 	0000005969: Starting NTP client service... OK
-	0000005970: DS System v10000 initialization completed. Configured capabilities: SYS_LOG_HW SYS_TIME SYS_NETWORK
+	0000005970: DS System v10100 initialization completed. Configured capabilities: SYS_LOG_HW SYS_TIME SYS_NETWORK
 	0000007974: System clock set: 2020/10/08 23:30:50
 	Current time: 2020/10/08 23:30:50
 
