@@ -56,7 +56,7 @@ Usage
 	  	...
 		}
 
-Example: NTP support
+Example: NTP Support
 --------------------
 
 `MySystem.h`:
@@ -72,23 +72,25 @@ Example: NTP support
 `sketch.ino`:
 
 	#include "MySystem.h"
+	
+	using namespace ds;
 
 	// Set network parameters
-	const char *ds::System::wifi_ssid = "mySSID";             // Network SSID
-	const char *ds::System::wifi_pass = "myPassword";         // Network password
+	const char *System::wifi_ssid = "mySSID";             // Network SSID
+	const char *System::wifi_pass = "myPassword";         // Network password
 
 	void setup() {
-	  ds::System::begin();
+	  System::begin();
 	  delay(2000);           // Allow time to synchronize
-	  ds::System::log->print("Current time: ");
-	  ds::System::log->println(ds::System::getTimeStr());  
+	  System::log->print("Current time: ");
+	  System::log->println(System::getTimeStr());  
 	}
 
 	void loop() {
-	  ds::System::update();
+	  System::update();
 	}
 
-Output when run:
+That's it! Output when run:
 
 	0000000066: Started
 	0000000067: Connecting to network 'mySSID'... connected. IP address: 192.168.1.2
