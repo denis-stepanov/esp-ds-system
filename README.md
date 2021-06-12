@@ -50,11 +50,11 @@ Usage
 
 		void setup() {
 	  		System::begin();   // Could be omitted for some capabilities
-	  	...
+	  		...
 		}
 
 		void loop() {
-	  	...
+	  		...
 	  		System::update();  // Could be omitted for some capabilities
 		}
 
