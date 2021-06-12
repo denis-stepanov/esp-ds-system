@@ -44,16 +44,18 @@ Usage
 4. Add the following lines in your sketch (.ino):
 
 		#include "MySystem.h"
+		
+		using namespace ds;
 		...
 
 		void setup() {
-	  		ds::System::begin();   // Could be omitted for some capabilities
+	  		System::begin();   // Could be omitted for some capabilities
 	  	...
 		}
 
 		void loop() {
-	  		ds::System::update();  // Could be omitted for some capabilities
 	  	...
+	  		System::update();  // Could be omitted for some capabilities
 		}
 
 Example: NTP Support
