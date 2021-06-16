@@ -2220,11 +2220,14 @@ void System::update() {
     if ((tm_time.tm_hour == 3 && tm_time.tm_min == 30 && tm_time.tm_sec == 0) || time - time_solar_sync > 24 * 60 * 60) {
       time_solar_sync = time;
 #ifdef DS_CAP_SYS_LOG
-      log->printf(TIMED("Recalculating solar events...\n"));
+      log->printf(TIMED("Recalculating solar events... "));
 #endif // DS_CAP_SYS_LOG
       for (auto timer : timers)
         if (timer && (timer->getType() == TIMER_SUNRISE || timer->getType() == TIMER_SUNSET))
           static_cast<TimerSolar *>(timer)->adjust();
+#ifdef DS_CAP_SYS_LOG
+      log->println(F("OK"));
+#endif // DS_CAP_SYS_LOG
     }
 #endif // DS_CAP_TIMERS_SOLAR
 
