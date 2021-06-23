@@ -1642,10 +1642,10 @@ bool TimerSolar::operator!=(const TimerSolar& timer) const {
 }
 
 uint16_t System::getSolarEvent(const timer_type_t ev_type) {
-  struct tm tm_gmt;
 
-  gmtime_r(&time, &tm_gmt);
-  Dusk2Dawn local(DS_LATITUDE, DS_LONGITUDE, (mktime(&tm_time) - mktime(&tm_gmt)) / 60.0 / 60);
+  // Dusk2Dawn expects TZ east to GMT, whereas POSIX TZ goes west, hence the minus sign
+  Dusk2Dawn local(DS_LONGITUDE, DS_LATITUDE, -_timezone / 60.0 / 60);
+
   switch (ev_type) {
 
     case TIMER_SUNRISE:
