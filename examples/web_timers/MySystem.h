@@ -11,8 +11,8 @@
 #define DS_CAP_SYS_FS            // Enable file system (where timer configuration is stored)
 
 #define DS_TIMEZONE TZ_Europe_Paris  // Timezone. Pick yours from TZ.h coming with ESP Core
-#define DS_LATITUDE 48.85863         // My latitude (needed for solar timers)
-#define DS_LONGITUDE 2.29443         // My longitude (needed for solar timers)
+#define DS_LONGITUDE 48.85863        // My longitude (needed for solar timers)
+#define DS_LATITUDE  2.29443         // My latitude (needed for solar timers)
 
 #include "System.h"         // System global definitions
 
