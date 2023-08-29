@@ -734,7 +734,15 @@ void System::serveAbout() {
 
   web_page += TR_BEGIN("Memory Heap Status");
   uint32_t free_mem = 0;
-  uint16_t max_block = 0;
+
+  // See https://github.com/esp8266/Arduino/pull/8440
+  // TODO: the condition to be dropped in the next major version
+#if ARDUINO_ESP8266_MAJOR >= 3 && ARDUINO_ESP8266_MINOR >= 1
+  uint32_t
+#else
+  uint16_t
+#endif // ARDUINO_ESP8266_MAJOR >= 3 && ARDUINO_ESP8266_MINOR >= 1
+    max_block = 0;
   uint8_t frag = 0;
   ESP.getHeapStats(&free_mem, &max_block, &frag);
   web_page += free_mem;
