@@ -1,5 +1,5 @@
 /* DS System implementation
- * (c) DNS 2020-2021
+ * (c) DNS 2020-2023
  */
 
 #include "MySystem.h"        // Read the defined capabilities
@@ -602,6 +602,10 @@ String System::getNetworkConfigPassword() {
 
 #include <ESP8266HTTPClient.h>      // HTTP_CODE_*
 
+#ifndef DS_MAX_WEB_PAGE_SIZE
+#define DS_MAX_WEB_PAGE_SIZE 2048U  // Preallocated web page buffer size (B)
+#endif // DS_MAX_WEB_PAGE_SIZE
+
 ESP8266WebServer System::web_server;
 String System::web_page((char *)nullptr);        // Avoid initial memory allocation
 void (*System::registerWebPages)() __attribute__ ((weak)) = nullptr;
@@ -609,7 +613,6 @@ void (*System::registerWebPages)() __attribute__ ((weak)) = nullptr;
 #ifdef DS_CAP_SYS_FS
 static const char *FAV_ICON_PATH PROGMEM = "/favicon.png"; // Favicon on disk
 #endif // DS_CAP_SYS_FS
-static const size_t MAX_WEB_PAGE_SIZE = 2048;    // Preallocated web page buffer size (B)
 
 #ifdef DS_CAP_WEB_TIMERS
 std::forward_list<String> System::timer_actions; // List of timer actions
@@ -1005,6 +1008,11 @@ void System::sendWebPage() {
 #endif // DS_CAP_SYS_LOG
 
   web_server.send(HTTP_CODE_OK, "text/html", web_page);
+
+  // Special case to release memory when not in use. Use when the app is tight on memory
+#if DS_MAX_WEB_PAGE_SIZE == 0
+  web_page = String();
+#endif // DS_MAX_WEB_PAGE_SIZE == 0
 }
 
 #endif // DS_CAP_WEBSERVER
@@ -2129,7 +2137,9 @@ void System::begin() {
 #ifdef DS_CAP_SYS_LOG
   log->printf(TIMED("Starting web server... "));
 #endif // DS_CAP_SYS_LOG
-  web_page.reserve(MAX_WEB_PAGE_SIZE);
+#if DS_MAX_WEB_PAGE_SIZE > 0
+  web_page.reserve(DS_MAX_WEB_PAGE_SIZE);
+#endif // DS_MAX_WEB_PAGE_SIZE
 
   // Quite counter-intuitively, web server calls the first suitable handler in order of registration, not the last one registered.
   // So register user handlers first, so that they override system handlers
