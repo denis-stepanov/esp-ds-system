@@ -20,7 +20,9 @@ void loop() {
     System::log->printf(TIMED("Current time: "));
     System::log->print(System::getTimeStr());
     System::log->print(", boot time: ");
-    System::log->println(System::getBootTimeStr());
+    System::log->print(System::getBootTimeStr());
+    System::log->print(", boot time (raw): ");
+    System::log->println(System::getBootTime());
   }
   System::update();
 }

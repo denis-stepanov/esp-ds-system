@@ -382,8 +382,10 @@ namespace ds {
 #endif // DS_CAP_SYS_TIME
 
 #ifdef DS_CAP_SYS_UPTIME
+      static time_t getUptime();                      // Return uptime in seconds
       static String getUptimeStr();                   // Return uptime as string
 #ifdef DS_CAP_SYS_TIME
+      static time_t getBootTime();                    // Return boot time
       static String getBootTimeStr();                 // Return boot time string
 #endif // DS_CAP_SYS_TIME
 #endif // DS_CAP_SYS_UPTIME

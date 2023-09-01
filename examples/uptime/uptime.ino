@@ -12,7 +12,10 @@ void setup() {
 
 void loop() {
   System::log->printf(TIMED("Uptime: "));
-  System::log->println(System::getUptimeStr());
+  System::log->print(System::getUptimeStr());
+  System::log->print(" (");
+  System::log->print(System::getUptime());
+  System::log->println(" s)");
   delay(1000);
 
   // There is no strict need to call System::update() in this case
