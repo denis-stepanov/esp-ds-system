@@ -393,7 +393,11 @@ static const unsigned long NETWORK_CONNECT_TIMEOUT = 20000; // (ms)
 #ifdef DS_CAP_SYS_TIME
 #include <sntp.h>            // SNTP server
 
-const char *System::time_server PROGMEM __attribute__ ((weak)) = "pool.ntp.org";
+#ifndef DS_TIME_SERVER
+#define DS_TIME_SERVER "pool.ntp.org"
+#endif // DS_TIME_SERVER
+
+const char *System::time_server PROGMEM __attribute__ ((weak)) = DS_TIME_SERVER;
 #endif // DS_CAP_SYS_TIME
 
 // Connect to a known network. LED can be used to signal connection progress
