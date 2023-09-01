@@ -313,9 +313,15 @@ bool System::newYear() {
 
 #include <uptime.h>                 // https://github.com/YiannisBourkelis/Uptime-Library
 
-// Return uptime as string
-//// Note that in order to count uptime correctly this function has to be called at least once every 49 days (see the library source)
+// Return uptime in seconds
+//// Note that in order to count uptime correctly this (or the xxxStr) function has to be called at least once every 49 days (see the library source)
 //// TODO: add this as a periodic routine
+time_t System::getUptime() {
+  uptime::calculateUptime();
+  return ((uptime::getDays() * 24 + uptime::getHours()) * 60 + uptime::getMinutes()) * 60 + uptime::getSeconds();
+}
+
+// Return uptime as string
 String System::getUptimeStr() {
   String str;
   uptime::calculateUptime();
