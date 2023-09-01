@@ -10,7 +10,7 @@ using namespace ds;
 const char *System::wifi_ssid = "mySSID";             // Network SSID
 const char *System::wifi_pass = "myPassword";         // Network password
 
-// NTP server defaults to pool.ntp.org; it can be overridden as follows
+// NTP server defaults to pool.ntp.org; it can be overridden in the sketch as follows
 // const char *System::time_server = "fr.pool.ntp.org";
 
 void printTime() {
