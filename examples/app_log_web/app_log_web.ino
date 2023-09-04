@@ -26,6 +26,12 @@ void setup() {
   msg = "Log message number 2";
   System::log->println("Example of app log message echoed to syslog:");
   System::appLogWriteLn(msg, true);
+
+  System::log->println("Test of a multi-line message, terminating with a newline...");
+  msg = "Multi-line message: line 1\n"
+        "Multi-line message: line 2\n"
+        "Multi-line message: line 3\n";
+  System::appLogWriteLn(msg, true);
   
   System::log->printf("Open http://%s/log in web browser\n", System::getLocalIPAddress().c_str());
 }

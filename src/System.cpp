@@ -74,18 +74,39 @@ bool System::appLogWriteLn(const String& line, bool copy_to_syslog) {
   String msg;
   if (app_log_size_max) {
 #ifdef DS_CAP_SYS_TIME
-    msg += getTimeStr();
-    msg += F(": ");
+    String prefix(getTimeStr());
+    prefix += F(": ");
+    msg += prefix;
 #endif // DS_CAP_SYS_TIME
     msg += line;
+    msg.trim();
+#ifdef DS_CAP_SYS_TIME
+
+    // Support multi-line messages; both Windows and Unix style
+    prefix = F("\n") + prefix;
+    msg.replace(F("\r\n"), F("\n"));
+    msg.replace(F("\n"), prefix);
+#endif // DS_CAP_SYS_TIME
     ret = app_log.println(msg);
     app_log.flush();
     app_log_size += msg.length();
   }
   if (copy_to_syslog) {
 #ifdef DS_CAP_SYS_LOG
-    log->printf(TIMED(""));
-    log->println(line);
+    msg = line;
+    msg.trim();
+    msg.replace(F("\r\n"), F("\n"));
+    auto lf_idx = -1;
+    do {
+      lf_idx = msg.indexOf('\n');
+      log->printf(TIMED(""));
+      if (lf_idx == -1)
+        log->println(msg);
+      else {
+        log->println(msg.substring(0, lf_idx));
+        msg = msg.substring(lf_idx + 1);
+      }
+    } while (lf_idx != -1);
 #endif // DS_CAP_SYS_LOG
   }
   return ret;
