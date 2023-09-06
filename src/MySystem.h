@@ -31,6 +31,7 @@
 // Customization of capabilities
 
 // #define DS_TIMEZONE TZ_Europe_Paris       // Timezone if system time is used
+// #define DS_TIME_SERVER "pool.ntp.org"     // Custom NTP server
 // #define DS_LATITUDE 51.483611             // Latitude if solar events are used (1 digit after comma is enough)
 // #define DS_LONGITUDE -0.005833            // Longitude if solar events are used (1 digit after comma is enough)
 // #define DS_FS_TYPE LittleFS               // "LittleFS" or "SPIFFS" (without quotes)
