@@ -482,7 +482,7 @@ void System::connectNetwork(
     }
 #ifdef DS_CAP_SYS_LED
     if (led)
-      led->Off().Update();
+      led->Off().Repeat(1).Update();
     if (!networkIsConnected() && led) {
       led->Blink(100, 100).Repeat(3);    // Signal problem with three blinks
       while(led->Update())
