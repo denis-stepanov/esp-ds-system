@@ -37,6 +37,7 @@
 // #define DS_FS_TYPE LittleFS               // "LittleFS" or "SPIFFS" (without quotes)
 // #define DS_LED_VS_SERIAL_CHECKED_OK       // Define if both LED and Serial are used in your ESP-01(S) sketch in non-conflicting way
 // #define DS_UNSTABLE_SERIAL                // Define to skip small delay after syslog initialization, used to get reliable printout after program upload
+// #define DS_MAX_WEB_PAGE_SIZE 2048U        // Define to set the default web page buffer size (B). Set to 0 to avoid any memory reservation
 // #define BUTTON_BUILTIN 0                  // Define if your button is connected to a GPIO other than 0
 
 #include "System.h"         // DS-System global definitions
