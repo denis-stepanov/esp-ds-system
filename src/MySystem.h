@@ -30,7 +30,7 @@
 
 // Customization of capabilities
 
-// #define DS_TIMEZONE TZ_Europe_Paris       // Timezone if system time is used
+// #define DS_TIMEZONE TZ_Etc_UTC            // Timezone if system time is used
 // #define DS_TIME_SERVER "pool.ntp.org"     // Custom NTP server
 // #define DS_LONGITUDE 0                    // Longitude if solar events are used (1 digit after comma is enough)
 // #define DS_LATITUDE 51.48                 // Latitude if solar events are used (1 digit after comma is enough)
