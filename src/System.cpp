@@ -17,14 +17,14 @@ using namespace ds;
 #define DS_TIMEZONE TZ_Etc_UTC
 #endif // DS_CAP_SYS_TIME && !DS_TIMEZONE
 
-#if defined(DS_CAP_TIMERS_SOLAR) && !defined(DS_LATITUDE)
-#warning "Latitude will be set to Greenwich. Define DS_LATITUDE to suppress this warning"
-#define DS_LATITUDE 51.483611
-#endif
-
 #if defined(DS_CAP_TIMERS_SOLAR) && !defined(DS_LONGITUDE)
 #warning "Longitude will be set to Greenwich. Define DS_LONGITUDE to suppress this warning"
-#define DS_LONGITUDE -0.005833
+#define DS_LONGITUDE 0
+#endif
+
+#if defined(DS_CAP_TIMERS_SOLAR) && !defined(DS_LATITUDE)
+#warning "Latitude will be set to Greenwich. Define DS_LATITUDE to suppress this warning"
+#define DS_LATITUDE 51.48
 #endif
 
 #if defined(DS_CAP_SYS_FS) && !defined(DS_FS_TYPE)

@@ -32,8 +32,8 @@
 
 // #define DS_TIMEZONE TZ_Europe_Paris       // Timezone if system time is used
 // #define DS_TIME_SERVER "pool.ntp.org"     // Custom NTP server
-// #define DS_LATITUDE 51.483611             // Latitude if solar events are used (1 digit after comma is enough)
-// #define DS_LONGITUDE -0.005833            // Longitude if solar events are used (1 digit after comma is enough)
+// #define DS_LONGITUDE 0                    // Longitude if solar events are used (1 digit after comma is enough)
+// #define DS_LATITUDE 51.48                 // Latitude if solar events are used (1 digit after comma is enough)
 // #define DS_FS_TYPE LittleFS               // "LittleFS" or "SPIFFS" (without quotes)
 // #define DS_LED_VS_SERIAL_CHECKED_OK       // Define if both LED and Serial are used in your ESP-01(S) sketch in non-conflicting way
 // #define DS_UNSTABLE_SERIAL                // Define to skip small delay after syslog initialization, used to get reliable printout after program upload
