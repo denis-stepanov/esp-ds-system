@@ -869,6 +869,29 @@ void System::serveAbout() {
   web_page += DS_TIMEZONE_STRING;
   web_page += TR_END;
 
+#ifdef DS_CAP_TIMERS_SOLAR
+  web_page += TR_BEGIN("Sunrise Time");
+  auto s_time = getSunrise();
+  if (s_time / 60 < 10)
+    web_page += F("0");
+  web_page += s_time / 60;
+  web_page += F(":");
+  if (s_time % 60 < 10)
+    web_page += F("0");
+  web_page += s_time % 60;
+  web_page += TR_END;
+  web_page += TR_BEGIN("Sunset Time");
+  s_time = getSunset();
+  if (s_time / 60 < 10)
+    web_page += F("0");
+  web_page += s_time / 60;
+  web_page += F(":");
+  if (s_time % 60 < 10)
+    web_page += F("0");
+  web_page += s_time % 60;
+  web_page += TR_END;
+#endif // DS_CAP_TIMERS_SOLAR
+
   web_page += TR_BEGIN("Time Sync Status");
   auto sync_status = getTimeSyncStatus();
   switch (sync_status) {
@@ -896,6 +919,15 @@ void System::serveAbout() {
 #endif // DS_CAP_SYS_TIME
   web_page += TR_END;
 #endif // DS_CAP_SYS_UPTIME
+
+#ifdef DS_CAP_TIMERS_SOLAR
+  web_page += TR_BEGIN("System Longitude");
+  web_page += DS_LONGITUDE;
+  web_page += TR_END;
+  web_page += TR_BEGIN("System Latitude");
+  web_page += DS_LATITUDE;
+  web_page += TR_END;
+#endif // DS_CAP_TIMERS_SOLAR
 
 #ifdef DS_CAP_SYS_LOG_HW
   web_page += TR_BEGIN("Serial Log Link");
