@@ -212,6 +212,7 @@ void System::timeSyncHandler() {
   // Update cached values
   ::time(&time);
   localtime_r(&time, &tm_time);
+  time_sync_status = TIME_SYNC_OK;
 
 #ifdef DS_CAP_SYS_LOG
   log->printf(TIMED("System clock %s: %s\n"), time_sync_time ? "updated" : "set", getTimeStr().c_str());
@@ -231,7 +232,6 @@ void System::timeSyncHandler() {
   }
 #endif // DS_CAP_APP_LOG
   time_sync_time = time;
-  time_sync_status = TIME_SYNC_OK;
 
   // Call the user hook
   if (onTimeSync)
@@ -277,7 +277,7 @@ void System::setTime(const time_t new_time) {
 
 // Return current time string
 String System::getTimeStr() {
-  return time ? getTimeStr(time) : F("----/--/-- --:--:--");
+  return time_sync_status != TIME_SYNC_NONE ? getTimeStr(time) : F("----/--/-- --:--:--");
 }
 
 // Return time string for a given time
@@ -373,7 +373,7 @@ String System::getUptimeStr() {
 #ifdef DS_CAP_SYS_TIME
 // Return boot time
 time_t System::getBootTime() {
-  if (time) {
+  if (time_sync_status != TIME_SYNC_NONE) {
     uptime::calculateUptime();
     return time - (((uptime::getDays() * 24 + uptime::getHours()) * 60 + uptime::getMinutes()) * 60 + uptime::getSeconds());
   } else
