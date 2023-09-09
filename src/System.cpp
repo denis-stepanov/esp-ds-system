@@ -920,6 +920,15 @@ void System::serveAbout() {
   web_page += TR_END;
 #endif // DS_CAP_SYS_UPTIME
 
+#ifdef DS_CAP_TIMERS_SOLAR
+  web_page += TR_BEGIN("System Longitude");
+  web_page += DS_LONGITUDE;
+  web_page += TR_END;
+  web_page += TR_BEGIN("System Latitude");
+  web_page += DS_LATITUDE;
+  web_page += TR_END;
+#endif // DS_CAP_TIMERS_SOLAR
+
 #ifdef DS_CAP_SYS_LOG_HW
   web_page += TR_BEGIN("Serial Log Link");
   web_page += LOG_SPEED;
